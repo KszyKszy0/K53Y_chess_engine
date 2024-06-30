@@ -10,16 +10,30 @@ using namespace std;
 
 
 
-    inline Bitboard BB_utils::setBit(Bitboard bb, int index) {
-        return bb | (1ULL << index);
+    inline void BB_utils::setBit(Bitboard &bb, int index) {
+        bb = bb | (1ULL << index);
     }
 
-    inline Bitboard BB_utils::clearBit(Bitboard bb, int index) {
-        return bb & ~(1ULL << index);
+    inline void BB_utils::clearBit(Bitboard &bb, int index) {
+        bb = bb & ~(1ULL << index);
+    }
+
+    inline void BB_utils::toggleBit(Bitboard &bb, int index) {
+        bb = bb ^(1ULL << index);
     }
 
     inline bool BB_utils::isBitSet(Bitboard bb, int index) {
         return (bb >> index) & 1ULL;
+    }
+
+    inline int BB_utils::popLSB(Bitboard &bb) {
+        int index = LSB(bb);
+        bb &= bb - 1;
+        return index;
+    }
+
+    inline int BB_utils::LSB(Bitboard &bb){
+        return __builtin_clzll(bb);
     }
 
     void BB_utils::printBitboard(Bitboard bb) {
@@ -44,14 +58,14 @@ using namespace std;
     // a-h (horyzontalny ruch, pomijając skrajne pola)
     for (int f = 1; f < 7; ++f) {
         if (f != file) {
-            moves = setBit(moves, rank * 8 + f);
+            setBit(moves, rank * 8 + f);
         }
     }
 
     // 1-8 (wertykalny ruch, pomijając skrajne pola)
     for (int r = 1; r < 7; ++r) {
         if (r != rank) {
-            moves = setBit(moves, r * 8 + file);
+            setBit(moves, r * 8 + file);
         }
     }
 
@@ -67,10 +81,10 @@ using namespace std;
 
     // all diagonals, pomijając skrajne pola
     for (int d = 1; d < 7; ++d) {
-        if (rank + d < 7 && file + d < 7) moves = setBit(moves, (rank + d) * 8 + (file + d));
-        if (rank + d < 7 && file - d > 0) moves = setBit(moves, (rank + d) * 8 + (file - d));
-        if (rank - d > 0 && file + d < 7) moves = setBit(moves, (rank - d) * 8 + (file + d));
-        if (rank - d > 0 && file - d > 0) moves = setBit(moves, (rank - d) * 8 + (file - d));
+        if (rank + d < 7 && file + d < 7) setBit(moves, (rank + d) * 8 + (file + d));
+        if (rank + d < 7 && file - d > 0) setBit(moves, (rank + d) * 8 + (file - d));
+        if (rank - d > 0 && file + d < 7) setBit(moves, (rank - d) * 8 + (file + d));
+        if (rank - d > 0 && file - d > 0) setBit(moves, (rank - d) * 8 + (file - d));
     }
 
     return moves;
@@ -91,7 +105,7 @@ using namespace std;
         int newRank = rank + move[0];
         int newFile = file + move[1];
         if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) {
-            moves = setBit(moves, newRank * 8 + newFile);
+            setBit(moves, newRank * 8 + newFile);
         }
     }
 
@@ -147,7 +161,7 @@ using namespace std;
             for (int j = 0; j < BOARD_SIZE; ++j) {
                 if (BB_utils::isBitSet(attackSet, j)) {
                     if (i & (1 << bitIndex)) {
-                        blockerSet = BB_utils::setBit(blockerSet, j);
+                        BB_utils::setBit(blockerSet, j);
                     }
                     ++bitIndex;
                 }
@@ -167,20 +181,20 @@ using namespace std;
         int startFile = std::min(file1, file2) + 1;
         int endFile = std::max(file1, file2);
         for (int file = startFile; file < endFile; ++file) {
-            mask = setBit(mask, rank1 * 8 + file);
+            setBit(mask, rank1 * 8 + file);
         }
     } else if (file1 == file2) {  // Ta sama kolumna (wertykalny ruch)
         int startRank = std::min(rank1, rank2) + 1;
         int endRank = std::max(rank1, rank2);
         for (int rank = startRank; rank < endRank; ++rank) {
-            mask = setBit(mask, rank * 8 + file1);
+            setBit(mask, rank * 8 + file1);
         }
     } else if (std::abs(rank1 - rank2) == std::abs(file1 - file2)) {  // Ta sama przekątna
         int rankStep = (rank2 > rank1) ? 1 : -1;
         int fileStep = (file2 > file1) ? 1 : -1;
         int rank = rank1 + rankStep, file = file1 + fileStep;
         while (rank != rank2 && file != file2) {
-            mask = setBit(mask, rank * 8 + file);
+            setBit(mask, rank * 8 + file);
             rank += rankStep;
             file += fileStep;
         }
@@ -209,7 +223,7 @@ using namespace std;
             int newRank = rank + r;
             int newFile = file + f;
             if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) {
-                moves = setBit(moves, newRank * 8 + newFile);
+                setBit(moves, newRank * 8 + newFile);
             }
         }
     }
@@ -227,16 +241,16 @@ using namespace std;
         // Poruszanie do przodu
         if (isWhite) {
             if (rank < 7) {
-                moves = setBit(moves, (rank + 1) * 8 + file);
+                setBit(moves, (rank + 1) * 8 + file);
                 if (rank == 1) { // Podwójny ruch z drugiego rzędu
-                    moves = setBit(moves, (rank + 2) * 8 + file);
+                    setBit(moves, (rank + 2) * 8 + file);
                 }
             }
         } else {
             if (rank > 0) {
-                moves = setBit(moves, (rank - 1) * 8 + file);
+                setBit(moves, (rank - 1) * 8 + file);
                 if (rank == 6) { // Podwójny ruch z siódmego rzędu
-                    moves = setBit(moves, (rank - 2) * 8 + file);
+                    setBit(moves, (rank - 2) * 8 + file);
                 }
             }
         }
@@ -244,17 +258,17 @@ using namespace std;
         // Bicie
         if (isWhite) {
             if (rank < 7 && file > 0) {
-                attacks = setBit(attacks, (rank + 1) * 8 + (file - 1));
+                setBit(attacks, (rank + 1) * 8 + (file - 1));
             }
             if (rank < 7 && file < 7) {
-                attacks = setBit(attacks, (rank + 1) * 8 + (file + 1));
+                setBit(attacks, (rank + 1) * 8 + (file + 1));
             }
         } else {
             if (rank > 0 && file > 0) {
-                attacks = setBit(attacks, (rank - 1) * 8 + (file - 1));
+                setBit(attacks, (rank - 1) * 8 + (file - 1));
             }
             if (rank > 0 && file < 7) {
-                attacks = setBit(attacks, (rank - 1) * 8 + (file + 1));
+                setBit(attacks, (rank - 1) * 8 + (file + 1));
             }
         }
 

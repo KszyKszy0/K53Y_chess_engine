@@ -13,11 +13,17 @@ class BB_utils
 {
     public:
 
-inline Bitboard setBit(Bitboard bb, int index);
+inline void setBit(Bitboard &bb, int index);
 
-inline Bitboard clearBit(Bitboard bb, int index);
+inline void clearBit(Bitboard &bb, int index);
+
+inline void toggleBit(Bitboard &bb, int index);
 
 inline bool isBitSet(Bitboard bb, int index);
+
+inline int popLSB(Bitboard &bb);
+
+inline int LSB(Bitboard &bb);
 
 void printBitboard(Bitboard bb);
 

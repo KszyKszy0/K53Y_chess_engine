@@ -23,6 +23,7 @@ int main()
     for(int i=0; i<=14; i++)
     {
         BB_manager.printBitboard(newGame.piecesBitboards[i]);
+        
         cout<<endl;
     }
     return 0;
