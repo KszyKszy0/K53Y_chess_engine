@@ -36,6 +36,15 @@ using namespace std;
         return __builtin_clzll(bb);
     }
 
+    int BB_utils::popCount (Bitboard x) {
+        int count = 0;
+        while (x) {
+        count++;
+        x &= x - 1; 
+        }
+        return count;
+    }
+
     void BB_utils::printBitboard(Bitboard bb) {
     for (int rank = 7; rank >= 0; --rank) {
         for (int file = 0; file < 8; ++file) {

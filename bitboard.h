@@ -25,6 +25,8 @@ inline int popLSB(Bitboard &bb);
 
 inline int LSB(Bitboard &bb);
 
+int popCount (Bitboard x);
+
 void printBitboard(Bitboard bb);
 
 Bitboard generateRookMoves(int square);
