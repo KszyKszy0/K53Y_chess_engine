@@ -1,8 +1,10 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <stdint.h>
+#include "enums.h"
 
-typedef unsigned long long Bitboard;
+typedef uint64_t Bitboard;
 
 #define BOARD_SIZE 64
 
@@ -60,6 +62,25 @@ Bitboard whitePawnCaptures[64];
 
 Bitboard blackPawnMoves[64];
 Bitboard blackPawnCaptures[64];
+
+// Bitboard rookMoves[64][4096];
+// Bitboard bishopMoves[64][512];
+
+void initRookAttacks();
+void initBishopAttacks();
+
+inline int getMagicIndex(Bitboard blockers, Bitboard magic, int bits);
+
+Bitboard generateRookBitboardAttacksBlockers(int sq, Bitboard blockers);
+
+Bitboard generateBishopBitboardAttacksBlockers(int sq, Bitboard blockers);
+
+Bitboard rooksMagics[64];
+Bitboard bishopsMagics[64];
+int rookBits[64];
+int bishopBits[64];
+
+void magicInit();
 
 };
 

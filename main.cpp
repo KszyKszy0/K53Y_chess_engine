@@ -11,7 +11,7 @@ using namespace std;
 int main()
 {
     BB_utils BB_manager;
-
+    cout<<"asd";
     BB_manager.init_bb();
     
     Position newGame;
