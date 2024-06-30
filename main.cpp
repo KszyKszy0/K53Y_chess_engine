@@ -11,14 +11,12 @@ using namespace std;
 int main()
 {
     BB_utils BB_manager;
-    cout<<"asd";
+
     BB_manager.init_bb();
     
     Position newGame;
 
     newGame.parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", newGame.piecesBitboards);
-
-    cout<<newGame.piecesBitboards[0];
 
     for(int i=0; i<=14; i++)
     {
@@ -26,5 +24,6 @@ int main()
         
         cout<<endl;
     }
+    
     return 0;
 }
