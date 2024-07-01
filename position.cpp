@@ -20,6 +20,10 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[15])
     int rank = 7;
     int file = 0;
 
+    STM = turn == "w" ? WHITE : BLACK; 
+
+    
+
     for (char ch : board)
     {
         if (ch == '/')

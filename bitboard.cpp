@@ -120,7 +120,7 @@ void printBitboard(Bitboard bb)                                     //Print bitb
     {
         Bitboard rookMoves[BOARD_SIZE];
         Bitboard bishopMoves[BOARD_SIZE];
-        Bitboard knightMoves[BOARD_SIZE];
+        
 
         
 

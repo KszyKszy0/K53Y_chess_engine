@@ -68,6 +68,7 @@ void generatePawnMoves(Bitboard (&pawnMove)[64], Bitboard (&pawnAttack)[64], boo
 
 
 Bitboard kingMoves[64];                                             //Array for king moves
+Bitboard knightMoves[64];
 
 Bitboard whitePawnMoves[64];                                        //Array for white pawn moves
 Bitboard whitePawnCaptures[64];                                     //Array for white pawn captures
