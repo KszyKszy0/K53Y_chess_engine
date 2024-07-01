@@ -21,7 +21,7 @@ bool isBitSet(Bitboard bb, int index)                        //Check if bit is s
 { return (bb >> index) & 1ULL; }
 
 int LSB(Bitboard &bb)                                        //Returns index of LSB
-{ return __builtin_clzll(bb); }
+{ return __builtin_ctzll(bb); }
 
 int popLSB(Bitboard &bb)                                     //Returns index of LSB and removes it
 {
