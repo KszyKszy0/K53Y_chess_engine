@@ -11,7 +11,7 @@ using namespace std;
 
 
 
-    inline void BB_utils::setBit(Bitboard &bb, int index) {
+    void BB_utils::setBit(Bitboard &bb, int index) {
         bb = bb | (1ULL << index);
     }
 
@@ -65,14 +65,14 @@ using namespace std;
     int rank = square / 8;
     int file = square % 8;
 
-    // a-h (horyzontalny ruch, pomijając skrajne pola)
+    // a-h (horizontal move, skipping edges)
     for (int f = 1; f < 7; ++f) {
         if (f != file) {
             setBit(moves, rank * 8 + f);
         }
     }
 
-    // 1-8 (wertykalny ruch, pomijając skrajne pola)
+    // 1-8 (vertical move, skipping edges)
     for (int r = 1; r < 7; ++r) {
         if (r != rank) {
             setBit(moves, r * 8 + file);
@@ -141,9 +141,6 @@ using namespace std;
 
             rookBlockers.push_back(generateBlockers(rookMoves[square]));
 
-            
-            // rook_blockers[square] = (generateBlockers(rookMoves[square]));
-            // bishop_blockers[square] = generateBlockers(bishopMoves[square]);
         }
 
         

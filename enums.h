@@ -21,26 +21,3 @@ enum enumSquares {
   a7, b7, c7, d7, e7, f7, g7, h7,
   a8, b8, c8, d8, e8, f8, g8, h8
 };
-
-
-enum MoveFlag
-{
-    QUIET,
-    PAWN_DOUBLE_MOVE,
-    SHORT_CASTLE,
-    LONG_CASTLE,
-    CAPTURE,
-    EN_PASSANT = 5,
-
-    EMPTY_1 = 6,
-    EMPTY_2 = 7,
-
-    KNIGHT_PROMOTION = 8,
-    BISHOP_PROMOTION,
-    ROOK_PROMOTION,
-    QUEEN_PROMOTION,
-    KNIGHT_PROMOTION_CAPTURE,
-    BISHOP_PROMOTION_CAPTURE,
-    ROOK_PROMOTION_CAPTURE,
-    QUEEN_PROMOTION_CAPTURE
-};

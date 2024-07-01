@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include "position.h"
-
+#include "move.h"
 
 using namespace std;
 
@@ -25,5 +25,8 @@ int main()
         cout<<endl;
     }
     
+    Move_utils mover;
+    Move test = mover.createMove(a2,a4,0);
+    cout<<test;
     return 0;
 }
