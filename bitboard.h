@@ -11,25 +11,34 @@ typedef uint64_t Bitboard;
 using namespace std;
 
 
+void setBit(Bitboard &bb, int index);                          //Sets bit at index to 1
+
+
+void clearBit(Bitboard &bb, int index);                       //Sets bit at index to 0
+
+
+void toggleBit(Bitboard &bb, int index);                      //Toggles bit between 0 and 1
+
+
+bool isBitSet(Bitboard bb, int index);                        //Check if bit is set to 1
+
+
+int LSB(Bitboard &bb);                                        //Returns index of LSB
+
+
+int popLSB(Bitboard &bb);                                     //Returns index of LSB and removes it
+
+
+int popCount (Bitboard x);                                           //Number of set bits
+
+
+void printBitboard(Bitboard bb);                                     //Print bitboards in 8x8 format
+
+
+
 class BB_utils
 {
     public:
-
-void setBit(Bitboard &bb, int index);                        //Sets bit at index to 1
-
-inline void clearBit(Bitboard &bb, int index);                      //Sets bit at index to 0
-
-inline void toggleBit(Bitboard &bb, int index);                     //Toggles bit between 0 and 1
-
-inline bool isBitSet(Bitboard bb, int index);                       //Check if bit is set to 1
-
-inline int LSB(Bitboard &bb);                                       //Returns index of LSB
-
-inline int popLSB(Bitboard &bb);                                    //Returns index of LSB and removes it
-
-int popCount (Bitboard x);                                          //Number of set bits
-
-void printBitboard(Bitboard bb);                                    //Print bitboards in 8x8 format
 
 Bitboard generateRookMoves(int square);                             //Mask for square
 

@@ -25,8 +25,8 @@ enum MoveFlag
     QUEEN_PROMOTION_CAPTURE
 };
 
-class Move_utils
-{
-    public:
-    Move createMove(int startSquare, int targetSquare, int flags);
-};
+
+
+inline Move createMove(int startSquare, int targetSquare, int flags){
+    return startSquare + (targetSquare << 6) + (flags << 12);
+}

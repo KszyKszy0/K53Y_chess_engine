@@ -4,6 +4,7 @@
 #include <vector>
 #include "position.h"
 #include "move.h"
+#include "movegen.h"
 
 using namespace std;
 
@@ -20,13 +21,23 @@ int main()
 
     for(int i=0; i<=14; i++)
     {
-        BB_manager.printBitboard(newGame.piecesBitboards[i]);
+        printBitboard(newGame.piecesBitboards[i]);
         
         cout<<endl;
     }
     
-    Move_utils mover;
-    Move test = mover.createMove(a2,a4,0);
+    
+    Move test = createMove(a2,a4,3);
     cout<<test;
+
+    MoveGenerator generator(BB_manager);
+
+    generator.generateMoves(newGame);
+    
+    for(Move m : generator.movesList)
+    {
+        cout<<m<<endl;
+    }
+
     return 0;
 }

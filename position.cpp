@@ -5,7 +5,6 @@ using namespace std;
 
 void Position::parseFEN(string fen, Bitboard (&bitboards)[15])
 {
-    BB_utils helper;
     for (int i = 0; i < 13; i++)
     {
         bitboards[i] = 0ULL;
@@ -39,40 +38,40 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[15])
             switch (ch)
             {
             case 'P':
-                helper.setBit(bitboards[WHITE_PAWN], position);
+                setBit(bitboards[WHITE_PAWN], position);
                 break;
             case 'N':
-                helper.setBit(bitboards[WHITE_KNIGHT], position);
+                setBit(bitboards[WHITE_KNIGHT], position);
                 break;
             case 'B':
-                helper.setBit(bitboards[WHITE_BISHOP], position);
+                setBit(bitboards[WHITE_BISHOP], position);
                 break;
             case 'R':
-                helper.setBit(bitboards[WHITE_ROOK], position);
+                setBit(bitboards[WHITE_ROOK], position);
                 break;
             case 'Q':
-                helper.setBit(bitboards[WHITE_QUEEN], position);
+                setBit(bitboards[WHITE_QUEEN], position);
                 break;
             case 'K':
-                helper.setBit(bitboards[WHITE_KING], position);
+                setBit(bitboards[WHITE_KING], position);
                 break;
             case 'p':
-                helper.setBit(bitboards[BLACK_PAWN], position);
+                setBit(bitboards[BLACK_PAWN], position);
                 break;
             case 'n':
-                helper.setBit(bitboards[BLACK_KNIGHT], position);
+                setBit(bitboards[BLACK_KNIGHT], position);
                 break;
             case 'b':
-                helper.setBit(bitboards[BLACK_BISHOP], position);
+                setBit(bitboards[BLACK_BISHOP], position);
                 break;
             case 'r':
-                helper.setBit(bitboards[BLACK_ROOK], position);
+                setBit(bitboards[BLACK_ROOK], position);
                 break;
             case 'q':
-                helper.setBit(bitboards[BLACK_QUEEN], position);
+                setBit(bitboards[BLACK_QUEEN], position);
                 break;
             case 'k':
-                helper.setBit(bitboards[BLACK_KING], position);
+                setBit(bitboards[BLACK_KING], position);
                 break;
             }
             file++;

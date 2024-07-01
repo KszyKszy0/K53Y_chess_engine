@@ -3,61 +3,54 @@
 #include "enums.h"
 #include <string>
 #include <vector>
-typedef unsigned long long Bitboard;
 
-#define BOARD_SIZE 64
+
 
 using namespace std;
 
+void setBit(Bitboard &bb, int index)                                //Sets bit at index to 1
+{ bb = bb | (1ULL << index); }
 
+void clearBit(Bitboard &bb, int index)                       //Sets bit at index to 0
+{ bb = bb & ~(1ULL << index); }
 
-    void BB_utils::setBit(Bitboard &bb, int index) {
-        bb = bb | (1ULL << index);
+void toggleBit(Bitboard &bb, int index)                      //Toggles bit between 0 and 1
+{ bb = bb ^(1ULL << index); }
+
+bool isBitSet(Bitboard bb, int index)                        //Check if bit is set to 1
+{ return (bb >> index) & 1ULL; }
+
+int LSB(Bitboard &bb)                                        //Returns index of LSB
+{ return __builtin_clzll(bb); }
+
+int popLSB(Bitboard &bb)                                     //Returns index of LSB and removes it
+{
+    int index = LSB(bb);    
+    bb &= bb - 1;
+    return index;
+}
+
+int popCount (Bitboard x)                                           //Number of set bits
+{
+    int count = 0;
+    while (x) {
+    count++;
+    x &= x - 1; 
     }
+    return count;
+}
 
-    inline void BB_utils::clearBit(Bitboard &bb, int index) {
-        bb = bb & ~(1ULL << index);
-    }
-
-    inline void BB_utils::toggleBit(Bitboard &bb, int index) {
-        bb = bb ^(1ULL << index);
-    }
-
-    inline bool BB_utils::isBitSet(Bitboard bb, int index) {
-        return (bb >> index) & 1ULL;
-    }
-
-    inline int BB_utils::popLSB(Bitboard &bb) {
-        int index = LSB(bb);
-        bb &= bb - 1;
-        return index;
-    }
-
-    inline int BB_utils::LSB(Bitboard &bb){
-        return __builtin_clzll(bb);
-    }
-
-    int BB_utils::popCount (Bitboard x) {
-        int count = 0;
-        while (x) {
-        count++;
-        x &= x - 1; 
-        }
-        return count;
-    }
-
-    void BB_utils::printBitboard(Bitboard bb) {
-    for (int rank = 7; rank >= 0; --rank) {
+void printBitboard(Bitboard bb)                                     //Print bitboards in 8x8 format
+{
+  for (int rank = 7; rank >= 0; --rank) {
         for (int file = 0; file < 8; ++file) {
             int index = rank * 8 + file;
-            cout << (BB_utils::isBitSet(bb, index) ? '1' : '0') << ' ';
+            cout << (isBitSet(bb, index) ? '1' : '0') << ' ';
         }
         cout << '\n';
     }
     cout<< '\n';
-    }
-
-
+}
 
     //rook moves
     Bitboard BB_utils::generateRookMoves(int square) {
@@ -157,7 +150,7 @@ using namespace std;
 
 
         for (int i = 0; i < BOARD_SIZE; ++i) {
-            if (BB_utils::isBitSet(attackSet, i)) {
+            if (isBitSet(attackSet, i)) {
                 ++count;
             }
         }
@@ -168,9 +161,9 @@ using namespace std;
             Bitboard blockerSet = 0ULL;
             int bitIndex = 0;
             for (int j = 0; j < BOARD_SIZE; ++j) {
-                if (BB_utils::isBitSet(attackSet, j)) {
+                if (isBitSet(attackSet, j)) {
                     if (i & (1 << bitIndex)) {
-                        BB_utils::setBit(blockerSet, j);
+                        setBit(blockerSet, j);
                     }
                     ++bitIndex;
                 }
