@@ -10,221 +10,257 @@ typedef uint64_t Bitboard;
 
 using namespace std;
 
+//Sets bit at index to 1
+void setBit(Bitboard &bb, int index);
 
-void setBit(Bitboard &bb, int index);                          //Sets bit at index to 1
+//Sets bit at index to 0
+void clearBit(Bitboard &bb, int index);
 
+//Toggles bit between 0 and 1
+void toggleBit(Bitboard &bb, int index);
 
-void clearBit(Bitboard &bb, int index);                       //Sets bit at index to 0
+//Check if bit is set to 1
+bool isBitSet(Bitboard bb, int index);
 
+//Returns index of LSB
+int LSB(Bitboard &bb);
 
-void toggleBit(Bitboard &bb, int index);                      //Toggles bit between 0 and 1
+//Returns index of LSB and removes it
+int popLSB(Bitboard &bb);
 
+//Number of set bits
+int popCount (Bitboard x);
 
-bool isBitSet(Bitboard bb, int index);                        //Check if bit is set to 1
+//Print bitboards in 8x8 format
+void printBitboard(Bitboard bb);
 
-
-int LSB(Bitboard &bb);                                        //Returns index of LSB
-
-
-int popLSB(Bitboard &bb);                                     //Returns index of LSB and removes it
-
-
-int popCount (Bitboard x);                                           //Number of set bits
-
-
-void printBitboard(Bitboard bb);                                     //Print bitboards in 8x8 format
-
-
+//Print array in 8x8 format
+void printPieceArray(int array[64]);
 
 class BB_utils
 {
     public:
 
-Bitboard generateRookMoves(int square);                             //Mask for square
+//Mask for square
+Bitboard generateRookMoves(int square);
 
-Bitboard generateBishopMoves(int square);                           //Mask for square
+//Mask for square
+Bitboard generateBishopMoves(int square);
 
-Bitboard generateKnightMoves(int square);                           //Direct moves of knight from square BB
+//Direct moves of knight from square BB
+Bitboard generateKnightMoves(int square);
 
-void init_bb();                                                     //Setup of all BB (magic, moves, pieces)
+//Setup of all BB (magic, moves, pieces)
+void init_bb();
 
-vector<Bitboard> generateBlockers(Bitboard attackSet);              //Blocker generation for mask
+//Blocker generation for mask
+vector<Bitboard> generateBlockers(Bitboard attackSet);
 
-vector<vector<Bitboard>> bishopBlockers;                            //List of all blockers for all squares
+//List of all blockers for all squares
+vector<vector<Bitboard>> bishopBlockers;
 
-vector<vector<Bitboard>> rookBlockers;                              //List of all blockers for all squares
+//List of all blockers for all squares
+vector<vector<Bitboard>> rookBlockers;
 
-Bitboard generateRectangularMask(int square1, int square2);         //Squares between two squares (legality detection)
+//Squares between two squares (legality detection)
+Bitboard generateRectangularMask(int square1, int square2);
 
-void generateRectangularLookup(Bitboard (&lookup)[64][64]);         //Generation of rectangular lookup
+//Generation of rectangular lookup
+void generateRectangularLookup(Bitboard (&lookup)[64][64]);
 
-Bitboard rectangularLookup[64][64];                                 //Array for rectangular lookup
+//Array for rectangular lookup
+Bitboard rectangularLookup[64][64];
 
-Bitboard generateKingMoves(int square);                             //Direct moves of king from square BB
+//Direct moves of king from square BB
+Bitboard generateKingMoves(int square);
+
 
 
 // Generates pawn moves for color then captures
-void generatePawnMoves(Bitboard (&pawnMove)[64], Bitboard (&pawnAttack)[64], bool isWhite);   
+void generatePawnMoves(Bitboard (&pawnMove)[64], Bitboard (&pawnAttack)[64], bool isWhite);
 
+//Array for king moves
+Bitboard kingMoves[64];
 
-Bitboard kingMoves[64];                                             //Array for king moves
+//Array for knight moves
 Bitboard knightMoves[64];
 
-Bitboard whitePawnMoves[64];                                        //Array for white pawn moves
-Bitboard whitePawnCaptures[64];                                     //Array for white pawn captures
+//Array for white pawn moves
+Bitboard whitePawnMoves[64];
 
-Bitboard blackPawnMoves[64];                                        //Array for black pawn moves
-Bitboard blackPawnCaptures[64];                                     //Array for black pawn captures
+//Array for white pawn captures
+Bitboard whitePawnCaptures[64];
 
-vector<vector<Bitboard>> bishopMoves;                               //Vector of legal bishop moves[square][magic]
+//Array for black pawn moves
+Bitboard blackPawnMoves[64];
 
-vector<vector<Bitboard>> rookMoves;                                 //Vector of legal rook moves[square][magic]
+//Array for black pawn captures
+Bitboard blackPawnCaptures[64];
 
-void initRookAttacks();                                             //Init magic rook vector
-void initBishopAttacks();                                           //Init magic bishop vector
+//Vector of legal bishop moves[square][magic]
+vector<vector<Bitboard>> bishopMoves;
 
-inline int getMagicIndex(Bitboard blockers, Bitboard magic, int bits);        //Magic index conversion
+//Vector of legal rook moves[square][magic]
+vector<vector<Bitboard>> rookMoves;
 
-Bitboard generateRookBitboardAttacksBlockers(int sq, Bitboard blockers);      //BB moves for rook blockers mask
+//Init magic rook vector
+void initRookAttacks();
 
-Bitboard generateBishopBitboardAttacksBlockers(int sq, Bitboard blockers);    //BB moves for bishop blockers mask
+//Init magic bishop vector
+void initBishopAttacks();
+
+//Magic index conversion
+inline int getMagicIndex(Bitboard blockers, Bitboard magic, int bits);
+
+//BB moves for rook blockers mask
+Bitboard generateRookBitboardAttacksBlockers(int sq, Bitboard blockers);
+
+//BB moves for bishop blockers mask
+Bitboard generateBishopBitboardAttacksBlockers(int sq, Bitboard blockers);
+
+//Movement mask without edges
+Bitboard rookMasks[64];
+
+//Movement mask without edges
+Bitboard bishopMasks[64];
 
 
 //Magics and bits shift
+
 Bitboard rooksMagics[64]=
 {
-  0xc80001828100040,
-  0x26004408400010,
-  0x1060040000202048,
-  0x110141100800888,
-  0x84420501a000802,
-  0x1803002905002224,
-  0x104380106000182,
-  0x208201001041,
-  0x4080118100002020,
-  0x1c40120100004020,
-  0x1009040000802020,
-  0x884002800841010,
-  0x2220068801201011,
-  0x1911442000004022,
-  0x4020802010011,
-  0x220004400102001,
-  0x4009608000842280,
-  0x4060104318400210,
-  0x811002400040020,
-  0x4801520000c41010,
-  0x4280020022204,
-  0x413000408404041,
-  0xc028800000101,
-  0x100400e904000201,
-  0x3800242000100a5,
-  0xc0008008210321,
-  0x2003002400001261,
-  0x410028894a041001,
-  0x800041040002901,
-  0x1002080204080e,
-  0x22218040040401,
-  0x24084103280482,
-  0x20002020801040,
-  0x1020200020400812,
-  0x4082000000c0061,
-  0x4042024001200804,
-  0x5040040000024188,
-  0x100040008101a13,
-  0x408108018080802,
-  0x80408064000041,
-  0x850400821800120,
-  0x8100240008480b,
-  0x6008080001100241,
-  0x1eb0100200110248,
-  0x30202216010004,
-  0x802021000c6142,
-  0x32200444020410a,
-  0xa0202004580041,
-  0x80410000406180,
-  0x8220200002040a3,
-  0x93000200a002804,
-  0x40080080010010b2,
-  0x40080101012a1304,
-  0x4041000001012,
-  0x10001000e840482,
-  0xc04020200004885,
-  0x1080006110001041,
-  0x2081211102084250,
-  0x1020001500014619,
-  0x3810440a10000c23,
-  0x410484200860422,
-  0x180b0201090b2004,
-  0x1100040124410282,
-  0x1820a101000443,
+  0x80004000976080,
+  0x1040400010002000,
+  0x4880200210000980,
+  0x5280080010000482,
+  0x200040200081020,
+  0x2100080100020400,
+  0x4280008001000200,
+  0x1000a4425820300,
+  0x29002100800040,
+  0x4503400040201004,
+  0x209002001004018,
+  0x1131000a10002100,
+  0x9000800120500,
+  0x10e001804820010,
+  0x29000402000100,
+  0x2002000d01c40292,
+  0x80084000200c40,
+  0x10004040002002,
+  0x201030020004014,
+  0x80012000a420020,
+  0x129010008001204,
+  0x6109010008040002,
+  0x950010100020004,
+  0x803a0000c50284,
+  0x80004100210080,
+  0x200240100140,
+  0x20004040100800,
+  0x4018090300201000,
+  0x4802010a00102004,
+  0x2001000900040002,
+  0x4a02104001002a8,
+  0x2188108200204401,
+  0x40400020800080,
+  0x880402000401004,
+  0x10040800202000,
+  0x604410a02001020,
+  0x200200206a001410,
+  0x86000400810080,
+  0x428200040600080b,
+  0x2001000041000082,
+  0x80002000484000,
+  0x210002002c24000,
+  0x401a200100410014,
+  0x5021000a30009,
+  0x218000509010010,
+  0x4000400410080120,
+  0x20801040010,
+  0x29040040820011,
+  0x4080400024800280,
+  0x500200040100440,
+  0x2880142001004100,
+  0x412020400a001200,
+  0x18c028004080080,
+  0x884001020080401,
+  0x210810420400,
+  0x801048745040200,
+  0x4401002040120082,
+  0x408200210012,
+  0x110008200441,
+  0x2010002004100901,
+  0x801000800040211,
+  0x480d000400820801,
+  0x820104201280084,
+  0x1001040311802142,
 };
 
 Bitboard bishopsMagics[64]=
 {
-  0x1841160051a00401,
-  0x202000012224a02,
-  0x284003005412542,
-  0x2800a220c40502,
-  0x68005050040308,
-  0x440802c810020230,
-  0x240034002014417,
-  0x45202411310208a,
-  0x1a08410602016172,
-  0x830464044100e08,
-  0x411a31a010040808,
-  0x200124000484405,
-  0x60020c80000120a,
-  0x6a001002583420a,
-  0x10082020084c0051,
-  0x1325202008030692,
-  0x2002026a00045020,
-  0x41051c000052122c,
-  0x10200b000100803,
-  0x720204000610032,
-  0x6818603041604002,
-  0x1041040010020001,
-  0x301081420025204,
-  0x42024420826001,
-  0x404304000131801,
-  0x1041090c00842100,
-  0x144110020080240,
-  0x1211004002202008,
-  0x105080000500401,
-  0x2080600c62080131,
-  0x844100114022082,
-  0x841080020804b00,
-  0x8240800080210,
-  0x4002144012084210,
-  0x2052000060904,
-  0x88400420500c14,
-  0x434000204404,
-  0x1840240800212081,
-  0x4208c019244184,
-  0x54da10030841,
-  0x1200090011080a02,
-  0x800140c000414c8,
-  0x4400382000401058,
-  0x100020140000105,
-  0x610040040044421,
-  0x20001202848110a,
-  0x222011010300101,
-  0x106608008012304,
-  0x220429002014a02,
-  0x110800a005104208,
-  0x806201048200111,
-  0x2082008a03000802,
-  0x2041008034011420,
-  0x401006005004434,
-  0x90a429004080204,
-  0x2041040950041802,
-  0x1002200028441145,
-  0x109004012802018a,
-  0x65100405500801,
-  0x284240458180a00,
-  0x2002441020024020,
-  0x4a10110101144112,
-  0x1010a2c00005030,
-  0x40c012121020424,
+  0x1024b002420160,
+  0x1008080140420021,
+  0x2012080041080024,
+  0xc282601408c0802,
+  0x2004042000000002,
+  0x12021004022080,
+  0x880414820100000,
+  0x4501002211044000,
+  0x20402222121600,
+  0x1081088a28022020,
+  0x1004c2810851064,
+  0x2040080841004918,
+  0x1448020210201017,
+  0x4808110108400025,
+  0x10504404054004,
+  0x800010422092400,
+  0x40000870450250,
+  0x402040408080518,
+  0x1000980a404108,
+  0x1020804110080,
+  0x8200c02082005,
+  0x40802009a0800,
+  0x1000201012100,
+  0x111080200820180,
+  0x904122104101024,
+  0x4008200405244084,
+  0x44040002182400,
+  0x4804080004021002,
+  0x6401004024004040,
+  0x404010001300a20,
+  0x428020200a20100,
+  0x300460100420200,
+  0x404200c062000,
+  0x22101400510141,
+  0x104044400180031,
+  0x2040040400280211,
+  0x8020400401010,
+  0x20100110401a0040,
+  0x100101005a2080,
+  0x1a008300042411,
+  0x120a025004504000,
+  0x4001084242101000,
+  0xa020202010a4200,
+  0x4000002018000100,
+  0x80104000044,
+  0x1004009806004043,
+  0x100401080a000112,
+  0x1041012101000608,
+  0x40400c250100140,
+  0x80a10460a100002,
+  0x2210030401240002,
+  0x6040aa108481b20,
+  0x4009004050410002,
+  0x8106003420200e0,
+  0x1410500a08206000,
+  0x92548802004000,
+  0x1040041241028,
+  0x120042025011,
+  0x8060104054400,
+  0x20004404020a0a01,
+  0x40008010020214,
+  0x4000050209802c1,
+  0x208244210400,
+  0x10140848044010,
 };
 
 int rookBits[64]=

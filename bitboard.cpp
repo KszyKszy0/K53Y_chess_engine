@@ -4,8 +4,6 @@
 #include <string>
 #include <vector>
 
-
-
 using namespace std;
 
 void setBit(Bitboard &bb, int index)                                //Sets bit at index to 1
@@ -25,7 +23,7 @@ int LSB(Bitboard &bb)                                        //Returns index of 
 
 int popLSB(Bitboard &bb)                                     //Returns index of LSB and removes it
 {
-    int index = LSB(bb);    
+    int index = LSB(bb);
     bb &= bb - 1;
     return index;
 }
@@ -35,7 +33,7 @@ int popCount (Bitboard x)                                           //Number of 
     int count = 0;
     while (x) {
     count++;
-    x &= x - 1; 
+    x &= x - 1;
     }
     return count;
 }
@@ -46,6 +44,21 @@ void printBitboard(Bitboard bb)                                     //Print bitb
         for (int file = 0; file < 8; ++file) {
             int index = rank * 8 + file;
             cout << (isBitSet(bb, index) ? '1' : '0') << ' ';
+        }
+        cout << '\n';
+    }
+    cout<< '\n';
+}
+
+
+void printPieceArray(int array[64])                                   //Print array in 8x8 format
+{
+  for (int rank = 7; rank >= 0; --rank) {
+        for (int file = 0; file < 8; ++file) {
+            int index = rank * 8 + file;
+            cout << array[index] << ' ';
+            if(array[index] < 10)
+                cout<< ' ';
         }
         cout << '\n';
     }
@@ -118,25 +131,20 @@ void printBitboard(Bitboard bb)                                     //Print bitb
 
     void BB_utils::init_bb()
     {
-        Bitboard rookMoves[BOARD_SIZE];
-        Bitboard bishopMoves[BOARD_SIZE];
-        
-
-        
 
         for (int square = 0; square < BOARD_SIZE; ++square) {
-            rookMoves[square] = generateRookMoves(square);
-            bishopMoves[square] = generateBishopMoves(square);
+            rookMasks[square] = generateRookMoves(square);
+            bishopMasks[square] = generateBishopMoves(square);
             knightMoves[square] = generateKnightMoves(square);
             kingMoves[square] = generateKingMoves(square);
-            
-            bishopBlockers.push_back(generateBlockers(bishopMoves[square]));
 
-            rookBlockers.push_back(generateBlockers(rookMoves[square]));
+            bishopBlockers.push_back(generateBlockers(bishopMasks[square]));
+
+            rookBlockers.push_back(generateBlockers(rookMasks[square]));
 
         }
 
-        
+
         generatePawnMoves(whitePawnMoves, whitePawnCaptures, true);
         generatePawnMoves(blackPawnMoves, blackPawnCaptures, false);
 
@@ -287,7 +295,15 @@ void printBitboard(Bitboard bb)                                     //Print bitb
         for (int occupancy = 0; occupancy < rookBlockers[square].size(); ++occupancy) {
             int index = getMagicIndex(rookBlockers[square][occupancy], rooksMagics[square], rookBits[square]);
             Bitboard attacks = generateRookBitboardAttacksBlockers(square,rookBlockers[square][occupancy]);
-            tempSquare[occupancy] = attacks;
+            if(tempSquare[index] != 0)
+            {
+                cout<<"Tu już coś jest"<<endl;
+                cout<<tempSquare[index]<<endl;
+                cout<<"A ja chcę tu dać"<<endl;
+                cout<<attacks<<endl;
+                return;
+            }
+            tempSquare[index] = attacks;
         }
         rookMoves.push_back(tempSquare);
     }
@@ -300,7 +316,15 @@ void printBitboard(Bitboard bb)                                     //Print bitb
         for (int occupancy = 0; occupancy < bishopBlockers[square].size(); ++occupancy) {
             int index = getMagicIndex(bishopBlockers[square][occupancy], bishopsMagics[square], bishopBits[square]);
             Bitboard attacks = generateBishopBitboardAttacksBlockers(square,bishopBlockers[square][occupancy]);
-            tempSquare[occupancy] = attacks;
+            if(tempSquare[index] != 0)
+            {
+                cout<<"Tu już coś jest"<<endl;
+                cout<<tempSquare[index]<<endl;
+                cout<<"A ja chcę tu dać"<<endl;
+                cout<<attacks<<endl;
+                return;
+            }
+            tempSquare[index] = attacks;
         }
         bishopMoves.push_back(tempSquare);
     }

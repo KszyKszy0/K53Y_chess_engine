@@ -22,7 +22,10 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[15])
 
     STM = turn == "w" ? WHITE : BLACK; 
 
-    
+    for(int i=0; i<=63; i++)
+    {
+        piecesArray[i]=NO_PIECE;
+    }
 
     for (char ch : board)
     {
@@ -43,39 +46,51 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[15])
             {
             case 'P':
                 setBit(bitboards[WHITE_PAWN], position);
+                piecesArray[position]=WHITE_PAWN;
                 break;
             case 'N':
                 setBit(bitboards[WHITE_KNIGHT], position);
+                piecesArray[position]=WHITE_KNIGHT;
                 break;
             case 'B':
                 setBit(bitboards[WHITE_BISHOP], position);
+                piecesArray[position]=WHITE_BISHOP;
                 break;
             case 'R':
                 setBit(bitboards[WHITE_ROOK], position);
+                piecesArray[position]=WHITE_ROOK;
                 break;
             case 'Q':
                 setBit(bitboards[WHITE_QUEEN], position);
+                piecesArray[position]=WHITE_QUEEN;
                 break;
             case 'K':
                 setBit(bitboards[WHITE_KING], position);
+                piecesArray[position]=WHITE_KING;
                 break;
             case 'p':
                 setBit(bitboards[BLACK_PAWN], position);
+                piecesArray[position]=BLACK_PAWN;
                 break;
             case 'n':
                 setBit(bitboards[BLACK_KNIGHT], position);
+                piecesArray[position]=BLACK_KNIGHT;
                 break;
             case 'b':
                 setBit(bitboards[BLACK_BISHOP], position);
+                piecesArray[position]=BLACK_BISHOP;
                 break;
             case 'r':
                 setBit(bitboards[BLACK_ROOK], position);
+                piecesArray[position]=BLACK_ROOK;
                 break;
             case 'q':
                 setBit(bitboards[BLACK_QUEEN], position);
+                piecesArray[position]=BLACK_QUEEN;
                 break;
             case 'k':
                 setBit(bitboards[BLACK_KING], position);
+                piecesArray[position]=BLACK_KING;
                 break;
             }
             file++;
@@ -95,4 +110,12 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[15])
         }
         bitboards[ALL_PIECES] |= bitboards[i];
     }
+}
+
+void Position::makeMove(Move move)
+{
+    int startSquare = move & 0b111111;
+    int targetSquare = (move >> 6) & 0b111111;
+    int flags = (move >> 12) & 0b1111;
+    cout<<startSquare<<" "<<targetSquare<<" "<<flags<<endl;
 }

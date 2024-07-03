@@ -31,7 +31,7 @@ vector<Move> MoveGenerator::generateMoves(Position pos)
     while(iterated)
     {
         int index = popLSB(iterated);
-        Bitboard target = BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
+        Bitboard target = BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
         target &= ~ pos.piecesBitboards[WHITE_PIECES];
         addMoves(index,target);
     }
@@ -41,18 +41,18 @@ vector<Move> MoveGenerator::generateMoves(Position pos)
     while(iterated)
     {
         int index = popLSB(iterated);
-        Bitboard target = BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES],BBManager.rooksMagics[index],BBManager.rookBits[index])];
+        Bitboard target = BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])];
         target &= ~ pos.piecesBitboards[WHITE_PIECES];
         addMoves(index,target);
     }
 
     //white queens
-    iterated = pos.piecesBitboards[WHITE_ROOK];
+    iterated = pos.piecesBitboards[WHITE_QUEEN];
     while(iterated)
     {
         int index = popLSB(iterated);
-        Bitboard target = BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES],BBManager.rooksMagics[index],BBManager.rookBits[index])];
-        target |= BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
+        Bitboard target = BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])];
+        target |= BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
         target &= ~ pos.piecesBitboards[WHITE_PIECES];
         addMoves(index,target);
     }

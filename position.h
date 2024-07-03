@@ -15,9 +15,11 @@ class Position
 
     bool STM;
 
-    void makeMove();
+    void makeMove(Move move);
     
     void undoMove();
 
     list<StateInfo> stateInfoList;
+
+    int piecesArray[64];
 };
