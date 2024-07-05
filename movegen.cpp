@@ -3,18 +3,23 @@
 #include "position.h"
 #include "enums.h"
 #include "move.h"
+#include <vector>
 
 
 vector<Move> MoveGenerator::generateMoves(Position pos)
 {
+    vector<Move> moveList;
 
+    if(pos.STM == WHITE)
+    {
     //pawn moves
     Bitboard iterated = pos.piecesBitboards[WHITE_PAWN];
     while(iterated)
     {
         int index = popLSB(iterated);
         Bitboard target = BBManager.whitePawnMoves[index];
-        addMoves(index,target);
+        target &= ~ pos.piecesBitboards[WHITE_PIECES];
+        addMoves(index,target, moveList);
     }
 
     //white knights
@@ -23,7 +28,8 @@ vector<Move> MoveGenerator::generateMoves(Position pos)
     {
         int index = popLSB(iterated);
         Bitboard target = BBManager.knightMoves[index];
-        addMoves(index,target);
+        target &= ~ pos.piecesBitboards[WHITE_PIECES];
+        addMoves(index,target, moveList);
     }
 
     //white bishops
@@ -33,7 +39,7 @@ vector<Move> MoveGenerator::generateMoves(Position pos)
         int index = popLSB(iterated);
         Bitboard target = BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
         target &= ~ pos.piecesBitboards[WHITE_PIECES];
-        addMoves(index,target);
+        addMoves(index,target, moveList);
     }
 
     //white rooks
@@ -43,7 +49,7 @@ vector<Move> MoveGenerator::generateMoves(Position pos)
         int index = popLSB(iterated);
         Bitboard target = BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])];
         target &= ~ pos.piecesBitboards[WHITE_PIECES];
-        addMoves(index,target);
+        addMoves(index,target, moveList);
     }
 
     //white queens
@@ -54,13 +60,66 @@ vector<Move> MoveGenerator::generateMoves(Position pos)
         Bitboard target = BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])];
         target |= BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
         target &= ~ pos.piecesBitboards[WHITE_PIECES];
-        addMoves(index,target);
+        addMoves(index,target, moveList);
     }
 
-    return movesList;
+    }else
+    {
+    //pawn moves
+    Bitboard iterated = pos.piecesBitboards[BLACK_PAWN];
+    while(iterated)
+    {
+        int index = popLSB(iterated);
+        Bitboard target = BBManager.blackPawnMoves[index];
+        target &= ~ pos.piecesBitboards[BLACK_PIECES];
+        addMoves(index,target, moveList);
+    }
+
+    //white knights
+    iterated = pos.piecesBitboards[BLACK_KNIGHT];
+    while(iterated)
+    {
+        int index = popLSB(iterated);
+        Bitboard target = BBManager.knightMoves[index];
+        target &= ~ pos.piecesBitboards[BLACK_PIECES];
+        addMoves(index,target, moveList);
+    }
+
+    //white bishops
+    iterated = pos.piecesBitboards[BLACK_BISHOP];
+    while(iterated)
+    {
+        int index = popLSB(iterated);
+        Bitboard target = BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
+        target &= ~ pos.piecesBitboards[BLACK_PIECES];
+        addMoves(index,target, moveList);
+    }
+
+    //white rooks
+    iterated = pos.piecesBitboards[BLACK_ROOK];
+    while(iterated)
+    {
+        int index = popLSB(iterated);
+        Bitboard target = BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])];
+        target &= ~ pos.piecesBitboards[BLACK_PIECES];
+        addMoves(index,target, moveList);
+    }
+
+    //white queens
+    iterated = pos.piecesBitboards[BLACK_QUEEN];
+    while(iterated)
+    {
+        int index = popLSB(iterated);
+        Bitboard target = BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])];
+        target |= BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
+        target &= ~ pos.piecesBitboards[BLACK_PIECES];
+        addMoves(index,target, moveList);
+    }
+    }
+    return moveList;
 }
 
-void MoveGenerator::addMoves(int startSquare, Bitboard targers)
+void MoveGenerator::addMoves(int startSquare, Bitboard targers, vector<Move>& movesList)
 {
     while(targers)
     {

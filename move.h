@@ -30,3 +30,11 @@ enum MoveFlag
 inline Move createMove(int startSquare, int targetSquare, int flags){
     return startSquare + (targetSquare << 6) + (flags << 12);
 }
+
+inline void printMove(Move m)
+{
+    int startSquare = m & 0b111111;
+    int targetSquare = m>>6 & 0b111111;
+    int flags = m>>12 & 0b1111;
+    cout<<startSquare<<" "<<targetSquare<<" "<<flags<<endl;
+}

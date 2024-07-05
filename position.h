@@ -17,7 +17,7 @@ class Position
 
     void makeMove(Move move);
 
-    void undoMove();
+    void undoMove(Move move);
 
     list<StateInfo> stateInfoList;
 

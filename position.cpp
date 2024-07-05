@@ -5,17 +5,17 @@ using namespace std;
 
 void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
 {
-    for (int i = 0; i < 13; i++)
+    for (int i = 0; i < 16; i++)
     {
         bitboards[i] = 0ULL;
     }
 
     istringstream ss(fen);
     string board, turn, castling, enPassant;
-    int halfmove, fullmove;
+    int halfmove, fULLlmove;
 
-    ss >> board >> turn >> castling >> enPassant >> halfmove >> fullmove;
-    // cout<<board<<endl<<turn<<endl<<castling<<endl<<halfmove<<endl<<fullmove<<endl;
+    ss >> board >> turn >> castling >> enPassant >> halfmove >> fULLlmove;
+    // cout<<board<<endl<<turn<<endl<<castling<<endl<<halfmove<<endl<<fULLlmove<<endl;
 
     int rank = 7;
     int file = 0;
@@ -97,7 +97,14 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
         }
     }
 
+    // Resetting bitboards
+    bitboards[WHITE_PIECES]=0;
+    bitboards[BLACK_PIECES]=0;
+    bitboards[ALL_PIECES]=0;
+    bitboards[NO_PIECE]=0;
+
     // Set bitboard for all pieces
+
     for (int i = 0; i <= BLACK_KING; i++)
     {
         if (i < 6)
@@ -110,6 +117,8 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
         }
         bitboards[ALL_PIECES] |= bitboards[i];
     }
+
+    bitboards[NO_PIECE] = ~bitboards[ALL_PIECES];
 }
 
 void Position::makeMove(Move move)
@@ -117,5 +126,58 @@ void Position::makeMove(Move move)
     int startSquare = move & 0b111111;
     int targetSquare = (move >> 6) & 0b111111;
     int flags = (move >> 12) & 0b1111;
-    cout<<startSquare<<" "<<targetSquare<<" "<<flags<<endl;
+
+
+    piecesBitboards[piecesArray[startSquare]] ^= 1ULL << startSquare | 1ULL << targetSquare;
+
+    piecesBitboards[ALL_PIECES] ^= 1ULL << startSquare | 1ULL << targetSquare;
+
+    if(STM == WHITE)
+    {
+        piecesBitboards[WHITE_PIECES] ^= 1ULL << startSquare | 1ULL << targetSquare;
+    }else
+    {
+        piecesBitboards[BLACK_PIECES] ^= 1ULL << startSquare | 1ULL << targetSquare;
+    }
+
+    STM = !STM;
+
+
+
+    piecesArray[targetSquare] = piecesArray[startSquare];
+    piecesArray[startSquare] = NO_PIECE;
+
+    piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
+
+
+}
+
+void Position::undoMove(Move move)
+{
+    int startSquare = move & 0b111111;
+    int targetSquare = (move >> 6) & 0b111111;
+    int flags = (move >> 12) & 0b1111;
+
+
+
+    piecesBitboards[piecesArray[targetSquare]] ^= 1ULL << startSquare | 1ULL << targetSquare;
+    piecesBitboards[ALL_PIECES] ^= 1ULL << startSquare | 1ULL << targetSquare;
+
+
+
+    if(STM == BLACK)
+    {
+        piecesBitboards[WHITE_PIECES] ^= 1ULL << startSquare | 1ULL << targetSquare;
+    }else
+    {
+        piecesBitboards[BLACK_PIECES] ^= 1ULL << startSquare | 1ULL << targetSquare;
+    }
+    STM = !STM;
+
+    piecesArray[startSquare] = piecesArray[targetSquare];
+    piecesArray[targetSquare] = NO_PIECE;
+
+    piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
+
+
 }

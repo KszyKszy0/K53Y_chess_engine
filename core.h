@@ -10,4 +10,6 @@ class core
     Position pos;
 
     core();
+
+    int perft(int depth);
 };

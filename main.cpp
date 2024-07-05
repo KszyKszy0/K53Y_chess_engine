@@ -21,13 +21,17 @@ int main()
     for(Move m : moves)
     {
         Engine.pos.makeMove(m);
+        Engine.pos.undoMove(m);
     }
 
-    for(int i=0; i<=14; i++)
+    for(int i=0; i<=15; i++)
     {
         printBitboard(Engine.pos.piecesBitboards[i]);
         cout<<endl;
     }
 
+    printPieceArray(Engine.pos.piecesArray);
+
+    cout<<Engine.perft(2);
     return 0;
 }

@@ -7,14 +7,13 @@
 class MoveGenerator
 {
     public:
-    vector<Move> movesList;
 
     vector<Move> generateMoves(Position pos);
 
-    void addMoves(int startSquare, Bitboard targets); 
+    void addMoves(int startSquare, Bitboard targets, vector<Move>& movesList);
 
     MoveGenerator(BB_utils BBM);
 
     BB_utils BBManager;
-    
+
 };
