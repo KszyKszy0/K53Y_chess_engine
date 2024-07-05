@@ -51,7 +51,7 @@ Bitboard generateBishopMoves(int square);
 Bitboard generateKnightMoves(int square);
 
 //Setup of all BB (magic, moves, pieces)
-void init_bb();
+BB_utils();
 
 //Blocker generation for mask
 vector<Bitboard> generateBlockers(Bitboard attackSet);

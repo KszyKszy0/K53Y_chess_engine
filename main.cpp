@@ -5,38 +5,28 @@
 #include "position.h"
 #include "move.h"
 #include "movegen.h"
+#include "core.h"
 
 using namespace std;
 
 
 int main()
 {
-    BB_utils BB_manager;
+    core Engine = core();
 
-    BB_manager.init_bb();
+    Engine.pos.parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", Engine.pos.piecesBitboards);
 
-    Position newGame;
+    vector<Move> moves = Engine.moveGenerator.generateMoves(Engine.pos);
 
-    newGame.parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", newGame.piecesBitboards);
-
-    // for(int i=0; i<=14; i++)
-    // {
-    //     printBitboard(newGame.piecesBitboards[i]);
-
-    //     cout<<endl;
-    // }
-
-
-    MoveGenerator generator(BB_manager);
-
-    generator.generateMoves(newGame);
-
-
-    // cout<<BB_manager.rookMoves[0][BB_manager.getMagicIndex(281474976711038,BB_manager.rooksMagics[0],BB_manager.rookBits[0])]<<endl;
-
-    for(Move m : generator.movesList)
+    for(Move m : moves)
     {
-        newGame.makeMove(m);
+        Engine.pos.makeMove(m);
+    }
+
+    for(int i=0; i<=14; i++)
+    {
+        printBitboard(Engine.pos.piecesBitboards[i]);
+        cout<<endl;
     }
 
     return 0;

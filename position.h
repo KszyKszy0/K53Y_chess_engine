@@ -9,14 +9,14 @@ using namespace std;
 class Position
 {
     public:
-    Bitboard piecesBitboards[15];                                       //All pieces BB look enums.h 
+    Bitboard piecesBitboards[16];                                       //All pieces BB look enums.h
 
-    void parseFEN(string fen, Bitboard (&bitboards)[15]);               //Creates position from FEN
+    void parseFEN(string fen, Bitboard (&bitboards)[16]);               //Creates position from FEN
 
     bool STM;
 
     void makeMove(Move move);
-    
+
     void undoMove();
 
     list<StateInfo> stateInfoList;

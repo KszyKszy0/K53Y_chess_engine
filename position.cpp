@@ -3,7 +3,7 @@
 #include "enums.h"
 using namespace std;
 
-void Position::parseFEN(string fen, Bitboard (&bitboards)[15])
+void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
 {
     for (int i = 0; i < 13; i++)
     {
@@ -20,7 +20,7 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[15])
     int rank = 7;
     int file = 0;
 
-    STM = turn == "w" ? WHITE : BLACK; 
+    STM = turn == "w" ? WHITE : BLACK;
 
     for(int i=0; i<=63; i++)
     {

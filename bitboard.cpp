@@ -129,7 +129,7 @@ void printPieceArray(int array[64])                                   //Print ar
     }
 
 
-    void BB_utils::init_bb()
+    BB_utils::BB_utils()
     {
 
         for (int square = 0; square < BOARD_SIZE; ++square) {
