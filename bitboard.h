@@ -19,8 +19,11 @@ void clearBit(Bitboard &bb, int index);
 //Toggles bit between 0 and 1
 void toggleBit(Bitboard &bb, int index);
 
+//Toggles two bits between 0 and 1
+void bitSwap(Bitboard &bb, int start, int target);
+
 //Check if bit is set to 1
-bool isBitSet(Bitboard bb, int index);
+bool isBitSet(Bitboard &bb, int index);
 
 //Returns index of LSB
 int LSB(Bitboard &bb);

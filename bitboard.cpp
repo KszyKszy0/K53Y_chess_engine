@@ -15,7 +15,10 @@ void clearBit(Bitboard &bb, int index)                       //Sets bit at index
 void toggleBit(Bitboard &bb, int index)                      //Toggles bit between 0 and 1
 { bb = bb ^(1ULL << index); }
 
-bool isBitSet(Bitboard bb, int index)                        //Check if bit is set to 1
+void bitSwap(Bitboard &bb, int start, int target)
+{ bb ^= 1ULL << start | 1ULL << target; }
+
+bool isBitSet(Bitboard &bb, int index)                        //Check if bit is set to 1
 { return (bb >> index) & 1ULL; }
 
 int LSB(Bitboard &bb)                                        //Returns index of LSB
@@ -252,16 +255,16 @@ void printPieceArray(int array[64])                                   //Print ar
         if (isWhite) {
             if (rank < 7) {
                 setBit(moves, (rank + 1) * 8 + file);
-                if (rank == 1) { // Podwójny ruch z drugiego rzędu
-                    setBit(moves, (rank + 2) * 8 + file);
-                }
+                // if (rank == 1) { // Podwójny ruch z drugiego rzędu
+                //     setBit(moves, (rank + 2) * 8 + file);
+                // }
             }
         } else {
             if (rank > 0) {
                 setBit(moves, (rank - 1) * 8 + file);
-                if (rank == 6) { // Podwójny ruch z siódmego rzędu
-                    setBit(moves, (rank - 2) * 8 + file);
-                }
+                // if (rank == 6) { // Podwójny ruch z siódmego rzędu
+                //     setBit(moves, (rank - 2) * 8 + file);
+                // }
             }
         }
 

@@ -12,13 +12,42 @@ int core::perft(int depth)
     {
         return 1;
     }
-    vector<Move> moveList = moveGenerator.generateMoves(pos);
+    vector<Move> moveList = moveGenerator.fullMovesList(pos);
     for(Move m : moveList)
     {
-        printMove(m);
+        // printMove(m);
+        int localCounter = 0;
+        Bitboard temp = pos.piecesBitboards[BLACK_KNIGHT];
         pos.makeMove(m);
-        counter += perft(depth-1);
+        localCounter += perft(depth-1);
+        counter += localCounter;
         pos.undoMove(m);
+        if(depth==3)
+        {
+            cout<<"////////////////////////////////////////////////////////////////////"<<endl<<endl;
+            printMove(m);
+            cout<<localCounter<<endl;
+        }
+
+
+        // try
+        // {
+        //     if(temp != pos.piecesBitboards[BLACK_KNIGHT])
+        //     {
+        //         throw 1;
+        //     }
+        // }
+        // catch(int code)
+        // {
+        //     for(int i=0; i<=15; i++)
+        //     {
+        //         printBitboard(pos.piecesBitboards[i]);
+        //         cout<<endl;
+        //     }
+        //     printPieceArray(pos.piecesArray);
+        //     break;
+        // }
+
     }
     return counter;
 }

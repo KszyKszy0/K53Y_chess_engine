@@ -19,6 +19,10 @@ class Position
 
     void undoMove(Move move);
 
+    void addState(int pas, int cast, int half, int full, int captureType);
+
+    void addState(StateInfo state);
+
     list<StateInfo> stateInfoList;
 
     int piecesArray[64];

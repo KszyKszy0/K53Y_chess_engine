@@ -1,6 +1,9 @@
 #include "position.h"
 #include <sstream>
 #include "enums.h"
+#include "stateInfo.h"
+#include "move.h"
+
 using namespace std;
 
 void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
@@ -12,9 +15,9 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
 
     istringstream ss(fen);
     string board, turn, castling, enPassant;
-    int halfmove, fULLlmove;
+    int halfmove, fullmove;
 
-    ss >> board >> turn >> castling >> enPassant >> halfmove >> fULLlmove;
+    ss >> board >> turn >> castling >> enPassant >> halfmove >> fullmove;
     // cout<<board<<endl<<turn<<endl<<castling<<endl<<halfmove<<endl<<fULLlmove<<endl;
 
     int rank = 7;
@@ -119,6 +122,8 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
     }
 
     bitboards[NO_PIECE] = ~bitboards[ALL_PIECES];
+
+    addState(chessSquareToIndex(enPassant),castlingRights(castling),halfmove,fullmove,NO_PIECE);
 }
 
 void Position::makeMove(Move move)
@@ -127,20 +132,42 @@ void Position::makeMove(Move move)
     int targetSquare = (move >> 6) & 0b111111;
     int flags = (move >> 12) & 0b1111;
 
+    StateInfo tempState = stateInfoList.back();
 
-    piecesBitboards[piecesArray[startSquare]] ^= 1ULL << startSquare | 1ULL << targetSquare;
+    if(flags == 4)
+    {
+        tempState.capturedPieceType = piecesArray[targetSquare];
 
-    piecesBitboards[ALL_PIECES] ^= 1ULL << startSquare | 1ULL << targetSquare;
+        clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
+        bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
+        clearBit(piecesBitboards[ALL_PIECES],startSquare);
+
+        if(STM == WHITE)
+        {
+            clearBit(piecesBitboards[BLACK_PIECES],targetSquare);
+            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
+        }else
+        {
+            clearBit(piecesBitboards[WHITE_PIECES],targetSquare);
+            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+        }
+
+    }else
+    {
+
+    bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
+
+    bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
 
     if(STM == WHITE)
     {
-        piecesBitboards[WHITE_PIECES] ^= 1ULL << startSquare | 1ULL << targetSquare;
+        bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
     }else
     {
-        piecesBitboards[BLACK_PIECES] ^= 1ULL << startSquare | 1ULL << targetSquare;
+        bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+    }
     }
 
-    STM = !STM;
 
 
 
@@ -149,7 +176,8 @@ void Position::makeMove(Move move)
 
     piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
 
-
+    STM = !STM;
+    addState(tempState);
 }
 
 void Position::undoMove(Move move)
@@ -159,25 +187,68 @@ void Position::undoMove(Move move)
     int flags = (move >> 12) & 0b1111;
 
 
+    bitSwap(piecesBitboards[piecesArray[targetSquare]],startSquare,targetSquare);
 
-    piecesBitboards[piecesArray[targetSquare]] ^= 1ULL << startSquare | 1ULL << targetSquare;
-    piecesBitboards[ALL_PIECES] ^= 1ULL << startSquare | 1ULL << targetSquare;
+    bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
 
 
 
     if(STM == BLACK)
     {
-        piecesBitboards[WHITE_PIECES] ^= 1ULL << startSquare | 1ULL << targetSquare;
+        bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
     }else
     {
-        piecesBitboards[BLACK_PIECES] ^= 1ULL << startSquare | 1ULL << targetSquare;
+        bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
     }
-    STM = !STM;
+
+
+
+
 
     piecesArray[startSquare] = piecesArray[targetSquare];
     piecesArray[targetSquare] = NO_PIECE;
 
+
+
+    if(flags == 4)
+    {
+        int captureType = stateInfoList.back().capturedPieceType;
+
+        setBit(piecesBitboards[captureType],targetSquare);
+
+        setBit(piecesBitboards[ALL_PIECES],targetSquare);
+
+        if(STM == WHITE)
+        {
+            setBit(piecesBitboards[WHITE_PIECES],targetSquare);
+        }else
+        {
+            setBit(piecesBitboards[BLACK_PIECES],targetSquare);
+        }
+        piecesArray[targetSquare] = captureType;
+    }
+
     piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
 
+    STM = !STM;
+    stateInfoList.pop_back();
+}
 
+StateInfo::StateInfo(int pas, int cast, int half, int full, int captureType)
+{
+    enPassantSquare=pas;
+    castlingRights=cast;
+    halfMove=half;
+    fullMove=full;
+    capturedPieceType=captureType;
+}
+void Position::addState(int pas, int cast, int half, int full, int captureType)
+{
+    StateInfo newState(pas,cast,half,full,captureType);
+    stateInfoList.push_back(newState);
+}
+void Position::addState(StateInfo state)
+{
+    StateInfo newState(state.enPassantSquare,state.castlingRights,state.halfMove,state.fullMove,state.capturedPieceType);
+    stateInfoList.push_back(newState);
 }

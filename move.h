@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <string>
 
 typedef uint16_t Move;
 
@@ -31,10 +32,57 @@ inline Move createMove(int startSquare, int targetSquare, int flags){
     return startSquare + (targetSquare << 6) + (flags << 12);
 }
 
+inline string getFieldName(int index)
+{
+    char file = 'a' + (index % 8);
+    // Rzędy szachownicy od '1' do '8'
+    char rank = '1' + (index / 8);
+
+    return std::string(1, file) + std::string(1, rank);
+}
+
+inline int chessSquareToIndex(std::string square) {
+
+    char file = tolower(square[0]);
+    // Rzędy od '1' do '8'
+    char rank = square[1];
+
+    // Obliczenie indeksu
+    int index = (file - 'a') + (rank - '1') * 8;
+
+    return index;
+}
+
+inline int castlingRights(std::string txt) {
+    int value = 0;
+    for(char c : txt)
+    {
+        switch(c)
+        {
+            case 'K':
+            value+=8;
+            break;
+            case 'Q':
+            value+=4;
+            break;
+            case 'k':
+            value+=2;
+            break;
+            case 'q':
+            value+=1;
+            break;
+            default:
+            break;
+        }
+    }
+
+    return value;
+}
+
 inline void printMove(Move m)
 {
     int startSquare = m & 0b111111;
     int targetSquare = m>>6 & 0b111111;
     int flags = m>>12 & 0b1111;
-    cout<<startSquare<<" "<<targetSquare<<" "<<flags<<endl;
+    cout<<getFieldName(startSquare)<<" "<<getFieldName(targetSquare)<<" "<<flags<<endl;
 }
