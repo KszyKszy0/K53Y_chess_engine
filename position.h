@@ -15,15 +15,21 @@ class Position
 
     bool STM;
 
+    //Make move doesnt care if its legal
     void makeMove(Move move);
 
+    //Undo move doesnt care if its legal
     void undoMove(Move move);
 
+    //Creates and add state of game to list
     void addState(int pas, int cast, int half, int full, int captureType);
 
+    //Creates and add state of game to list
     void addState(StateInfo state);
 
+    //List of game states
     list<StateInfo> stateInfoList;
 
+    //Array of all pieces types on chessboard
     int piecesArray[64];
 };

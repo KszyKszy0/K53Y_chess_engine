@@ -14,9 +14,13 @@ int main()
 {
     core Engine = core();
 
-    Engine.pos.parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", Engine.pos.piecesBitboards);
+    string startingFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-    vector<Move> moves = Engine.moveGenerator.fullMovesList(Engine.pos);
+    Engine.pos.parseFEN(startingFen, Engine.pos.piecesBitboards);
+
+    // Engine.moveGenerator.getPinners(Engine.pos,true);
+
+    // vector<Move> moves = Engine.moveGenerator.fullMovesList(Engine.pos);
 
     // for(Move m : moves)
     // {
@@ -36,7 +40,7 @@ int main()
 
     // Engine.pos.makeMove(createMove(chessSquareToIndex("f5"),chessSquareToIndex("g6"),CAPTURE));
 
-    cout<<Engine.perft(3);
+    cout<<Engine.perft(4);
 
     // for(int i=0; i<=15; i++)
     // {

@@ -153,6 +153,8 @@ void printPieceArray(int array[64])                                   //Print ar
 
         initRookAttacks();
         initBishopAttacks();
+
+        generateRectangularLookup(rectangularLookup);
     }
 
     vector<Bitboard> BB_utils::generateBlockers(Bitboard attackSet) {
