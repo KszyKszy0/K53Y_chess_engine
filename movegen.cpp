@@ -15,19 +15,24 @@ void MoveGenerator::generateTypeMoves(Position pos, Bitboard target, vector<Move
     Bitboard iterated = pos.piecesBitboards[WHITE_PAWN];
     while(iterated)
     {
-        int index = popLSB(iterated);
-        if(!isBitSet(pins,index))
+        int index = popLSB(iterated);       //Get pawn index
+        if(!isBitSet(pins,index))           //Pin moves are generated in getPinners
         {
-        if(type == 0)
+        if(type == 0)                       //If only quiets
         {
-            Bitboard possibleMoves = BBManager.whitePawnMoves[index] & target;
-            possibleMoves &= ~ pos.piecesBitboards[ALL_PIECES];
-            if(index / 8 == 1)
+            Bitboard possibleMoves = BBManager.whitePawnMoves[index] & target;  //Default moves Targets are empty squares by default
+            possibleMoves &= ~ pos.piecesBitboards[ALL_PIECES];                 //this is probably useless
+            if(index / 8 == 1)                                                  //am i 2nd rank?
             {
-                if(!isBitSet(pos.piecesBitboards[ALL_PIECES],index+8))
+                Bitboard doublePawnMove = (1ULL << (index + 16));               //index of double pawn push
+                Bitboard intersection = doublePawnMove & target;                //intersection with target (possible check protecion) probably useless in normal case scenario
+                if(intersection != 0)                                           //if intersection with target we can consider legality
                 {
-                    if(!isBitSet(pos.piecesBitboards[ALL_PIECES],index+16))
-                    setBit(possibleMoves,index+16);
+                if(!isBitSet(pos.piecesBitboards[ALL_PIECES],index+8))          //if there is nothing in front
+                {
+                    if(!isBitSet(pos.piecesBitboards[ALL_PIECES],index+16))     //if there is nothing on target square double push
+                    setBit(possibleMoves,index+16);                             //we get xtra move
+                }
                 }
             }
             addMoves(index, possibleMoves, moveList, pos);
@@ -43,8 +48,8 @@ void MoveGenerator::generateTypeMoves(Position pos, Bitboard target, vector<Move
     iterated = pos.piecesBitboards[WHITE_KNIGHT];
     while(iterated)
     {
-        int index = popLSB(iterated);
-        if(!isBitSet(pins,index))
+        int index = popLSB(iterated);   //Get knight index
+        if(!isBitSet(pins,index))       //If not pinned gen Moves
         addKnightsMoves(index,moveList,pos,target);
         // Bitboard possibleMoves = BBManager.knightMoves[index] & target;
         // possibleMoves &= ~ pos.piecesBitboards[WHITE_PIECES];
@@ -55,8 +60,8 @@ void MoveGenerator::generateTypeMoves(Position pos, Bitboard target, vector<Move
     iterated = pos.piecesBitboards[WHITE_BISHOP];
     while(iterated)
     {
-        int index = popLSB(iterated);
-        if(!isBitSet(pins,index))
+        int index = popLSB(iterated);   //Get bishop index
+        if(!isBitSet(pins,index))       //If not pinned gen Moves and so on for each piece
         addBishopsMoves(index,moveList,pos,target);
         // Bitboard possibleMoves = BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])] & target;
         // possibleMoves &= ~ pos.piecesBitboards[WHITE_PIECES];
@@ -80,7 +85,7 @@ void MoveGenerator::generateTypeMoves(Position pos, Bitboard target, vector<Move
     while(iterated)
     {
         int index = popLSB(iterated);
-        if(!isBitSet(pins,index))
+        if(!isBitSet(pins,index))       //combination of rook and bishop
         {
         addBishopsMoves(index,moveList,pos,target);
         addRookMoves(index,moveList,pos,target);
@@ -108,10 +113,15 @@ void MoveGenerator::generateTypeMoves(Position pos, Bitboard target, vector<Move
             possibleMoves &= ~ pos.piecesBitboards[ALL_PIECES];
             if(index / 8 == 6)
             {
+                Bitboard doublePawnMove = (1ULL << (index - 16));
+                Bitboard intersection = doublePawnMove & target;
+                if(intersection != 0)
+                {
                 if(!isBitSet(pos.piecesBitboards[ALL_PIECES],index-8))
                 {
                     if(!isBitSet(pos.piecesBitboards[ALL_PIECES],index-16))
                     setBit(possibleMoves,index-16);
+                }
                 }
             }
             addMoves(index, possibleMoves, moveList, pos);
@@ -188,21 +198,46 @@ void MoveGenerator::generateTypeMoves(Position pos, Bitboard target, vector<Move
 
 vector<Move> MoveGenerator::fullMovesList(Position pos)
 {
-    vector<Move> movesList;
-    Bitboard checksAttacks = howManyAttacks(pos,!pos.STM,LSB(pos.piecesBitboards[pos.STM ? WHITE_KING : BLACK_KING]));
-    int checks = popCount(checksAttacks);
-    Bitboard enemyAttacks = getSideAttacks(pos, !pos.STM);
-    Bitboard pins = getPinners(pos,pos.STM,movesList);
-    generateKingsEvasions(pos, movesList, ~enemyAttacks, pos.STM);
-    generateTypeMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checksAttacks,movesList,0,checks,pins); //quiets
-    if(pos.STM == WHITE)
+    vector<Move> movesList;  //movesList that will be used for all substeps
+
+    //preparations
+
+    int kingIndex = LSB(pos.piecesBitboards[pos.STM ? WHITE_KING : BLACK_KING]); //index of king
+
+    Bitboard checksAttacks = howManyAttacks(pos,!pos.STM,kingIndex);   //checking indexes of pieces
+    int checks = popCount(checksAttacks);       //Amount of checks; >2 skips most of generation
+
+    Bitboard checkTargets = 0;          //lane of checks without the checker
+    int singleCheckIndex = 100;         //index of checker
+
+    if(checks == 1)
     {
-        generateTypeMoves(pos,pos.piecesBitboards[BLACK_PIECES],movesList,1,checks,pins);
-    }else
-    {
-        generateTypeMoves(pos,pos.piecesBitboards[WHITE_PIECES],movesList,1,checks,pins);
+        singleCheckIndex = LSB(checksAttacks);          //get index of checker
+        checkTargets |= BBManager.rectangularLookup[kingIndex][singleCheckIndex];   //update check lanes bb
+        // setBit(checkTargets,index);
     }
 
+
+    Bitboard enemyAttacks = getSideAttacks(pos, !pos.STM);      //Get enemy attacks
+    Bitboard pins = getPinners(pos,pos.STM,movesList);          //pin generaton
+
+    generateKingsEvasions(pos, movesList, ~enemyAttacks, pos.STM);      //kings evasions
+    if(checks < 2)
+    {
+    generateTypeMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,movesList,0,checks,pins); //quiets
+
+    Bitboard captureTargets = singleCheckIndex == 100 ? 0xffffffffffffffff : 1ULL << singleCheckIndex;
+    captureTargets &= pos.STM ? pos.piecesBitboards[BLACK_PIECES] : pos.piecesBitboards[WHITE_PIECES];
+
+    // cout<<captureTargets<<endl;
+    if(pos.STM == WHITE)
+    {
+        generateTypeMoves(pos,captureTargets,movesList,1,checks,pins);
+    }else
+    {
+        generateTypeMoves(pos,captureTargets,movesList,1,checks,pins);
+    }
+    }
     return movesList;
 }
 
