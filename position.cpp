@@ -8,6 +8,7 @@ using namespace std;
 
 void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
 {
+    //reseting bitboards
     for (int i = 0; i < 16; i++)
     {
         bitboards[i] = 0ULL;
@@ -25,11 +26,13 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
 
     STM = turn == "w" ? WHITE : BLACK;
 
+    //clear piece array
     for(int i=0; i<=63; i++)
     {
         piecesArray[i]=NO_PIECE;
     }
 
+    //loop through fen
     for (char ch : board)
     {
         if (ch == '/')
@@ -100,11 +103,6 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
         }
     }
 
-    // Resetting bitboards
-    bitboards[WHITE_PIECES]=0;
-    bitboards[BLACK_PIECES]=0;
-    bitboards[ALL_PIECES]=0;
-    bitboards[NO_PIECE]=0;
 
     // Set bitboard for all pieces
 
@@ -121,9 +119,11 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
         bitboards[ALL_PIECES] |= bitboards[i];
     }
 
+    //set bitboards[empty]
     bitboards[NO_PIECE] = ~bitboards[ALL_PIECES];
 
-    addState(chessSquareToIndex(enPassant),castlingRights(castling),halfmove,fullmove,NO_PIECE);
+    //add game state to list
+    addState(nameToSquare(enPassant),castlingRights(castling),halfmove,fullmove,NO_PIECE);
 }
 
 void Position::makeMove(Move move)
@@ -134,6 +134,16 @@ void Position::makeMove(Move move)
 
     StateInfo tempState = stateInfoList.back();
 
+    if(flags == 1)
+    {
+        if(STM)
+        {
+            tempState.enPassantSquare = targetSquare-8;
+        }else
+        {
+            tempState.enPassantSquare = targetSquare+8;
+        }
+    }
     if(flags == 4)
     {
         tempState.capturedPieceType = piecesArray[targetSquare];

@@ -32,7 +32,7 @@ inline Move createMove(int startSquare, int targetSquare, int flags){
     return startSquare + (targetSquare << 6) + (flags << 12);
 }
 
-inline string getFieldName(int index)
+inline string squareToName(int index)
 {
     char file = 'a' + (index % 8);
     // Rzędy szachownicy od '1' do '8'
@@ -41,7 +41,7 @@ inline string getFieldName(int index)
     return std::string(1, file) + std::string(1, rank);
 }
 
-inline int chessSquareToIndex(std::string square) {
+inline int nameToSquare(std::string square) {
 
     char file = tolower(square[0]);
     // Rzędy od '1' do '8'
@@ -84,5 +84,5 @@ inline void printMove(Move m)
     int startSquare = m & 0b111111;
     int targetSquare = m>>6 & 0b111111;
     int flags = m>>12 & 0b1111;
-    cout<<getFieldName(startSquare)<<" "<<getFieldName(targetSquare)<<" "<<flags<<endl;
+    cout<<squareToName(startSquare)<<" "<<squareToName(targetSquare)<<" "<<flags<<endl;
 }

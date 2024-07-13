@@ -26,7 +26,7 @@ class MoveGenerator
 
     Bitboard howManyAttacks(Position pos, bool white, int index);
 
-    Bitboard generateKingsEvasions(Position pos, vector<Move>& moveList, Bitboard target, bool white);
+    Bitboard generateKingsMoves(Position pos, vector<Move>& moveList, Bitboard target, bool white);
 
     Bitboard getPinners(Position pos, bool white, vector<Move>& movesList);
 
@@ -35,5 +35,7 @@ class MoveGenerator
     void addBishopsMoves(int startSquare, vector<Move>& movesList, Position pos, Bitboard target);
 
     void addRookMoves(int startSquare, vector<Move>& movesList, Position pos, Bitboard target);
+
+    void addMoves(int startSquare, Bitboard targers, vector<Move>& movesList, Position pos, int flag);
 
 };

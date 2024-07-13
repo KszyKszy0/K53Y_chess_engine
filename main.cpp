@@ -28,7 +28,9 @@ int main()
     //     Engine.pos.undoMove(m);
     // }
 
-    // Engine.pos.makeMove(createMove(chessSquareToIndex("e2"),chessSquareToIndex("e4"),0));
+    Engine.pos.makeMove(createMove(nameToSquare("e2"),nameToSquare("e4"),1));
+
+    cout<<Engine.pos.stateInfoList.back().enPassantSquare;
 
     // Engine.pos.makeMove(createMove(chessSquareToIndex("f7"),chessSquareToIndex("f5"),0));
 
@@ -40,7 +42,7 @@ int main()
 
     // Engine.pos.makeMove(createMove(chessSquareToIndex("f5"),chessSquareToIndex("g6"),CAPTURE));
 
-    cout<<Engine.perft(4);
+    // cout<<Engine.perft(4);
 
     // for(int i=0; i<=15; i++)
     // {
