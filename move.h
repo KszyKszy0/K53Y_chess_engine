@@ -84,5 +84,5 @@ inline void printMove(Move m)
     int startSquare = m & 0b111111;
     int targetSquare = m>>6 & 0b111111;
     int flags = m>>12 & 0b1111;
-    cout<<squareToName(startSquare)<<" "<<squareToName(targetSquare)<<" "<<flags<<endl;
+    cout<<squareToName(startSquare)<<squareToName(targetSquare);//<<flags<<endl;
 }

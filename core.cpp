@@ -25,11 +25,11 @@ int core::perft(int depth)
         counter += localCounter;
         pos.undoMove(m);
 
-        if(depth==5)
+        if(depth==6)
         {
-            cout<<"////////////////////////////////////////////////////////////////////"<<endl<<endl;
+            // cout<<"////////////////////////////////////////////////////////////////////"<<endl<<endl;
             printMove(m);
-            cout<<localCounter<<endl;
+            cout<<": "<<localCounter<<endl;
         }
         if(allp!=pos.piecesBitboards[ALL_PIECES])
         {

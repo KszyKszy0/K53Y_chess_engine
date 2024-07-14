@@ -49,7 +49,7 @@ int main()
 
     // Engine.pos.makeMove(createMove(nameToSquare("f5"),nameToSquare("g6"),CAPTURE));
 
-    cout<<Engine.perft(5)<<endl;
+    cout<<Engine.perft(6)<<endl;
 
     // vector<Move> temp = Engine.moveGenerator.fullMovesList(Engine.pos);
 
