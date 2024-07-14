@@ -22,13 +22,31 @@ class MoveGenerator
     //Returns all legal moves list
     vector<Move> fullMovesList(Position pos);
 
-    Bitboard getSideAttacks(Position pos, bool white);
+    Bitboard getSideAttacks(Position pos, bool white, bool forKingMoves);
 
     Bitboard howManyAttacks(Position pos, bool white, int index);
 
     Bitboard generateKingsMoves(Position pos, vector<Move>& moveList, Bitboard target, bool white);
 
     Bitboard getPinners(Position pos, bool white, vector<Move>& movesList);
+
+
+    void addPawnWhiteQuiet(int startSquare, vector<Move>& movesList, Position pos, Bitboard target);
+
+    void addPawnWhiteCaptures(int startSquare, vector<Move>& movesList, Position pos, Bitboard target);
+
+    void addPawnWhiteEnpassant(vector<Move>& movesList, Position pos); //wazne
+
+
+
+    void addPawnBlackQuiet(int startSquare, vector<Move>& movesList, Position pos, Bitboard target);
+
+    void addPawnBlackCaptures(int startSquare, vector<Move>& movesList, Position pos, Bitboard target);
+
+    void addPawnBlackEnpassant(vector<Move>& movesList, Position pos); //wazne
+
+
+
 
     void addKnightsMoves(int startSquare, vector<Move>& movesList, Position pos, Bitboard target);
 
@@ -37,5 +55,6 @@ class MoveGenerator
     void addRookMoves(int startSquare, vector<Move>& movesList, Position pos, Bitboard target);
 
     void addMoves(int startSquare, Bitboard targers, vector<Move>& movesList, Position pos, int flag);
+
 
 };

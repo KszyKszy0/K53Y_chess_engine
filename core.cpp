@@ -1,5 +1,5 @@
 #include "core.h"
-
+#include <cassert>
 core::core() : bbManager(BB_utils()), moveGenerator(bbManager)
 {
 
@@ -13,23 +13,29 @@ int core::perft(int depth)
         return 1;
     }
     vector<Move> moveList = moveGenerator.fullMovesList(pos);
+    Bitboard allp = pos.piecesBitboards[ALL_PIECES];
     for(Move m : moveList)
     {
         // printMove(m);
         int localCounter = 0;
         Bitboard temp = pos.piecesBitboards[BLACK_KNIGHT];
         pos.makeMove(m);
+
         localCounter += perft(depth-1);
         counter += localCounter;
         pos.undoMove(m);
-        if(depth==4)
+
+        if(depth==5)
         {
             cout<<"////////////////////////////////////////////////////////////////////"<<endl<<endl;
             printMove(m);
             cout<<localCounter<<endl;
         }
-
-
+        if(allp!=pos.piecesBitboards[ALL_PIECES])
+        {
+            cout<<allp<<endl<<pos.piecesBitboards[ALL_PIECES]<<endl;
+            cout<<"BTAK SIGMY";
+        }
         // try
         // {
         //     if(temp != pos.piecesBitboards[BLACK_KNIGHT])

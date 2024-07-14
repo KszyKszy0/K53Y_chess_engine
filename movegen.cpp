@@ -20,27 +20,10 @@ void MoveGenerator::generateTypeMoves(Position pos, Bitboard target, vector<Move
         {
         if(type == 0)                       //If only quiets
         {
-            Bitboard possibleMoves = BBManager.whitePawnMoves[index] & target;  //Default moves Targets are empty squares by default
-            possibleMoves &= ~ pos.piecesBitboards[ALL_PIECES];                 //this is probably useless
-            if(index / 8 == 1)                                                  //am i 2nd rank?
-            {
-                Bitboard doublePawnMove = (1ULL << (index + 16));               //index of double pawn push
-                Bitboard intersection = doublePawnMove & target;                //intersection with target (possible check protecion) probably useless in normal case scenario
-                if(intersection != 0)                                           //if intersection with target we can consider legality
-                {
-                if(!isBitSet(pos.piecesBitboards[ALL_PIECES],index+8))          //if there is nothing in front
-                {
-                    if(!isBitSet(pos.piecesBitboards[ALL_PIECES],index+16))     //if there is nothing on target square double push
-                    // setBit(possibleMoves,index+16);                             //we get xtra move
-                    addMoves(index, 1ULL<<(index+16), moveList, pos, PAWN_DOUBLE_MOVE);
-                }
-                }
-            }
-            addMoves(index, possibleMoves, moveList, pos);
+            addPawnWhiteQuiet(index,moveList,pos,target);
         }else
         {
-            Bitboard possibleMoves = BBManager.whitePawnCaptures[index] & target;
-            addMoves(index, possibleMoves, moveList, pos);
+            addPawnWhiteCaptures(index,moveList,pos,target);
         }
         }
     }
@@ -105,32 +88,15 @@ void MoveGenerator::generateTypeMoves(Position pos, Bitboard target, vector<Move
     Bitboard iterated = pos.piecesBitboards[BLACK_PAWN];
     while(iterated)
     {
-        int index = popLSB(iterated);
-        if(!isBitSet(pins,index))
+        int index = popLSB(iterated);       //Get pawn index
+        if(!isBitSet(pins,index))           //Pin moves are generated in getPinners
         {
-        if(type == 0)
+        if(type == 0)                       //If only quiets
         {
-            Bitboard possibleMoves = BBManager.blackPawnMoves[index] & target;
-            possibleMoves &= ~ pos.piecesBitboards[ALL_PIECES];
-            if(index / 8 == 6)
-            {
-                Bitboard doublePawnMove = (1ULL << (index - 16));
-                Bitboard intersection = doublePawnMove & target;
-                if(intersection != 0)
-                {
-                if(!isBitSet(pos.piecesBitboards[ALL_PIECES],index-8))
-                {
-                    if(!isBitSet(pos.piecesBitboards[ALL_PIECES],index-16))
-                    // setBit(possibleMoves,index-16);
-                    addMoves(index, 1ULL<<(index-16), moveList, pos, PAWN_DOUBLE_MOVE);
-                }
-                }
-            }
-            addMoves(index, possibleMoves, moveList, pos);
+            addPawnBlackQuiet(index,moveList,pos,target);
         }else
         {
-            Bitboard possibleMoves = BBManager.blackPawnCaptures[index] & target;
-            addMoves(index, possibleMoves, moveList, pos);
+            addPawnBlackCaptures(index,moveList,pos,target);
         }
         }
     }
@@ -219,9 +185,20 @@ vector<Move> MoveGenerator::fullMovesList(Position pos)
         // setBit(checkTargets,index);
     }
 
+    //this should be used for king only!!!!
+    Bitboard enemyAttacks = getSideAttacks(pos, !pos.STM, true);      //Get enemy attacks
+    Bitboard pins = getPinners(pos,pos.STM,movesList);          //pin generation for normal pieces
+                                                                //and normal pins pawns
 
-    Bitboard enemyAttacks = getSideAttacks(pos, !pos.STM);      //Get enemy attacks
-    Bitboard pins = getPinners(pos,pos.STM,movesList);          //pin generation
+    if(pos.STM)
+    {
+        addPawnWhiteEnpassant(movesList, pos);      //enpassant moves and enpassant pins
+    }else
+    {
+        addPawnBlackEnpassant(movesList, pos);      //enpassant moves and enpassant pins
+    }
+
+
 
     generateKingsMoves(pos, movesList, ~enemyAttacks, pos.STM);      //kings Moves
     if(checks < 2)
@@ -278,12 +255,20 @@ MoveGenerator::MoveGenerator(BB_utils BBM)
     BBManager = BBM;
 }
 
-Bitboard MoveGenerator::getSideAttacks(Position pos, bool white)
+//combine all pieces with its attacks from lookup tables for all attacks from side
+Bitboard MoveGenerator::getSideAttacks(Position pos, bool white, bool forKingMoves)
 {
-    //combine all pieces with its attacks from lookup tables for all attacks from side
+
     Bitboard attacks = 0;
     if(white)
     {
+
+
+    Bitboard target = pos.piecesBitboards[ALL_PIECES];
+    if(forKingMoves)
+    {
+        clearBit(target,LSB(pos.piecesBitboards[BLACK_KING]));
+    }
 
     //pawn moves
     Bitboard iterated = pos.piecesBitboards[WHITE_PAWN];
@@ -306,7 +291,7 @@ Bitboard MoveGenerator::getSideAttacks(Position pos, bool white)
     while(iterated)
     {
         int index = popLSB(iterated);
-        attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
+        attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(target & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
     }
 
     //white rooks
@@ -314,7 +299,7 @@ Bitboard MoveGenerator::getSideAttacks(Position pos, bool white)
     while(iterated)
     {
         int index = popLSB(iterated);
-        attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])];
+        attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(target & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])];
     }
 
     //white queens
@@ -322,8 +307,8 @@ Bitboard MoveGenerator::getSideAttacks(Position pos, bool white)
     while(iterated)
     {
         int index = popLSB(iterated);
-        attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])];
-        attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
+        attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(target & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])];
+        attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(target & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
     }
 
     //white kings
@@ -335,6 +320,14 @@ Bitboard MoveGenerator::getSideAttacks(Position pos, bool white)
     }
     }else
     {
+
+    Bitboard target = pos.piecesBitboards[ALL_PIECES];
+    if(forKingMoves)
+    {
+        clearBit(target,LSB(pos.piecesBitboards[WHITE_KING]));
+    }
+
+
     //pawn moves
     Bitboard iterated = pos.piecesBitboards[BLACK_PAWN];
     while(iterated)
@@ -356,7 +349,7 @@ Bitboard MoveGenerator::getSideAttacks(Position pos, bool white)
     while(iterated)
     {
         int index = popLSB(iterated);
-        attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
+        attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(target & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
     }
 
     //white rooks
@@ -364,7 +357,7 @@ Bitboard MoveGenerator::getSideAttacks(Position pos, bool white)
     while(iterated)
     {
         int index = popLSB(iterated);
-        attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])];
+        attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(target & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])];
     }
 
     //white queens
@@ -372,8 +365,8 @@ Bitboard MoveGenerator::getSideAttacks(Position pos, bool white)
     while(iterated)
     {
         int index = popLSB(iterated);
-        attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])];
-        attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
+        attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(target & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])];
+        attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(target & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])];
     }
 
     //white kings
@@ -422,15 +415,20 @@ Bitboard MoveGenerator::getPinners(Position pos, bool white, vector<Move>& moves
     Bitboard kingRooksAttacks = BBManager.rookMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[kingIndex],BBManager.rooksMagics[kingIndex],BBManager.rookBits[kingIndex])] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
 
     //new attacks omitting intersections
-    Bitboard pinnersRook = BBManager.rookMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[kingIndex] ^ kingRooksAttacks,BBManager.rooksMagics[kingIndex],BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[white ? BLACK_ROOK : WHITE_ROOK] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN]);
+    Bitboard pinnersRook = BBManager.rookMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] ^ kingRooksAttacks) & BBManager.rookMasks[kingIndex],BBManager.rooksMagics[kingIndex],BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[white ? BLACK_ROOK : WHITE_ROOK] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN]);
 
-
+    // cout<<((pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[kingIndex]) ^ kingRooksAttacks)<<endl;
+    // cout<<BBManager.rookMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[kingIndex]) ^ kingRooksAttacks,BBManager.rooksMagics[kingIndex],BBManager.rookBits[kingIndex])]<<endl;
+    // cout<<(pos.piecesBitboards[white ? BLACK_ROOK : WHITE_ROOK] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN])<<endl;
     while(pinnersRook) //loop through all PINNERS
     {
         int pinnerIndex = popLSB(pinnersRook);  //Get index of pinner
 
         //get lane of pin thorugh rectangular lookup
         Bitboard bbPinned = BBManager.rectangularLookup[pinnerIndex][kingIndex] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
+
+        if(bbPinned == 0)   //safety check for position where you check king but intersect with ally on other side
+            break;          //example rnbqkbnr/ppp1pppp/8/3p4/Q1P5/8/PP1PPPPP/RNB1KBNR b KQkq - 1 2 check from a4 but intersection on f7
 
         //pop index of lane to get pinned piece eg  lane: 1 1 1 1   &   piece in lane: 0 0 1 0  =  result 0 0 1 0
         //there can only be ONE PIECE in lane because in bbPinned we check for enemies so allies are omitted
@@ -451,6 +449,10 @@ Bitboard MoveGenerator::getPinners(Position pos, bool white, vector<Move>& moves
         // movegen depending on piece
         switch (pieceType)
         {
+        case WHITE_PAWN:
+            addPawnWhiteQuiet(pinnedIndex, movesList, pos, target);
+            addPawnWhiteCaptures(pinnedIndex, movesList, pos, target);
+            break;
         case WHITE_BISHOP:
             addBishopsMoves(pinnedIndex, movesList, pos, target);
             break;
@@ -458,7 +460,12 @@ Bitboard MoveGenerator::getPinners(Position pos, bool white, vector<Move>& moves
             addRookMoves(pinnedIndex, movesList, pos, target);
             break;
         case WHITE_QUEEN:
+            addBishopsMoves(pinnedIndex, movesList, pos, target);
             addRookMoves(pinnedIndex, movesList, pos, target);
+            break;
+        case BLACK_PAWN:
+            addPawnBlackQuiet(pinnedIndex, movesList, pos, target);
+            addPawnBlackCaptures(pinnedIndex, movesList, pos, target);
             break;
         case BLACK_BISHOP:
             addBishopsMoves(pinnedIndex, movesList, pos, target);
@@ -467,6 +474,7 @@ Bitboard MoveGenerator::getPinners(Position pos, bool white, vector<Move>& moves
             addRookMoves(pinnedIndex, movesList, pos, target);
             break;
         case BLACK_QUEEN:
+            addBishopsMoves(pinnedIndex, movesList, pos, target);
             addRookMoves(pinnedIndex, movesList, pos, target);
             break;
         default:
@@ -478,7 +486,7 @@ Bitboard MoveGenerator::getPinners(Position pos, bool white, vector<Move>& moves
     Bitboard kingsBishopAttacks = BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[kingIndex],BBManager.bishopsMagics[kingIndex],BBManager.bishopBits[kingIndex])] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
 
     //new attacks omitting intersections
-    Bitboard pinnersBishop = BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[kingIndex] ^ kingsBishopAttacks,BBManager.bishopsMagics[kingIndex],BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[white ? BLACK_BISHOP : WHITE_BISHOP] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN]);
+    Bitboard pinnersBishop = BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] ^ kingsBishopAttacks) & BBManager.bishopMasks[kingIndex],BBManager.bishopsMagics[kingIndex],BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[white ? BLACK_BISHOP : WHITE_BISHOP] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN]);
 
     while(pinnersBishop)
     {
@@ -487,6 +495,10 @@ Bitboard MoveGenerator::getPinners(Position pos, bool white, vector<Move>& moves
 
         //get lane of pin thorugh rectangular lookup
         Bitboard bbPinned = BBManager.rectangularLookup[pinnerIndex][kingIndex] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
+
+        if(bbPinned == 0)   //safety check for position where you check king but intersect with ally on other side
+            break;          //example rnbqkbnr/ppp1pppp/8/3p4/Q1P5/8/PP1PPPPP/RNB1KBNR b KQkq - 1 2 check from a4 but intersection on f7
+
 
         //lsb of lane pinned
         int pinnedIndex = LSB(bbPinned);
@@ -503,8 +515,13 @@ Bitboard MoveGenerator::getPinners(Position pos, bool white, vector<Move>& moves
 
         //piecetype movegen
         int pieceType = pos.piecesArray[pinnedIndex];
+        // movegen depending on piece
         switch (pieceType)
         {
+        case WHITE_PAWN:
+            addPawnWhiteQuiet(pinnedIndex, movesList, pos, target);
+            addPawnWhiteCaptures(pinnedIndex, movesList, pos, target & pos.piecesBitboards[BLACK_PIECES]);
+            break;
         case WHITE_BISHOP:
             addBishopsMoves(pinnedIndex, movesList, pos, target);
             break;
@@ -514,6 +531,10 @@ Bitboard MoveGenerator::getPinners(Position pos, bool white, vector<Move>& moves
         case WHITE_QUEEN:
             addBishopsMoves(pinnedIndex, movesList, pos, target);
             addRookMoves(pinnedIndex, movesList, pos, target);
+            break;
+        case BLACK_PAWN:
+            addPawnBlackQuiet(pinnedIndex, movesList, pos, target);
+            addPawnBlackCaptures(pinnedIndex, movesList, pos, target & pos.piecesBitboards[WHITE_PIECES]);
             break;
         case BLACK_BISHOP:
             addBishopsMoves(pinnedIndex, movesList, pos, target);
@@ -531,6 +552,142 @@ Bitboard MoveGenerator::getPinners(Position pos, bool white, vector<Move>& moves
     }
     return allPinned;
 }
+
+
+void MoveGenerator::addPawnWhiteQuiet(int startSquare, vector<Move>& movesList, Position pos, Bitboard target)
+{
+    // while(iterated)
+    // {
+    //     int index = popLSB(iterated);       //Get pawn index
+    //     if(!isBitSet(pins,index))           //Pin moves are generated in getPinners
+    //     {
+    Bitboard possibleMoves = BBManager.whitePawnMoves[startSquare] & target;  //Default moves Targets are empty squares by default
+    possibleMoves &= ~ pos.piecesBitboards[ALL_PIECES];                 //this is probably useless
+    if(startSquare / 8 == 1)                                                  //am i 2nd rank?
+    {
+        Bitboard doublePawnMove = (1ULL << (startSquare + 16));               //index of double pawn push
+        Bitboard intersection = doublePawnMove & target;                //intersection with target (possible check protecion) probably useless in normal case scenario
+        if(intersection != 0)                                           //if intersection with target we can consider legality
+        {
+        if(!isBitSet(pos.piecesBitboards[ALL_PIECES],startSquare+8))          //if there is nothing in front
+        {
+            if(!isBitSet(pos.piecesBitboards[ALL_PIECES],startSquare+16))     //if there is nothing on target square double push
+            // setBit(possibleMoves,index+16);                             //we get xtra move
+            addMoves(startSquare, 1ULL<<(startSquare+16), movesList, pos, PAWN_DOUBLE_MOVE);
+        }
+        }
+    }
+    addMoves(startSquare, possibleMoves, movesList, pos);
+}
+
+//only simple captures without enpassant
+void MoveGenerator::addPawnWhiteCaptures(int startSquare, vector<Move>& movesList, Position pos, Bitboard target)
+{
+    Bitboard possibleMoves = BBManager.whitePawnCaptures[startSquare] & target;
+    addMoves(startSquare, possibleMoves, movesList, pos);
+}
+
+//enpassant moves and pins
+void MoveGenerator::addPawnWhiteEnpassant(vector<Move>& movesList, Position pos)
+{
+    Bitboard iterated = pos.piecesBitboards[WHITE_PAWN];
+    while(iterated)
+    {
+        int startSquare = popLSB(iterated);
+
+        int enPassantSquare = pos.stateInfoList.back().enPassantSquare;
+        if(enPassantSquare != 0)
+        {
+            if(((1ULL << enPassantSquare) & BBManager.whitePawnCaptures[startSquare]) == (1ULL << enPassantSquare))
+            {
+            Bitboard enpassantAttacks = 0;
+            int enpassantTakenIndex = enPassantSquare - 8;
+
+
+            Bitboard removingPawns = 1ULL << startSquare | 1ULL << enpassantTakenIndex;
+
+
+            int kingIndex = LSB(pos.piecesBitboards[WHITE_KING]);
+            enpassantAttacks |= BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[kingIndex] &~removingPawns,BBManager.bishopsMagics[kingIndex],BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[BLACK_BISHOP] | pos.piecesBitboards[BLACK_QUEEN]);
+            enpassantAttacks |= BBManager.rookMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[kingIndex] &~removingPawns,BBManager.rooksMagics[kingIndex],BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[BLACK_ROOK] | pos.piecesBitboards[BLACK_QUEEN]);
+
+            if(enpassantAttacks == 0)
+            {
+            Bitboard possibleEnPassant = BBManager.whitePawnCaptures[startSquare] & (1ULL << enPassantSquare);
+            addMoves(startSquare, possibleEnPassant, movesList, pos, EN_PASSANT);
+            }
+            }
+        }
+    }
+}
+
+void MoveGenerator::addPawnBlackQuiet(int startSquare, vector<Move>& movesList, Position pos, Bitboard target)
+{
+    // while(iterated)
+    // {
+    //     int index = popLSB(iterated);       //Get pawn index
+    //     if(!isBitSet(pins,index))           //Pin moves are generated in getPinners
+    //     {
+    Bitboard possibleMoves = BBManager.blackPawnMoves[startSquare] & target;  //Default moves Targets are empty squares by default
+    possibleMoves &= ~ pos.piecesBitboards[ALL_PIECES];                 //this is probably useless
+    if(startSquare / 8 == 6)                                                  //am i 2nd rank?
+    {
+        Bitboard doublePawnMove = (1ULL << (startSquare - 16));               //index of double pawn push
+        Bitboard intersection = doublePawnMove & target;                //intersection with target (possible check protecion) probably useless in normal case scenario
+        if(intersection != 0)                                           //if intersection with target we can consider legality
+        {
+        if(!isBitSet(pos.piecesBitboards[ALL_PIECES],startSquare-8))          //if there is nothing in front
+        {
+            if(!isBitSet(pos.piecesBitboards[ALL_PIECES],startSquare-16))     //if there is nothing on target square double push
+            // setBit(possibleMoves,index+16);                             //we get xtra move
+            addMoves(startSquare, 1ULL<<(startSquare-16), movesList, pos, PAWN_DOUBLE_MOVE);
+        }
+        }
+    }
+    addMoves(startSquare, possibleMoves, movesList, pos);
+}
+
+//only simple captures without enpassant
+void MoveGenerator::addPawnBlackCaptures(int startSquare, vector<Move>& movesList, Position pos, Bitboard target)
+{
+    Bitboard possibleMoves = BBManager.blackPawnCaptures[startSquare] & target;
+    addMoves(startSquare, possibleMoves, movesList, pos);
+}
+
+//enpassant moves and pins
+void MoveGenerator::addPawnBlackEnpassant(vector<Move>& movesList, Position pos)
+{
+    Bitboard iterated = pos.piecesBitboards[BLACK_PAWN];
+    while(iterated)
+    {
+        int startSquare = popLSB(iterated);
+
+        int enPassantSquare = pos.stateInfoList.back().enPassantSquare;
+        if(enPassantSquare != 0)
+        {
+            if(((1ULL << enPassantSquare) & BBManager.blackPawnCaptures[startSquare]) == (1ULL << enPassantSquare))
+            {
+            Bitboard enpassantAttacks = 0;
+            int enpassantTakenIndex = enPassantSquare + 8;
+
+
+            Bitboard removingPawns = 1ULL << startSquare | 1ULL << enpassantTakenIndex;
+
+
+            int kingIndex = LSB(pos.piecesBitboards[BLACK_KING]);
+            enpassantAttacks |= BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[kingIndex] &~removingPawns,BBManager.bishopsMagics[kingIndex],BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[WHITE_BISHOP] | pos.piecesBitboards[WHITE_QUEEN]);
+            enpassantAttacks |= BBManager.rookMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[kingIndex] &~removingPawns,BBManager.rooksMagics[kingIndex],BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[WHITE_ROOK] | pos.piecesBitboards[WHITE_QUEEN]);
+
+            if(enpassantAttacks == 0)
+            {
+            Bitboard possibleEnPassant = BBManager.blackPawnCaptures[startSquare] & (1ULL << enPassantSquare);
+            addMoves(startSquare, possibleEnPassant, movesList, pos, EN_PASSANT);
+            }
+            }
+        }
+    }
+}
+
 
 void MoveGenerator::addKnightsMoves(int startSquare, vector<Move>& movesList, Position pos, Bitboard target)
 {

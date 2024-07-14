@@ -28,21 +28,35 @@ int main()
     //     Engine.pos.undoMove(m);
     // }
 
-    Engine.pos.makeMove(createMove(nameToSquare("e2"),nameToSquare("e4"),1));
+    // Engine.pos.makeMove(createMove(nameToSquare("a2"),nameToSquare("a4"),PAWN_DOUBLE_MOVE));
+    // Engine.pos.makeMove(createMove(nameToSquare("b7"),nameToSquare("b5"),QUIET));
 
-    cout<<Engine.pos.stateInfoList.back().enPassantSquare;
+    // Engine.pos.undoMove(createMove(nameToSquare("c7"),nameToSquare("c6"),QUIET));
+    // cout<<Engine.pos.stateInfoList.back().enPassantSquare;
 
-    // Engine.pos.makeMove(createMove(chessSquareToIndex("f7"),chessSquareToIndex("f5"),0));
+    // Engine.pos.makeMove(createMove(nameToSquare("a4"),nameToSquare("b5"),CAPTURE));
+    // Engine.pos.undoMove(createMove(nameToSquare("a4"),nameToSquare("b5"),CAPTURE));
 
-    // Engine.pos.makeMove(createMove(chessSquareToIndex("e4"),chessSquareToIndex("f5"),CAPTURE));
+    // Engine.pos.makeMove(createMove(nameToSquare("d4"),nameToSquare("e5"),CAPTURE));
 
-    // Engine.pos.undoMove(createMove(chessSquareToIndex("e4"),chessSquareToIndex("f5"),CAPTURE));
+    // Engine.pos.undoMove(createMove(nameToSquare("d4"),nameToSquare("e5"),CAPTURE));
 
-    // Engine.pos.makeMove(createMove(chessSquareToIndex("g7"),chessSquareToIndex("g6"),0));
+    // Engine.pos.makeMove(createMove(nameToSquare("b2"),nameToSquare("b4"),PAWN_DOUBLE_MOVE));
 
-    // Engine.pos.makeMove(createMove(chessSquareToIndex("f5"),chessSquareToIndex("g6"),CAPTURE));
+    // Engine.pos.undoMove(createMove(nameToSquare("e4"),nameToSquare("f5"),CAPTURE));
 
-    // cout<<Engine.perft(4);
+    // Engine.pos.makeMove(createMove(nameToSquare("g7"),nameToSquare("g6"),0));
+
+    // Engine.pos.makeMove(createMove(nameToSquare("f5"),nameToSquare("g6"),CAPTURE));
+
+    cout<<Engine.perft(5)<<endl;
+
+    // vector<Move> temp = Engine.moveGenerator.fullMovesList(Engine.pos);
+
+    // for(Move m : temp)
+    // {
+    //     printMove(m);
+    // }
 
     // for(int i=0; i<=15; i++)
     // {
