@@ -10,6 +10,8 @@ typedef uint64_t Bitboard;
 
 using namespace std;
 
+inline Bitboard MAX = 0xffffffffffffffff;
+
 //Sets bit at index to 1
 void setBit(Bitboard &bb, int index);
 
