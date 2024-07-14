@@ -204,7 +204,7 @@ vector<Move> MoveGenerator::fullMovesList(Position& pos)
     Bitboard enemyAttacks = getSideAttacks(pos, !pos.STM, true);      //Get enemy attacks
 
     //kings Moves
-    generateKingsMoves(pos, movesList, ~enemyAttacks, pos.STM);
+    generateKingsMoves(pos, movesList, ~enemyAttacks, pos.STM, checks);
 
     //Check targets is for quiets
     //Capture targets is for captures
@@ -753,7 +753,7 @@ void MoveGenerator::addRookMoves(int startSquare, vector<Move>& movesList, Posit
     addMoves(startSquare, possibleMoves, movesList, pos);
 }
 
-Bitboard MoveGenerator::generateKingsMoves(Position& pos, vector<Move>& moveList, Bitboard target, bool white)
+Bitboard MoveGenerator::generateKingsMoves(Position& pos, vector<Move>& moveList, Bitboard target, bool white, int checks)
 {
     //white kings
     Bitboard iterated = pos.piecesBitboards[white ? WHITE_KING : BLACK_KING];
@@ -763,5 +763,43 @@ Bitboard MoveGenerator::generateKingsMoves(Position& pos, vector<Move>& moveList
         Bitboard possibleMoves = BBManager.kingMoves[index] & target;
         possibleMoves &= ~ pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
         addMoves(index, possibleMoves, moveList, pos);
+
+        if(checks < 1)
+        {
+            int castlingRights = pos.stateInfoList.back().castlingRights;
+            if(white)
+            {
+                Bitboard emptySpaces = 96; // 1ULL << 5 | 1ULL << 6;
+                Bitboard targetedEmptySpaces = emptySpaces & target;
+                Bitboard occupiedEmptySpaces = emptySpaces & pos.piecesBitboards[ALL_PIECES];
+                if((castlingRights & 8) && (targetedEmptySpaces == 96) && (occupiedEmptySpaces == 0))
+                {
+                    addMoves(index, 1ULL << 6, moveList, pos, 2);
+                }
+                emptySpaces = 12; // 1ULL << 3 | 1ULL << 4;
+                targetedEmptySpaces = emptySpaces & target;
+                occupiedEmptySpaces = emptySpaces & pos.piecesBitboards[ALL_PIECES];
+                if((castlingRights & 4) && (targetedEmptySpaces == 12) && (occupiedEmptySpaces == 0))
+                {
+                    addMoves(index, 1ULL << 2, moveList, pos, 3);
+                }
+            }else
+            {
+                Bitboard emptySpaces = 6917529027641081856; // 1ULL << 61 | 1ULL << 62;
+                Bitboard targetedEmptySpaces = emptySpaces & target;
+                Bitboard occupiedEmptySpaces = emptySpaces & pos.piecesBitboards[ALL_PIECES];
+                if((castlingRights & 2) && (targetedEmptySpaces == 6917529027641081856) && (occupiedEmptySpaces == 0))
+                {
+                    addMoves(index, 1ULL << 62, moveList, pos, 2);
+                }
+                emptySpaces = 864691128455135232; // 1ULL << 58 | 1ULL << 59;
+                targetedEmptySpaces = emptySpaces & target;
+                occupiedEmptySpaces = emptySpaces & pos.piecesBitboards[ALL_PIECES];
+                if((castlingRights & 1) && (targetedEmptySpaces == 864691128455135232) && (occupiedEmptySpaces == 0))
+                {
+                    addMoves(index, 1ULL << 58, moveList, pos, 3);
+                }
+            }
+        }
     }
 }

@@ -26,7 +26,7 @@ class MoveGenerator
 
     Bitboard howManyAttacks(Position& pos, bool white, int index);
 
-    Bitboard generateKingsMoves(Position& pos, vector<Move>& moveList, Bitboard target, bool white);
+    Bitboard generateKingsMoves(Position& pos, vector<Move>& moveList, Bitboard target, bool white, int checks);
 
     Bitboard getPinners(Position& pos, bool white, vector<Move>& movesList, Bitboard target);
 

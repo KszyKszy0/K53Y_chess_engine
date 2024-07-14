@@ -168,6 +168,8 @@ void Position::makeMove(Move move)
             bitSwap(piecesBitboards[BLACK_PAWN],startSquare,targetSquare);
             piecesArray[targetSquare+8] = NO_PIECE;
         }
+        piecesArray[targetSquare] = piecesArray[startSquare];
+        piecesArray[startSquare] = NO_PIECE;
     }
 
 
@@ -188,29 +190,99 @@ void Position::makeMove(Move move)
             clearBit(piecesBitboards[WHITE_PIECES],targetSquare);
             bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
         }
-
+        piecesArray[targetSquare] = piecesArray[startSquare];
+        piecesArray[startSquare] = NO_PIECE;
     }
+
+
+
     if(flags == QUIET || flags == PAWN_DOUBLE_MOVE)
     {
+        bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
 
-    bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
+        bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
 
-    bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
-
-    if(STM == WHITE)
-    {
-        bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-    }else
-    {
-        bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+        if(STM == WHITE)
+        {
+            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
+        }else
+        {
+            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+        }
+        piecesArray[targetSquare] = piecesArray[startSquare];
+        piecesArray[startSquare] = NO_PIECE;
     }
+
+    if(flags == SHORT_CASTLE)
+    {
+        bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
+
+        bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
+
+        if(STM == WHITE)
+        {
+            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
+
+            bitSwap(piecesBitboards[WHITE_ROOK],7,5);
+
+            bitSwap(piecesBitboards[ALL_PIECES],7,5);
+
+            bitSwap(piecesBitboards[WHITE_PIECES],7,5);
+
+            piecesArray[5] = WHITE_ROOK;
+            piecesArray[7] = NO_PIECE;
+        }else
+        {
+            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+
+            bitSwap(piecesBitboards[BLACK_ROOK],63,61);
+
+            bitSwap(piecesBitboards[ALL_PIECES],63,61);
+
+            bitSwap(piecesBitboards[BLACK_PIECES],63,61);
+
+            piecesArray[63] = NO_PIECE;
+            piecesArray[61] = BLACK_ROOK;
+        }
+        piecesArray[targetSquare] = piecesArray[startSquare];
+        piecesArray[startSquare] = NO_PIECE;
     }
 
+    if(flags == LONG_CASTLE)
+    {
+        bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
 
+        bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
 
+        if(STM == WHITE)
+        {
+            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
 
-    piecesArray[targetSquare] = piecesArray[startSquare];
-    piecesArray[startSquare] = NO_PIECE;
+            bitSwap(piecesBitboards[WHITE_ROOK],0,3);
+
+            bitSwap(piecesBitboards[ALL_PIECES],0,3);
+
+            bitSwap(piecesBitboards[WHITE_PIECES],0,3);
+
+            piecesArray[3] = WHITE_ROOK;
+            piecesArray[0] = NO_PIECE;
+        }else
+        {
+            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+
+            bitSwap(piecesBitboards[BLACK_ROOK],56,59);
+
+            bitSwap(piecesBitboards[ALL_PIECES],56,59);
+
+            bitSwap(piecesBitboards[BLACK_PIECES],56,59);
+
+            piecesArray[56] = NO_PIECE;
+            piecesArray[59] = BLACK_ROOK;
+        }
+        piecesArray[targetSquare] = piecesArray[startSquare];
+        piecesArray[startSquare] = NO_PIECE;
+    }
+
 
     piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
 
@@ -300,12 +372,79 @@ void Position::undoMove(Move move)
             bitSwap(piecesBitboards[BLACK_PAWN],startSquare,targetSquare);
             piecesArray[targetSquare+8] = WHITE_PAWN;
         }
-
         piecesArray[startSquare] = piecesArray[targetSquare];
         piecesArray[targetSquare] = NO_PIECE;
     }
 
+    if(flags == SHORT_CASTLE)
+    {
+        bitSwap(piecesBitboards[piecesArray[targetSquare]],startSquare,targetSquare);
 
+        bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
+
+        if(STM == BLACK)
+        {
+            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
+
+            bitSwap(piecesBitboards[WHITE_ROOK],7,5);
+
+            bitSwap(piecesBitboards[ALL_PIECES],7,5);
+
+            bitSwap(piecesBitboards[WHITE_PIECES],7,5);
+
+            piecesArray[5] = NO_PIECE;
+            piecesArray[7] = WHITE_ROOK;
+        }else
+        {
+            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+
+            bitSwap(piecesBitboards[BLACK_ROOK],63,61);
+
+            bitSwap(piecesBitboards[ALL_PIECES],63,61);
+
+            bitSwap(piecesBitboards[BLACK_PIECES],63,61);
+
+            piecesArray[63] = BLACK_ROOK;
+            piecesArray[61] = NO_PIECE;
+        }
+        piecesArray[startSquare] = piecesArray[targetSquare];
+        piecesArray[targetSquare] = NO_PIECE;
+    }
+
+    if(flags == LONG_CASTLE)
+    {
+        bitSwap(piecesBitboards[piecesArray[targetSquare]],startSquare,targetSquare);
+
+        bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
+
+        if(STM == BLACK)
+        {
+            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
+
+            bitSwap(piecesBitboards[WHITE_ROOK],0,3);
+
+            bitSwap(piecesBitboards[ALL_PIECES],0,3);
+
+            bitSwap(piecesBitboards[WHITE_PIECES],0,3);
+
+            piecesArray[0] = WHITE_ROOK;
+            piecesArray[3] = NO_PIECE;
+        }else
+        {
+            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+
+            bitSwap(piecesBitboards[BLACK_ROOK],56,59);
+
+            bitSwap(piecesBitboards[ALL_PIECES],56,59);
+
+            bitSwap(piecesBitboards[BLACK_PIECES],56,59);
+
+            piecesArray[59] = NO_PIECE;
+            piecesArray[56] = BLACK_ROOK;
+        }
+        piecesArray[startSquare] = piecesArray[targetSquare];
+        piecesArray[targetSquare] = NO_PIECE;
+    }
 
     piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
 

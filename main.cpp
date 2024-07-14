@@ -28,7 +28,9 @@ int main()
     //     Engine.pos.undoMove(m);
     // }
 
-    // Engine.pos.makeMove(createMove(nameToSquare("a2"),nameToSquare("a4"),PAWN_DOUBLE_MOVE));
+    // Engine.pos.makeMove(createMove(nameToSquare("e1"),nameToSquare("g1"),SHORT_CASTLE));
+
+    // Engine.pos.undoMove(createMove(nameToSquare("e1"),nameToSquare("g1"),SHORT_CASTLE));
     // Engine.pos.makeMove(createMove(nameToSquare("b7"),nameToSquare("b5"),QUIET));
 
     // Engine.pos.undoMove(createMove(nameToSquare("c7"),nameToSquare("c6"),QUIET));
@@ -49,7 +51,7 @@ int main()
 
     // Engine.pos.makeMove(createMove(nameToSquare("f5"),nameToSquare("g6"),CAPTURE));
 
-    cout<<Engine.perft(6)<<endl;
+    cout<<Engine.perft(7)<<endl;
 
     // vector<Move> temp = Engine.moveGenerator.fullMovesList(Engine.pos);
 
