@@ -16,7 +16,7 @@ int main()
 
     string startingFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-    Engine.pos.parseFEN(startingFen, Engine.pos.piecesBitboards);
+    Engine.pos.parseFEN("rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1", Engine.pos.piecesBitboards);
 
     // Engine.moveGenerator.getPinners(Engine.pos,true);
 
@@ -51,7 +51,7 @@ int main()
 
     // Engine.pos.makeMove(createMove(nameToSquare("f5"),nameToSquare("g6"),CAPTURE));
 
-    cout<<Engine.perft(7)<<endl;
+    cout<<Engine.perft(6)<<endl;
 
     // vector<Move> temp = Engine.moveGenerator.fullMovesList(Engine.pos);
 

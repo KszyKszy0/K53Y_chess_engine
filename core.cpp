@@ -25,7 +25,7 @@ int core::perft(int depth)
         counter += localCounter;
         pos.undoMove(m);
 
-        if(depth==7)
+        if(depth==6)
         {
             // cout<<"////////////////////////////////////////////////////////////////////"<<endl<<endl;
             printMove(m);

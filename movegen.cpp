@@ -640,8 +640,8 @@ void MoveGenerator::addPawnWhiteEnpassant(vector<Move>& movesList, Position& pos
             int kingIndex = LSB(pos.piecesBitboards[WHITE_KING]);
 
             //try if we will be in check
-            enpassantAttacks |= BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[kingIndex] &~removingPawns,BBManager.bishopsMagics[kingIndex],BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[BLACK_BISHOP] | pos.piecesBitboards[BLACK_QUEEN]);
-            enpassantAttacks |= BBManager.rookMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[kingIndex] &~removingPawns,BBManager.rooksMagics[kingIndex],BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[BLACK_ROOK] | pos.piecesBitboards[BLACK_QUEEN]);
+            enpassantAttacks |= BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare ) & BBManager.bishopMasks[kingIndex] &~removingPawns,BBManager.bishopsMagics[kingIndex],BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[BLACK_BISHOP] | pos.piecesBitboards[BLACK_QUEEN]);
+            enpassantAttacks |= BBManager.rookMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare )  & BBManager.rookMasks[kingIndex] &~removingPawns,BBManager.rooksMagics[kingIndex],BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[BLACK_ROOK] | pos.piecesBitboards[BLACK_QUEEN]);
 
             //if we are good to go gen moves
             if(enpassantAttacks == 0)
@@ -708,8 +708,8 @@ void MoveGenerator::addPawnBlackEnpassant(vector<Move>& movesList, Position& pos
 
 
             int kingIndex = LSB(pos.piecesBitboards[BLACK_KING]);
-            enpassantAttacks |= BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[kingIndex] &~removingPawns,BBManager.bishopsMagics[kingIndex],BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[WHITE_BISHOP] | pos.piecesBitboards[WHITE_QUEEN]);
-            enpassantAttacks |= BBManager.rookMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[kingIndex] &~removingPawns,BBManager.rooksMagics[kingIndex],BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[WHITE_ROOK] | pos.piecesBitboards[WHITE_QUEEN]);
+            enpassantAttacks |= BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare )  & BBManager.bishopMasks[kingIndex] &~removingPawns,BBManager.bishopsMagics[kingIndex],BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[WHITE_BISHOP] | pos.piecesBitboards[WHITE_QUEEN]);
+            enpassantAttacks |= BBManager.rookMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare )  & BBManager.rookMasks[kingIndex] &~removingPawns,BBManager.rooksMagics[kingIndex],BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[WHITE_ROOK] | pos.piecesBitboards[WHITE_QUEEN]);
 
             if(enpassantAttacks == 0)
             {
@@ -776,9 +776,9 @@ Bitboard MoveGenerator::generateKingsMoves(Position& pos, vector<Move>& moveList
                 {
                     addMoves(index, 1ULL << 6, moveList, pos, 2);
                 }
-                emptySpaces = 12; // 1ULL << 3 | 1ULL << 4;
-                targetedEmptySpaces = emptySpaces & target;
-                occupiedEmptySpaces = emptySpaces & pos.piecesBitboards[ALL_PIECES];
+                // emptySpaces = 12; // 1ULL << 3 | 1ULL << 4;
+                targetedEmptySpaces = 12 & target;
+                occupiedEmptySpaces = 14 & pos.piecesBitboards[ALL_PIECES];
                 if((castlingRights & 4) && (targetedEmptySpaces == 12) && (occupiedEmptySpaces == 0))
                 {
                     addMoves(index, 1ULL << 2, moveList, pos, 3);
@@ -792,9 +792,9 @@ Bitboard MoveGenerator::generateKingsMoves(Position& pos, vector<Move>& moveList
                 {
                     addMoves(index, 1ULL << 62, moveList, pos, 2);
                 }
-                emptySpaces = 864691128455135232; // 1ULL << 58 | 1ULL << 59;
-                targetedEmptySpaces = emptySpaces & target;
-                occupiedEmptySpaces = emptySpaces & pos.piecesBitboards[ALL_PIECES];
+                // emptySpaces = 864691128455135232; // 1ULL << 58 | 1ULL << 59;
+                targetedEmptySpaces = 864691128455135232 & target;
+                occupiedEmptySpaces = 1008806316530991104 & pos.piecesBitboards[ALL_PIECES];
                 if((castlingRights & 1) && (targetedEmptySpaces == 864691128455135232) && (occupiedEmptySpaces == 0))
                 {
                     addMoves(index, 1ULL << 58, moveList, pos, 3);
