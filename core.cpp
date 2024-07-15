@@ -13,6 +13,10 @@ int core::perft(int depth)
         return 1;
     }
     vector<Move> moveList = moveGenerator.fullMovesList(pos);
+    if(depth == 1)
+    {
+        return moveList.size();
+    }
     Bitboard allp = pos.piecesBitboards[ALL_PIECES];
     for(Move m : moveList)
     {
@@ -25,7 +29,7 @@ int core::perft(int depth)
         counter += localCounter;
         pos.undoMove(m);
 
-        if(depth==2)
+        if(depth==5)
         {
             // cout<<"////////////////////////////////////////////////////////////////////"<<endl<<endl;
             printMove(m);

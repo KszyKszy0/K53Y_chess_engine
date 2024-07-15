@@ -225,14 +225,19 @@ vector<Move> MoveGenerator::fullMovesList(Position& pos)
         //only check en passant if its possible
         if(enPassantSquare != 0)
         {
+            Bitboard enpassantCheckCapture = checkTargets;
+            if((captureTargets & 1ULL<<singleCheckIndex) & (pos.piecesBitboards[WHITE_PAWN] | pos.piecesBitboards[BLACK_PAWN]))
+            {
+                setBit(enpassantCheckCapture,enPassantSquare);
+            }
             if(pos.STM)
             {
                 //enpassant moves and enpassant pins check targets dont have checking piece bcoz enpassant will never capture it
-                addPawnWhiteEnpassant(movesList, pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets, enPassantSquare);
+                addPawnWhiteEnpassant(movesList, pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : enpassantCheckCapture, enPassantSquare);
             }else
             {
                 //enpassant moves and enpassant pins check targets dont have checking piece bcoz enpassant will never capture it
-                addPawnBlackEnpassant(movesList, pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets, enPassantSquare);
+                addPawnBlackEnpassant(movesList, pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : enpassantCheckCapture, enPassantSquare);
             }
         }
 
@@ -467,7 +472,7 @@ Bitboard MoveGenerator::getPinners(Position& pos, bool white, vector<Move>& move
         Bitboard bbPinned = BBManager.rectangularLookup[pinnerIndex][kingIndex] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
 
         if(bbPinned == 0)   //safety check for position& where you check king but intersect with ally on other side
-            break;          //example rnbqkbnr/ppp1pppp/8/3p4/Q1P5/8/PP1PPPPP/RNB1KBNR b KQkq - 1 2 check from a4 but intersection on f7
+            continue;          //example rnbqkbnr/ppp1pppp/8/3p4/Q1P5/8/PP1PPPPP/RNB1KBNR b KQkq - 1 2 check from a4 but intersection on f7
 
         //pop index of lane to get pinned piece eg  lane: 1 1 1 1   &   piece in lane: 0 0 1 0  =  result 0 0 1 0
         //there can only be ONE PIECE in lane because in bbPinned we check for enemies so allies are omitted
@@ -539,7 +544,7 @@ Bitboard MoveGenerator::getPinners(Position& pos, bool white, vector<Move>& move
         Bitboard bbPinned = BBManager.rectangularLookup[pinnerIndex][kingIndex] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
 
         if(bbPinned == 0)   //safety check for position& where you check king but intersect with ally on other side
-            break;          //example rnbqkbnr/ppp1pppp/8/3p4/Q1P5/8/PP1PPPPP/RNB1KBNR b KQkq - 1 2 check from a4 but intersection on f7
+            continue;          //example rnbqkbnr/ppp1pppp/8/3p4/Q1P5/8/PP1PPPPP/RNB1KBNR b KQkq - 1 2 check from a4 but intersection on f7
 
 
         //lsb of lane pinned
@@ -604,7 +609,7 @@ void MoveGenerator::addPawnWhiteQuiet(int startSquare, vector<Move>& movesList, 
     //     if(!isBitSet(pins,index))           //Pin moves are generated in getPinners
     //     {
     Bitboard possibleMoves = BBManager.whitePawnMoves[startSquare] & target;  //Default moves Targets are empty squares by default
-    possibleMoves &= ~pos.piecesBitboards[ALL_PIECES] | ~RANK_8;                 //this is probably useless
+    possibleMoves &= ~pos.piecesBitboards[ALL_PIECES];                 //this is probably useless
     if(startSquare / 8 == 1)                                                  //am i 2nd rank?
     {
         Bitboard doublePawnMove = (1ULL << (startSquare + 16));               //index of double pawn push
@@ -702,7 +707,7 @@ void MoveGenerator::addPawnBlackQuiet(int startSquare, vector<Move>& movesList, 
     //     if(!isBitSet(pins,index))           //Pin moves are generated in getPinners
     //     {
     Bitboard possibleMoves = BBManager.blackPawnMoves[startSquare] & target;  //Default moves Targets are empty squares by default
-    possibleMoves &= ~ pos.piecesBitboards[ALL_PIECES] | ~RANK_1;                 //this is probably useless
+    possibleMoves &= ~ pos.piecesBitboards[ALL_PIECES];                 //this is probably useless
     if(startSquare / 8 == 6)                                                  //am i 2nd rank?
     {
         Bitboard doublePawnMove = (1ULL << (startSquare - 16));               //index of double pawn push
@@ -831,7 +836,7 @@ Bitboard MoveGenerator::generateKingsMoves(Position& pos, vector<Move>& moveList
         Bitboard possibleMoves = BBManager.kingMoves[index] & target;
         possibleMoves &= ~ pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
         addMoves(index, possibleMoves, moveList, pos);
-        
+
         if(checks < 1)
         {
             int castlingRights = pos.stateInfoList.back().castlingRights;

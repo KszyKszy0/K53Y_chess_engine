@@ -86,7 +86,7 @@ inline void printMove(Move m)
     int flags = m>>12 & 0b1111;
     cout<<squareToName(startSquare)<<squareToName(targetSquare);//<<flags<<endl;
     if(flags == KNIGHT_PROMOTION || flags == KNIGHT_PROMOTION_CAPTURE)
-        cout<<"k";
+        cout<<"n";
     if(flags == BISHOP_PROMOTION || flags == BISHOP_PROMOTION_CAPTURE)
         cout<<"b";
     if(flags == ROOK_PROMOTION || flags == ROOK_PROMOTION_CAPTURE)
