@@ -635,7 +635,26 @@ void MoveGenerator::addPawnWhiteQuiet(int startSquare, vector<Move>& movesList, 
 void MoveGenerator::addPawnWhiteCaptures(int startSquare, vector<Move>& movesList, Position& pos, Bitboard target)
 {
     Bitboard possibleMoves = BBManager.whitePawnCaptures[startSquare] & target;
-    addMoves(startSquare, possibleMoves, movesList, pos);
+    if(startSquare / 8 == 6)
+    {
+        if(((1ULL << startSquare+7) & possibleMoves) != 0)
+        {
+            addMoves(startSquare,startSquare+7,KNIGHT_PROMOTION_CAPTURE,movesList);
+            addMoves(startSquare,startSquare+7,BISHOP_PROMOTION_CAPTURE,movesList);
+            addMoves(startSquare,startSquare+7,ROOK_PROMOTION_CAPTURE,movesList);
+            addMoves(startSquare,startSquare+7,QUEEN_PROMOTION_CAPTURE,movesList);
+        }
+        if(((1ULL << startSquare+9) & possibleMoves) != 0)
+        {
+            addMoves(startSquare,startSquare+9,KNIGHT_PROMOTION_CAPTURE,movesList);
+            addMoves(startSquare,startSquare+9,BISHOP_PROMOTION_CAPTURE,movesList);
+            addMoves(startSquare,startSquare+9,ROOK_PROMOTION_CAPTURE,movesList);
+            addMoves(startSquare,startSquare+9,QUEEN_PROMOTION_CAPTURE,movesList);
+        }
+    }else
+    {
+        addMoves(startSquare, possibleMoves, movesList, pos);
+    }
 }
 
 //enpassant moves and pins
@@ -714,7 +733,26 @@ void MoveGenerator::addPawnBlackQuiet(int startSquare, vector<Move>& movesList, 
 void MoveGenerator::addPawnBlackCaptures(int startSquare, vector<Move>& movesList, Position& pos, Bitboard target)
 {
     Bitboard possibleMoves = BBManager.blackPawnCaptures[startSquare] & target;
-    addMoves(startSquare, possibleMoves, movesList, pos);
+    if(startSquare / 8 == 1)
+    {
+        if(((1ULL << startSquare-7) & possibleMoves) != 0)
+        {
+            addMoves(startSquare,startSquare-7,KNIGHT_PROMOTION_CAPTURE,movesList);
+            addMoves(startSquare,startSquare-7,BISHOP_PROMOTION_CAPTURE,movesList);
+            addMoves(startSquare,startSquare-7,ROOK_PROMOTION_CAPTURE,movesList);
+            addMoves(startSquare,startSquare-7,QUEEN_PROMOTION_CAPTURE,movesList);
+        }
+        if(((1ULL << startSquare-9) & possibleMoves) != 0)
+        {
+            addMoves(startSquare,startSquare-9,KNIGHT_PROMOTION_CAPTURE,movesList);
+            addMoves(startSquare,startSquare-9,BISHOP_PROMOTION_CAPTURE,movesList);
+            addMoves(startSquare,startSquare-9,ROOK_PROMOTION_CAPTURE,movesList);
+            addMoves(startSquare,startSquare-9,QUEEN_PROMOTION_CAPTURE,movesList);
+        }
+    }else
+    {
+        addMoves(startSquare, possibleMoves, movesList, pos);
+    }
 }
 
 //enpassant moves and pins
@@ -793,10 +831,7 @@ Bitboard MoveGenerator::generateKingsMoves(Position& pos, vector<Move>& moveList
         Bitboard possibleMoves = BBManager.kingMoves[index] & target;
         possibleMoves &= ~ pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
         addMoves(index, possibleMoves, moveList, pos);
-        if(popCount(possibleMoves) == 4)
-        {
-            cout<<"c";
-        }
+        
         if(checks < 1)
         {
             int castlingRights = pos.stateInfoList.back().castlingRights;
