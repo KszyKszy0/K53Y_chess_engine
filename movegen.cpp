@@ -268,6 +268,12 @@ void MoveGenerator::addMoves(int startSquare, Bitboard targers, vector<Move>& mo
     }
 }
 
+void MoveGenerator::addMoves(int startSquare,int index,int flags, vector<Move>& movesList)
+{
+    Move temp = createMove(startSquare,index,flags);    //go to move creator
+    movesList.push_back(temp);
+}
+
 void MoveGenerator::addMoves(int startSquare, Bitboard targers, vector<Move>& movesList, Position& pos, int flag)
 {
     while(targers)
@@ -598,7 +604,7 @@ void MoveGenerator::addPawnWhiteQuiet(int startSquare, vector<Move>& movesList, 
     //     if(!isBitSet(pins,index))           //Pin moves are generated in getPinners
     //     {
     Bitboard possibleMoves = BBManager.whitePawnMoves[startSquare] & target;  //Default moves Targets are empty squares by default
-    possibleMoves &= ~ pos.piecesBitboards[ALL_PIECES];                 //this is probably useless
+    possibleMoves &= ~pos.piecesBitboards[ALL_PIECES] | ~RANK_8;                 //this is probably useless
     if(startSquare / 8 == 1)                                                  //am i 2nd rank?
     {
         Bitboard doublePawnMove = (1ULL << (startSquare + 16));               //index of double pawn push
@@ -613,7 +619,16 @@ void MoveGenerator::addPawnWhiteQuiet(int startSquare, vector<Move>& movesList, 
         }
         }
     }
-    addMoves(startSquare, possibleMoves, movesList, pos);
+    if(startSquare / 8 == 6 && (((1ULL << startSquare+8) & possibleMoves) != 0))
+    {
+        addMoves(startSquare,startSquare+8,KNIGHT_PROMOTION,movesList);
+        addMoves(startSquare,startSquare+8,BISHOP_PROMOTION,movesList);
+        addMoves(startSquare,startSquare+8,ROOK_PROMOTION,movesList);
+        addMoves(startSquare,startSquare+8,QUEEN_PROMOTION,movesList);
+    }else
+    {
+        addMoves(startSquare, possibleMoves, movesList, pos);
+    }
 }
 
 //only simple captures without enpassant
@@ -668,7 +683,7 @@ void MoveGenerator::addPawnBlackQuiet(int startSquare, vector<Move>& movesList, 
     //     if(!isBitSet(pins,index))           //Pin moves are generated in getPinners
     //     {
     Bitboard possibleMoves = BBManager.blackPawnMoves[startSquare] & target;  //Default moves Targets are empty squares by default
-    possibleMoves &= ~ pos.piecesBitboards[ALL_PIECES];                 //this is probably useless
+    possibleMoves &= ~ pos.piecesBitboards[ALL_PIECES] | ~RANK_1;                 //this is probably useless
     if(startSquare / 8 == 6)                                                  //am i 2nd rank?
     {
         Bitboard doublePawnMove = (1ULL << (startSquare - 16));               //index of double pawn push
@@ -683,7 +698,16 @@ void MoveGenerator::addPawnBlackQuiet(int startSquare, vector<Move>& movesList, 
         }
         }
     }
-    addMoves(startSquare, possibleMoves, movesList, pos);
+    if(startSquare / 8 == 1 && (((1ULL << startSquare-8) & possibleMoves) != 0))
+    {
+        addMoves(startSquare,startSquare-8,KNIGHT_PROMOTION,movesList);
+        addMoves(startSquare,startSquare-8,BISHOP_PROMOTION,movesList);
+        addMoves(startSquare,startSquare-8,ROOK_PROMOTION,movesList);
+        addMoves(startSquare,startSquare-8,QUEEN_PROMOTION,movesList);
+    }else
+    {
+        addMoves(startSquare, possibleMoves, movesList, pos);
+    }
 }
 
 //only simple captures without enpassant
@@ -769,7 +793,10 @@ Bitboard MoveGenerator::generateKingsMoves(Position& pos, vector<Move>& moveList
         Bitboard possibleMoves = BBManager.kingMoves[index] & target;
         possibleMoves &= ~ pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
         addMoves(index, possibleMoves, moveList, pos);
-
+        if(popCount(possibleMoves) == 4)
+        {
+            cout<<"c";
+        }
         if(checks < 1)
         {
             int castlingRights = pos.stateInfoList.back().castlingRights;

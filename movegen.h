@@ -54,7 +54,9 @@ class MoveGenerator
 
     void addRookMoves(int startSquare, vector<Move>& movesList, Position& pos, Bitboard target);
 
+
     void addMoves(int startSquare, Bitboard targers, vector<Move>& movesList, Position& pos, int flag);
 
+    void addMoves(int startSquare,int index,int flags, vector<Move>& movesList);
 
 };
