@@ -17,28 +17,23 @@ int core::perft(int depth)
     {
         return moveList.size();
     }
-    Bitboard allp = pos.piecesBitboards[ALL_PIECES];
+
     for(Move m : moveList)
     {
         // printMove(m);
         int localCounter = 0;
-        Bitboard temp = pos.piecesBitboards[BLACK_KNIGHT];
+
         pos.makeMove(m);
 
         localCounter += perft(depth-1);
         counter += localCounter;
         pos.undoMove(m);
 
-        if(depth==5)
+        if(depth==6)
         {
             // cout<<"////////////////////////////////////////////////////////////////////"<<endl<<endl;
             printMove(m);
             cout<<": "<<localCounter<<endl;
-        }
-        if(allp!=pos.piecesBitboards[ALL_PIECES])
-        {
-            cout<<allp<<endl<<pos.piecesBitboards[ALL_PIECES]<<endl;
-            cout<<"BTAK SIGMY";
         }
         // try
         // {
@@ -60,4 +55,53 @@ int core::perft(int depth)
 
     }
     return counter;
+}
+
+void core::uci() {
+    std::cout << "id name K53Y Chess Engine" << std::endl;
+    std::cout << "id author KszyKszy" << std::endl;
+    std::cout << "uciok" << std::endl;
+}
+
+void core::isReady() {
+    std::cout << "readyok" << std::endl;
+}
+
+void core::newGame(){
+    pos.parseFEN(startingFen,pos.piecesBitboards);
+}
+
+void core::newGame(string FEN){
+    pos.parseFEN(FEN,pos.piecesBitboards);
+}
+
+void core::setPosition(vector<string>& moves)
+{
+    // pos.parseFEN(startingFen,pos.piecesBitboards);
+    // for(string s : moves)
+    // {
+    //     pos.makeMove(uciToMove(s));
+    // }
+    int len = moves.size();
+    int temps = pos.stateInfoList.size();
+    if(moves.size() > 0)
+    {
+        StateInfo tempState = pos.stateInfoList.back();
+        int movesIndex = pos.stateInfoList.back().halfMove;
+        string move = moves[movesIndex];
+        vector<Move> movesList = moveGenerator.fullMovesList(pos);
+        pos.makeMove(uciToMove(move,pos,movesList));
+        // cout<<uciToMove(move);
+    }
+    // printPieceArray(pos.piecesArray);
+}
+
+void core::quit()
+{
+    exit(0);
+}
+
+void core::go()
+{
+    search.negamax(5, 0, -100000, 100000,pos.STM ? 1 : -1, moveGenerator, pos);
 }

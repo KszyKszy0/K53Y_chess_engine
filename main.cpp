@@ -6,75 +6,51 @@
 #include "move.h"
 #include "movegen.h"
 #include "core.h"
+#include <sstream>
 
 using namespace std;
 
 
+std::vector<std::string> split(const std::string &s, char delimiter) {
+    std::vector<std::string> tokens;
+    std::string token;
+    std::istringstream tokenStream(s);
+    while (std::getline(tokenStream, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
 int main()
 {
-    core Engine = core();
+    core engine = core();
 
-    string startingFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    string line;
+    while (std::getline(std::cin, line)) {
+        std::vector<string> tokens = split(line, ' ');
+        if (tokens.empty()) continue;
 
-    Engine.pos.parseFEN("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ", Engine.pos.piecesBitboards);
-
-    // Engine.moveGenerator.getPinners(Engine.pos,true);
-
-    // vector<Move> moves = Engine.moveGenerator.fullMovesList(Engine.pos);
-
-    // for(Move m : moves)
-    // {
-    //     Engine.pos.makeMove(m);
-    //     Engine.pos.undoMove(m);
-    // }
-
-    // Engine.pos.makeMove(createMove(nameToSquare("e2"),nameToSquare("e4"),QUIET));
-    // cout<<Engine.pos.stateInfoList.back().castlingRights<<endl;
-
-    // Engine.pos.makeMove(createMove(nameToSquare("e7"),nameToSquare("e5"),QUIET));
-    // cout<<Engine.pos.stateInfoList.back().castlingRights<<endl;
-
-    // Engine.pos.makeMove(createMove(nameToSquare("e1"),nameToSquare("e2"),QUIET));
-    // cout<<Engine.pos.stateInfoList.back().castlingRights<<endl;
-
-    // Engine.pos.undoMove(createMove(nameToSquare("e1"),nameToSquare("e2"),QUIET));
-    // cout<<Engine.pos.stateInfoList.back().castlingRights<<endl;
-    // Engine.pos.makeMove(createMove(nameToSquare("b7"),nameToSquare("b5"),QUIET));
-
-    // Engine.pos.undoMove(createMove(nameToSquare("c7"),nameToSquare("c6"),QUIET));
-    // cout<<Engine.pos.stateInfoList.back().enPassantSquare;
-
-    // Engine.pos.makeMove(createMove(nameToSquare("a4"),nameToSquare("b5"),CAPTURE));
-    // Engine.pos.undoMove(createMove(nameToSquare("a4"),nameToSquare("b5"),CAPTURE));
-
-    // Engine.pos.makeMove(createMove(nameToSquare("d4"),nameToSquare("e5"),CAPTURE));
-
-    // Engine.pos.undoMove(createMove(nameToSquare("d4"),nameToSquare("e5"),CAPTURE));
-
-    // Engine.pos.makeMove(createMove(nameToSquare("b2"),nameToSquare("b4"),PAWN_DOUBLE_MOVE));
-
-    // Engine.pos.undoMove(createMove(nameToSquare("e4"),nameToSquare("f5"),CAPTURE));
-
-    // Engine.pos.makeMove(createMove(nameToSquare("g7"),nameToSquare("g6"),0));
-
-    // Engine.pos.makeMove(createMove(nameToSquare("f5"),nameToSquare("g6"),CAPTURE));
-
-    cout<<Engine.perft(5)<<endl;
-
-    // vector<Move> temp = Engine.moveGenerator.fullMovesList(Engine.pos);
-
-    // for(Move m : temp)
-    // {
-    //     printMove(m);
-    // }
-
-    // for(int i=0; i<=15; i++)
-    // {
-    //     printBitboard(Engine.pos.piecesBitboards[i]);
-    //     cout<<endl;
-    // }
-
-    // printPieceArray(Engine.pos.piecesArray);
-
+        if (tokens[0] == "uci") {
+            engine.uci();
+        } else if (tokens[0] == "isready") {
+            engine.isReady();
+        } else if (tokens[0] == "ucinewgame") {
+            engine.newGame();
+        } else if (tokens[0] == "position") {
+            if (tokens.size() > 1 && tokens[1] == "startpos") {
+                std::vector<std::string> moves;
+                if (tokens.size() > 2 && tokens[2] == "moves") {
+                    moves.assign(tokens.begin() + 3, tokens.end());
+                }
+                engine.setPosition(moves);
+            }
+        } else if (tokens[0] == "go") {
+            engine.go();
+        } else if (tokens[0] == "quit") {
+            engine.quit();
+        }
+    }
+    // engine.pos.parseFEN(engine.startingFen,engine.pos.piecesBitboards);
+    // cout<<engine.perft(6);
     return 0;
 }

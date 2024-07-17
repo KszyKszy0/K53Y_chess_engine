@@ -38,7 +38,7 @@ inline string squareToName(int index)
     // Rzędy szachownicy od '1' do '8'
     char rank = '1' + (index / 8);
 
-    return std::string(1, file) + std::string(1, rank);
+    return string(1, file) + string(1, rank);
 }
 
 inline int nameToSquare(std::string square) {
@@ -93,4 +93,85 @@ inline void printMove(Move m)
         cout<<"r";
     if(flags == QUEEN_PROMOTION || flags == QUEEN_PROMOTION_CAPTURE)
         cout<<"q";
+}
+
+
+inline string moveToUci(Move move) {
+    int startSquare = move & 0x3F;        // 6 bitów na startowe pole
+    int targetSquare = (move >> 6) & 0x3F; // Kolejne 6 bitów na docelowe pole
+    int flags = (move >> 12) & 0xF;       // Ostatnie 4 bity na flagi
+
+    string uciMove = squareToName(startSquare) + squareToName(targetSquare);
+
+    // Dodawanie odpowiednich promocyjnych figur, jeśli jest to promocja
+    switch (flags) {
+        case KNIGHT_PROMOTION:
+        case KNIGHT_PROMOTION_CAPTURE:
+            uciMove += 'n';
+            break;
+        case BISHOP_PROMOTION:
+        case BISHOP_PROMOTION_CAPTURE:
+            uciMove += 'b';
+            break;
+        case ROOK_PROMOTION:
+        case ROOK_PROMOTION_CAPTURE:
+            uciMove += 'r';
+            break;
+        case QUEEN_PROMOTION:
+        case QUEEN_PROMOTION_CAPTURE:
+            uciMove += 'q';
+            break;
+        default:
+            break;
+    }
+
+    return uciMove;
+}
+
+inline Move uciToMove(const std::string& uci, Position& pos, vector<Move>& movesList) {
+    int startSquare = nameToSquare(uci.substr(0, 2));
+    int targetSquare = nameToSquare(uci.substr(2, 2));
+    int flags = QUIET;
+
+
+    Move targetMove = 0;
+
+    if (uci.length() == 5) {
+        switch (uci[4]) {
+            case 'n':
+                flags = KNIGHT_PROMOTION;
+                break;
+            case 'b':
+                flags = BISHOP_PROMOTION;
+                break;
+            case 'r':
+                flags = ROOK_PROMOTION;
+                break;
+            case 'q':
+                flags = QUEEN_PROMOTION;
+                break;
+        }
+        if(pos.piecesArray[targetSquare] != NO_PIECE)
+        {
+            flags += 4;
+        }
+    }else
+    {
+        for(Move m : movesList)
+        {
+            int mStartSquare = m & 0x3F;
+            int mtargetSquare = (m >> 6) & 0x3F;
+            if((mStartSquare == startSquare) && (mtargetSquare == targetSquare))
+            {
+                return m;
+            }
+        }
+    }
+
+
+
+    // Dodatkowa logika do rozpoznawania innych flag (np. roszady, bicie, en passant)
+    // Na potrzeby tego przykładu zakładamy, że nie są obecne inne specjalne ruchy
+
+    return createMove(startSquare, targetSquare, flags);
 }

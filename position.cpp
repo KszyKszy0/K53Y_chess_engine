@@ -3,11 +3,14 @@
 #include "enums.h"
 #include "stateInfo.h"
 #include "move.h"
+#include <string>
 
 using namespace std;
 
 void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
 {
+    isStalemate = false;
+    isCheckmate = false;
     //reseting bitboards
     for (int i = 0; i < 16; i++)
     {
@@ -126,13 +129,15 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
     addState(nameToSquare(enPassant),castlingRights(castling),halfmove,fullmove,NO_PIECE);
 }
 
+
 void Position::makeMove(Move move)
 {
     int startSquare = move & 0b111111;
     int targetSquare = (move >> 6) & 0b111111;
     int flags = (move >> 12) & 0b1111;
 
-    StateInfo tempState = stateInfoList.back();
+    StateInfo refernce = stateInfoList.back();
+    StateInfo tempState = StateInfo(refernce.enPassantSquare,refernce.castlingRights,refernce.halfMove,refernce.fullMove,refernce.capturedPieceType);
 
     if(startSquare == 7 || targetSquare == 7)
     {
@@ -1009,6 +1014,9 @@ void Position::undoMove(Move move)
 
 
     piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
+
+    isCheckmate = false;
+    isStalemate = false;
 
     STM = !STM;
     stateInfoList.pop_back();

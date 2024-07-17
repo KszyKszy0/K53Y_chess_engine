@@ -255,6 +255,16 @@ vector<Move> MoveGenerator::fullMovesList(Position& pos)
             generateTypeMoves(pos,captureTargets,movesList,1,checks,pins);
         }
     }
+    if(movesList.size() == 0)
+    {
+        if(checks > 0)
+        {
+            pos.isCheckmate = true;
+        }else
+        {
+            pos.isStalemate = true;
+        }
+    }
     return movesList;
 }
 
