@@ -2,7 +2,7 @@
 #include "movegen.h"
 #include "eval.h"
 
-int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGenerator& moveGenerator, Position& pos)
+int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGenerator& moveGenerator, Position& pos, Evaluator& eval)
 {
     vector<Move> moveList = moveGenerator.fullMovesList(pos);
 
@@ -13,7 +13,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
           // Prefer faster checkmate
     }
 
-    if(pos.isStalemate)
+    if(pos.isStalemate || (pos.stateInfoList.back().halfMove >= 50))
     {
         return 0;
     }
@@ -21,7 +21,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 
     if(depth == 0)
     {
-        return evaluate(pos) * color;
+        return eval.evaluate(pos) * color;
     }
 
 
@@ -33,7 +33,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     for(Move m : moveList)
     {
         pos.makeMove(m);
-        int value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos);
+        int value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval);
         pos.undoMove(m);
 
         if(value > best)

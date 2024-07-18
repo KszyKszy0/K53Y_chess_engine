@@ -6,32 +6,40 @@
 
 using namespace std;
 
-void setBit(Bitboard &bb, int index)                                //Sets bit at index to 1
+//Sets bit at index to 1
+void setBit(Bitboard &bb, int index)
 { bb = bb | (1ULL << index); }
 
-void clearBit(Bitboard &bb, int index)                       //Sets bit at index to 0
+//Sets bit at index to 0
+void clearBit(Bitboard &bb, int index)
 { bb = bb & ~(1ULL << index); }
 
-void toggleBit(Bitboard &bb, int index)                      //Toggles bit between 0 and 1
+//Toggles bit between 0 and 1
+void toggleBit(Bitboard &bb, int index)
 { bb = bb ^(1ULL << index); }
 
+//Toggles start and target between 0 and 1
 void bitSwap(Bitboard &bb, int start, int target)
 { bb ^= 1ULL << start | 1ULL << target; }
 
-bool isBitSet(Bitboard &bb, int index)                        //Check if bit is set to 1
+//Check if bit is set to 1
+bool isBitSet(Bitboard &bb, int index)
 { return (bb >> index) & 1ULL; }
 
-int LSB(Bitboard &bb)                                        //Returns index of LSB
+//Returns index of LSB
+int LSB(Bitboard &bb)
 { return __builtin_ctzll(bb); }
 
-int popLSB(Bitboard &bb)                                     //Returns index of LSB and removes it
+//Returns index of LSB and removes it
+int popLSB(Bitboard &bb)
 {
     int index = LSB(bb);
     bb &= bb - 1;
     return index;
 }
 
-int popCount (Bitboard x)                                           //Number of set bits
+//Number of set bits
+int popCount (Bitboard x)
 {
     int count = 0;
     while (x) {
@@ -41,7 +49,8 @@ int popCount (Bitboard x)                                           //Number of 
     return count;
 }
 
-void printBitboard(Bitboard bb)                                     //Print bitboards in 8x8 format
+//Print bitboards in 8x8 format
+void printBitboard(Bitboard bb)
 {
   for (int rank = 7; rank >= 0; --rank) {
         for (int file = 0; file < 8; ++file) {
@@ -53,8 +62,8 @@ void printBitboard(Bitboard bb)                                     //Print bitb
     cout<< '\n';
 }
 
-
-void printPieceArray(int array[64])                                   //Print array in 8x8 format
+//Print array in 8x8 format
+void printPieceArray(int array[64])
 {
   for (int rank = 7; rank >= 0; --rank) {
         for (int file = 0; file < 8; ++file) {
@@ -192,19 +201,19 @@ void printPieceArray(int array[64])                                   //Print ar
     int rank1 = square1 / 8, file1 = square1 % 8;
     int rank2 = square2 / 8, file2 = square2 % 8;
 
-    if (rank1 == rank2) {  // Ten sam rząd (horyzontalny ruch)
+    if (rank1 == rank2) {  // horizontal movement
         int startFile = std::min(file1, file2) + 1;
         int endFile = std::max(file1, file2);
         for (int file = startFile; file < endFile; ++file) {
             setBit(mask, rank1 * 8 + file);
         }
-    } else if (file1 == file2) {  // Ta sama kolumna (wertykalny ruch)
+    } else if (file1 == file2) {  // vertical movement
         int startRank = std::min(rank1, rank2) + 1;
         int endRank = std::max(rank1, rank2);
         for (int rank = startRank; rank < endRank; ++rank) {
             setBit(mask, rank * 8 + file1);
         }
-    } else if (std::abs(rank1 - rank2) == std::abs(file1 - file2)) {  // Ta sama przekątna
+    } else if (std::abs(rank1 - rank2) == std::abs(file1 - file2)) {  // diagonal movement
         int rankStep = (rank2 > rank1) ? 1 : -1;
         int fileStep = (file2 > file1) ? 1 : -1;
         int rank = rank1 + rankStep, file = file1 + fileStep;
@@ -253,20 +262,14 @@ void printPieceArray(int array[64])                                   //Print ar
         int rank = square / 8;
         int file = square % 8;
 
-        // Poruszanie do przodu
+        // forward movement
         if (isWhite) {
             if (rank < 7) {
                 setBit(moves, (rank + 1) * 8 + file);
-                // if (rank == 1) { // Podwójny ruch z drugiego rzędu
-                //     setBit(moves, (rank + 2) * 8 + file);
-                // }
             }
         } else {
             if (rank > 0) {
                 setBit(moves, (rank - 1) * 8 + file);
-                // if (rank == 6) { // Podwójny ruch z siódmego rzędu
-                //     setBit(moves, (rank - 2) * 8 + file);
-                // }
             }
         }
 
@@ -297,17 +300,13 @@ void printPieceArray(int array[64])                                   //Print ar
     for (int square = 0; square < BOARD_SIZE; ++square) {
         vector<Bitboard> tempSquare;
         tempSquare.resize(4096);
+
         for (int occupancy = 0; occupancy < rookBlockers[square].size(); ++occupancy) {
+
             int index = getMagicIndex(rookBlockers[square][occupancy], rooksMagics[square], rookBits[square]);
+
             Bitboard attacks = generateRookBitboardAttacksBlockers(square,rookBlockers[square][occupancy]);
-            if(tempSquare[index] != 0)
-            {
-                cout<<"Tu już coś jest"<<endl;
-                cout<<tempSquare[index]<<endl;
-                cout<<"A ja chcę tu dać"<<endl;
-                cout<<attacks<<endl;
-                return;
-            }
+
             tempSquare[index] = attacks;
         }
         rookMoves.push_back(tempSquare);
@@ -319,16 +318,11 @@ void printPieceArray(int array[64])                                   //Print ar
         vector<Bitboard> tempSquare;
         tempSquare.resize(512);
         for (int occupancy = 0; occupancy < bishopBlockers[square].size(); ++occupancy) {
+
             int index = getMagicIndex(bishopBlockers[square][occupancy], bishopsMagics[square], bishopBits[square]);
+
             Bitboard attacks = generateBishopBitboardAttacksBlockers(square,bishopBlockers[square][occupancy]);
-            if(tempSquare[index] != 0)
-            {
-                cout<<"Tu już coś jest"<<endl;
-                cout<<tempSquare[index]<<endl;
-                cout<<"A ja chcę tu dać"<<endl;
-                cout<<attacks<<endl;
-                return;
-            }
+
             tempSquare[index] = attacks;
         }
         bishopMoves.push_back(tempSquare);
@@ -345,7 +339,7 @@ void printPieceArray(int array[64])                                   //Print ar
     int row = sq / 8;
     int col = sq % 8;
 
-    // Przesunięcia w prawo
+    // right movement
     for (int j = col + 1; j < 8; ++j) {
         int temp = 8 * row + j;
         moves |= 1ULL << temp;
@@ -353,7 +347,7 @@ void printPieceArray(int array[64])                                   //Print ar
             break;
     }
 
-    // Przesunięcia w lewo
+    // left movement
     for (int j = col - 1; j >= 0; --j) {
         int temp = 8 * row + j;
         moves |= 1ULL << temp;
@@ -361,7 +355,7 @@ void printPieceArray(int array[64])                                   //Print ar
             break;
     }
 
-    // Przesunięcia w dół
+    // down movement
     for (int j = row + 1; j < 8; ++j) {
         int temp = 8 * j + col;
         moves |= 1ULL << temp;
@@ -369,7 +363,7 @@ void printPieceArray(int array[64])                                   //Print ar
             break;
     }
 
-    // Przesunięcia w górę
+    // up movement
     for (int j = row - 1; j >= 0; --j) {
         int temp = 8 * j + col;
         moves |= 1ULL << temp;
@@ -385,7 +379,7 @@ Bitboard BB_utils::generateBishopBitboardAttacksBlockers(int sq, Bitboard blocke
     int row = sq / 8;
     int col = sq % 8;
 
-    // Diagonal w dół w lewo
+    // Diagonal left down
     int r = row + 1;
     int c = col - 1;
     while (r < 8 && c >= 0) {
@@ -396,7 +390,7 @@ Bitboard BB_utils::generateBishopBitboardAttacksBlockers(int sq, Bitboard blocke
         --c;
     }
 
-    // Diagonal w dół w prawo
+    // Diagonal right down
     r = row + 1;
     c = col + 1;
     while (r < 8 && c < 8) {
@@ -407,7 +401,7 @@ Bitboard BB_utils::generateBishopBitboardAttacksBlockers(int sq, Bitboard blocke
         ++c;
     }
 
-    // Diagonal w górę w lewo
+    // Diagonal left up
     r = row - 1;
     c = col - 1;
     while (r >= 0 && c >= 0) {
@@ -418,7 +412,7 @@ Bitboard BB_utils::generateBishopBitboardAttacksBlockers(int sq, Bitboard blocke
         --c;
     }
 
-    // Diagonal w górę w prawo
+    // Diagonal right up
     r = row - 1;
     c = col + 1;
     while (r >= 0 && c < 8) {

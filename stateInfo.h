@@ -15,3 +15,13 @@ class StateInfo
 
     StateInfo(int pas, int cast, int half, int full, int captureType);
 };
+
+
+inline StateInfo::StateInfo(int pas, int cast, int half, int full, int captureType)
+{
+    enPassantSquare=pas;
+    castlingRights=cast;
+    halfMove=half;
+    fullMove=full;
+    capturedPieceType=captureType;
+}

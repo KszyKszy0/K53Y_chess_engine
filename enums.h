@@ -1,6 +1,5 @@
 #pragma once
 #include <stdint.h>
-#include "bitboard.h"
 
 typedef uint16_t Move;
 

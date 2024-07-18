@@ -1,9 +1,11 @@
 #pragma once
+
 #include "bitboard.h"
-#include <sstream>
 #include "enums.h"
 #include "stateInfo.h"
+#include <string>
 #include <list>
+
 using namespace std;
 
 class Position

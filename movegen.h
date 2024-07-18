@@ -1,7 +1,6 @@
 #pragma once
 #include "bitboard.h"
 #include "position.h"
-#include "enums.h"
 #include "move.h"
 
 class MoveGenerator

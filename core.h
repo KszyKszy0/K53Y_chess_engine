@@ -1,4 +1,3 @@
-#include "bitboard.h"
 #include "movegen.h"
 #include "position.h"
 #include "search.h"
@@ -11,8 +10,11 @@ class core
     MoveGenerator moveGenerator;
     Position pos;
     Search search;
+    Evaluator eval;
 
     string startingFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+    int positionCounter;
 
     core();
 

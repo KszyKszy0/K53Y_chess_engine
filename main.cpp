@@ -1,10 +1,3 @@
-#include <iostream>
-#include "bitboard.h"
-#include <string>
-#include <vector>
-#include "position.h"
-#include "move.h"
-#include "movegen.h"
 #include "core.h"
 #include <sstream>
 
@@ -52,5 +45,7 @@ int main()
     }
     // engine.pos.parseFEN(engine.startingFen,engine.pos.piecesBitboards);
     // cout<<engine.perft(6);
+    // engine.pos.parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 49 1",engine.pos.piecesBitboards);
+    // engine.go();
     return 0;
 }

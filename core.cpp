@@ -1,5 +1,5 @@
 #include "core.h"
-#include <cassert>
+
 core::core() : bbManager(BB_utils()), moveGenerator(bbManager)
 {
 
@@ -31,28 +31,9 @@ int core::perft(int depth)
 
         if(depth==6)
         {
-            // cout<<"////////////////////////////////////////////////////////////////////"<<endl<<endl;
             printMove(m);
             cout<<": "<<localCounter<<endl;
         }
-        // try
-        // {
-        //     if(temp != pos.piecesBitboards[BLACK_KNIGHT])
-        //     {
-        //         throw 1;
-        //     }
-        // }
-        // catch(int code)
-        // {
-        //     for(int i=0; i<=15; i++)
-        //     {
-        //         printBitboard(pos.piecesBitboards[i]);
-        //         cout<<endl;
-        //     }
-        //     printPieceArray(pos.piecesArray);
-        //     break;
-        // }
-
     }
     return counter;
 }
@@ -69,10 +50,12 @@ void core::isReady() {
 
 void core::newGame(){
     pos.parseFEN(startingFen,pos.piecesBitboards);
+    positionCounter = 0;
 }
 
 void core::newGame(string FEN){
     pos.parseFEN(FEN,pos.piecesBitboards);
+    positionCounter = 0;
 }
 
 void core::setPosition(vector<string>& moves)
@@ -82,18 +65,13 @@ void core::setPosition(vector<string>& moves)
     // {
     //     pos.makeMove(uciToMove(s));
     // }
-    int len = moves.size();
-    int temps = pos.stateInfoList.size();
+    positionCounter = moves.size();
     if(moves.size() > 0)
     {
-        StateInfo tempState = pos.stateInfoList.back();
-        int movesIndex = pos.stateInfoList.back().halfMove;
-        string move = moves[movesIndex];
+        string move = moves[positionCounter-1];
         vector<Move> movesList = moveGenerator.fullMovesList(pos);
         pos.makeMove(uciToMove(move,pos,movesList));
-        // cout<<uciToMove(move);
     }
-    // printPieceArray(pos.piecesArray);
 }
 
 void core::quit()
@@ -103,5 +81,5 @@ void core::quit()
 
 void core::go()
 {
-    search.negamax(5, 0, -100000, 100000,pos.STM ? 1 : -1, moveGenerator, pos);
+    search.negamax(5, 0, -100000, 100000,pos.STM ? 1 : -1, moveGenerator, pos, eval);
 }

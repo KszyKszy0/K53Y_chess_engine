@@ -139,6 +139,8 @@ void Position::makeMove(Move move)
     StateInfo refernce = stateInfoList.back();
     StateInfo tempState = StateInfo(refernce.enPassantSquare,refernce.castlingRights,refernce.halfMove,refernce.fullMove,refernce.capturedPieceType);
 
+    tempState.halfMove++;
+
     if(startSquare == 7 || targetSquare == 7)
     {
         tempState.castlingRights &= ~8;
@@ -166,8 +168,11 @@ void Position::makeMove(Move move)
     }
 
     tempState.enPassantSquare = 0;
+
+
     if(flags == PAWN_DOUBLE_MOVE)
     {
+        tempState.halfMove = 0;
         if(STM)
         {
             tempState.enPassantSquare = targetSquare-8;
@@ -175,11 +180,26 @@ void Position::makeMove(Move move)
         {
             tempState.enPassantSquare = targetSquare+8;
         }
+
+        bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
+
+        bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
+
+        if(STM == WHITE)
+        {
+            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
+        }else
+        {
+            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+        }
+        piecesArray[targetSquare] = piecesArray[startSquare];
+        piecesArray[startSquare] = NO_PIECE;
     }
 
 
     if(flags == EN_PASSANT)
     {
+        tempState.halfMove = 0;
         if(STM)
         {
             clearBit(piecesBitboards[BLACK_PIECES],targetSquare-8);
@@ -206,6 +226,7 @@ void Position::makeMove(Move move)
 
     if(flags == CAPTURE)
     {
+        tempState.halfMove = 0;
         tempState.capturedPieceType = piecesArray[targetSquare];
 
         clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
@@ -227,7 +248,7 @@ void Position::makeMove(Move move)
 
 
 
-    if(flags == QUIET || flags == PAWN_DOUBLE_MOVE)
+    if(flags == QUIET)
     {
         bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
 
@@ -317,6 +338,7 @@ void Position::makeMove(Move move)
 
     if(flags == KNIGHT_PROMOTION)
     {
+        tempState.halfMove = 0;
         clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
 
         bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
@@ -342,6 +364,7 @@ void Position::makeMove(Move move)
 
     if(flags == BISHOP_PROMOTION)
     {
+        tempState.halfMove = 0;
         clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
 
         bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
@@ -367,6 +390,7 @@ void Position::makeMove(Move move)
 
     if(flags == ROOK_PROMOTION)
     {
+        tempState.halfMove = 0;
         clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
 
         bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
@@ -393,6 +417,7 @@ void Position::makeMove(Move move)
 
     if(flags == QUEEN_PROMOTION)
     {
+        tempState.halfMove = 0;
         clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
 
         bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
@@ -418,6 +443,7 @@ void Position::makeMove(Move move)
 
     if(flags == KNIGHT_PROMOTION_CAPTURE)
     {
+        tempState.halfMove = 0;
         tempState.capturedPieceType = piecesArray[targetSquare];
 
         clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
@@ -451,6 +477,7 @@ void Position::makeMove(Move move)
 
     if(flags == BISHOP_PROMOTION_CAPTURE)
     {
+        tempState.halfMove = 0;
         tempState.capturedPieceType = piecesArray[targetSquare];
 
         clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
@@ -484,6 +511,7 @@ void Position::makeMove(Move move)
 
     if(flags == ROOK_PROMOTION_CAPTURE)
     {
+        tempState.halfMove = 0;
         tempState.capturedPieceType = piecesArray[targetSquare];
 
         clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
@@ -517,6 +545,7 @@ void Position::makeMove(Move move)
 
     if(flags == QUEEN_PROMOTION_CAPTURE)
     {
+        tempState.halfMove = 0;
         tempState.capturedPieceType = piecesArray[targetSquare];
 
         clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
@@ -551,8 +580,10 @@ void Position::makeMove(Move move)
 
     piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
 
-
-    tempState.halfMove++;
+    if(piecesArray[targetSquare] == WHITE_PAWN || piecesArray[targetSquare] == BLACK_PAWN)
+    {
+        tempState.halfMove = 0;
+    }
     if(!STM)
     {
         tempState.fullMove++;
@@ -1022,14 +1053,7 @@ void Position::undoMove(Move move)
     stateInfoList.pop_back();
 }
 
-StateInfo::StateInfo(int pas, int cast, int half, int full, int captureType)
-{
-    enPassantSquare=pas;
-    castlingRights=cast;
-    halfMove=half;
-    fullMove=full;
-    capturedPieceType=captureType;
-}
+
 void Position::addState(int pas, int cast, int half, int full, int captureType)
 {
     StateInfo newState(pas,cast,half,full,captureType);
