@@ -1,5 +1,6 @@
 #include "core.h"
 #include <sstream>
+#include <chrono>
 
 using namespace std;
 
@@ -43,8 +44,14 @@ int main()
             engine.quit();
         }
     }
+
+    // auto start = chrono::high_resolution_clock::now();
     // engine.pos.parseFEN(engine.startingFen,engine.pos.piecesBitboards);
-    // cout<<engine.perft(6);
+    // cout<<engine.perft(6)<<endl;
+    // auto end = chrono::high_resolution_clock::now();
+    // auto t = chrono::duration_cast<chrono::milliseconds>(end - start);
+    // cout<<t.count();
+
     // engine.pos.parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 49 1",engine.pos.piecesBitboards);
     // engine.go();
     return 0;

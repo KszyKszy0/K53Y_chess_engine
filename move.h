@@ -128,7 +128,7 @@ inline string moveToUci(Move move) {
     return uciMove;
 }
 
-inline Move uciToMove(const std::string& uci, Position& pos, vector<Move>& movesList) {
+inline Move uciToMove(const std::string& uci, Position& pos, Move (&moveList)[218]) {
     int startSquare = nameToSquare(uci.substr(0, 2));
     int targetSquare = nameToSquare(uci.substr(2, 2));
     int flags = QUIET;
@@ -157,7 +157,7 @@ inline Move uciToMove(const std::string& uci, Position& pos, vector<Move>& moves
         }
     }else
     {
-        for(Move m : movesList)
+        for(Move m : moveList)
         {
             int mStartSquare = m & 0x3F;
             int mtargetSquare = (m >> 6) & 0x3F;

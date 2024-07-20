@@ -12,14 +12,25 @@ int core::perft(int depth)
     {
         return 1;
     }
-    vector<Move> moveList = moveGenerator.fullMovesList(pos);
+
+    Move moveList[218];
+    moveGenerator.fullMovesList(pos, moveList);
+
     if(depth == 1)
     {
-        return moveList.size();
+        int count = 0;
+        for(Move m : moveList)
+        {
+            count++;
+            if(m == 0)
+                return count;
+        }
     }
 
     for(Move m : moveList)
     {
+        if(m == 0)
+            return counter;
         // printMove(m);
         int localCounter = 0;
 
@@ -69,7 +80,8 @@ void core::setPosition(vector<string>& moves)
     if(moves.size() > 0)
     {
         string move = moves[positionCounter-1];
-        vector<Move> movesList = moveGenerator.fullMovesList(pos);
+        Move movesList[218];
+        moveGenerator.fullMovesList(pos, movesList);
         pos.makeMove(uciToMove(move,pos,movesList));
     }
 }

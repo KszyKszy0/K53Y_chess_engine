@@ -4,7 +4,8 @@
 
 int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGenerator& moveGenerator, Position& pos, Evaluator& eval)
 {
-    vector<Move> moveList = moveGenerator.fullMovesList(pos);
+    Move moveList[218];
+    moveGenerator.fullMovesList(pos,moveList);
 
     if(pos.isCheckmate)
     {
@@ -32,6 +33,8 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     Move bestMove = 0;
     for(Move m : moveList)
     {
+        if(m == 0)
+            break;
         pos.makeMove(m);
         int value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval);
         pos.undoMove(m);

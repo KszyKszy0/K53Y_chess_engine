@@ -1,0 +1,2 @@
+perft 6 movegen vector 14,095s
+perft 6 movegen simple arrays 5,517s
