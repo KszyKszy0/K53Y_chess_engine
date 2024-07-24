@@ -9,8 +9,10 @@ using namespace std;
 
 void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
 {
+    //stalemate checkmate flags off
     isStalemate = false;
     isCheckmate = false;
+
     //reseting bitboards
     for (int i = 0; i < 16; i++)
     {
@@ -125,7 +127,9 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
     //set bitboards[empty]
     bitboards[NO_PIECE] = ~bitboards[ALL_PIECES];
 
+
     //add game state to list
+    stateCounter = 0;
     addState(nameToSquare(enPassant),castlingRights(castling),halfmove,fullmove,NO_PIECE);
 }
 
@@ -136,7 +140,7 @@ void Position::makeMove(Move move)
     int targetSquare = (move >> 6) & 0b111111;
     int flags = (move >> 12) & 0b1111;
 
-    StateInfo refernce = stateInfoList.back();
+    StateInfo refernce = stateInfoList[stateCounter];
     StateInfo tempState = StateInfo(refernce.enPassantSquare,refernce.castlingRights,refernce.halfMove,refernce.fullMove,refernce.capturedPieceType);
 
     tempState.halfMove++;
@@ -590,6 +594,8 @@ void Position::makeMove(Move move)
     }
 
     STM = !STM;
+
+    stateCounter++;
     addState(tempState);
 }
 
@@ -622,7 +628,7 @@ void Position::undoMove(Move move)
 
     if(flags == CAPTURE)
     {
-        int captureType = stateInfoList.back().capturedPieceType;
+        int captureType = stateInfoList[stateCounter].capturedPieceType;
 
         setBit(piecesBitboards[captureType], targetSquare);
 
@@ -886,7 +892,7 @@ void Position::undoMove(Move move)
 
     if(flags == KNIGHT_PROMOTION_CAPTURE)
     {
-        int captureType = stateInfoList.back().capturedPieceType;
+        int captureType = stateInfoList[stateCounter].capturedPieceType;
 
         setBit(piecesBitboards[captureType], targetSquare);
 
@@ -926,7 +932,7 @@ void Position::undoMove(Move move)
 
     if(flags == BISHOP_PROMOTION_CAPTURE)
     {
-        int captureType = stateInfoList.back().capturedPieceType;
+        int captureType = stateInfoList[stateCounter].capturedPieceType;
 
         setBit(piecesBitboards[captureType], targetSquare);
 
@@ -966,7 +972,7 @@ void Position::undoMove(Move move)
 
     if(flags == ROOK_PROMOTION_CAPTURE)
     {
-        int captureType = stateInfoList.back().capturedPieceType;
+        int captureType = stateInfoList[stateCounter].capturedPieceType;
 
         setBit(piecesBitboards[captureType], targetSquare);
 
@@ -1006,7 +1012,7 @@ void Position::undoMove(Move move)
 
     if(flags == QUEEN_PROMOTION_CAPTURE)
     {
-        int captureType = stateInfoList.back().capturedPieceType;
+        int captureType = stateInfoList[stateCounter].capturedPieceType;
 
         setBit(piecesBitboards[captureType], targetSquare);
 
@@ -1050,17 +1056,17 @@ void Position::undoMove(Move move)
     isStalemate = false;
 
     STM = !STM;
-    stateInfoList.pop_back();
+    stateCounter--;
 }
 
 
 void Position::addState(int pas, int cast, int half, int full, int captureType)
 {
     StateInfo newState(pas,cast,half,full,captureType);
-    stateInfoList.push_back(newState);
+    stateInfoList[stateCounter] = newState;
 }
 void Position::addState(StateInfo state)
 {
     StateInfo newState(state.enPassantSquare,state.castlingRights,state.halfMove,state.fullMove,state.capturedPieceType);
-    stateInfoList.push_back(newState);
+    stateInfoList[stateCounter] = newState;
 }

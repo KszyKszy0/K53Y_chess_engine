@@ -30,7 +30,7 @@ class Position
     void addState(StateInfo state);
 
     //List of game states
-    list<StateInfo> stateInfoList;
+    StateInfo stateInfoList[1000];
 
     //Array of all pieces types on chessboard
     int piecesArray[64];
@@ -38,4 +38,6 @@ class Position
     bool isStalemate;
 
     bool isCheckmate;
+
+    int stateCounter = 0;
 };

@@ -14,7 +14,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
           // Prefer faster checkmate
     }
 
-    if(pos.isStalemate || (pos.stateInfoList.back().halfMove >= 50))
+    if(pos.isStalemate || (pos.stateInfoList[pos.stateCounter].halfMove >= 50))
     {
         return 0;
     }

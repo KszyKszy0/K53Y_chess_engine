@@ -221,7 +221,7 @@ void MoveGenerator::fullMovesList(Position& pos, Move (&movesList)[218])
         //if there is no check we set it to enemies pieces for captures
         captureTargets &= pos.STM ? pos.piecesBitboards[BLACK_PIECES] : pos.piecesBitboards[WHITE_PIECES];
 
-        int enPassantSquare = pos.stateInfoList.back().enPassantSquare;
+        int enPassantSquare = pos.stateInfoList[pos.stateCounter].enPassantSquare;
 
         //only check en passant if its possible
         if(enPassantSquare != 0)
@@ -851,7 +851,7 @@ Bitboard MoveGenerator::generateKingsMoves(Position& pos, Move (&movesList)[218]
 
         if(checks < 1)
         {
-            int castlingRights = pos.stateInfoList.back().castlingRights;
+            int castlingRights = pos.stateInfoList[pos.stateCounter].castlingRights;
             if(white)
             {
                 Bitboard emptySpaces = 96; // 1ULL << 5 | 1ULL << 6;

@@ -14,6 +14,8 @@ class StateInfo
     int capturedPieceType;
 
     StateInfo(int pas, int cast, int half, int full, int captureType);
+
+    StateInfo();
 };
 
 
@@ -24,4 +26,13 @@ inline StateInfo::StateInfo(int pas, int cast, int half, int full, int captureTy
     halfMove=half;
     fullMove=full;
     capturedPieceType=captureType;
+}
+
+inline StateInfo::StateInfo()
+{
+    enPassantSquare=0;
+    castlingRights=15;
+    halfMove=0;
+    fullMove=1;
+    capturedPieceType=NO_PIECE;
 }
