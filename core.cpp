@@ -21,9 +21,9 @@ int core::perft(int depth)
         int count = 0;
         for(Move m : moveList)
         {
-            count++;
             if(m == 0)
                 return count;
+            count++;
         }
     }
 

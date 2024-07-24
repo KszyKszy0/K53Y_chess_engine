@@ -51,6 +51,11 @@
         "vector": "cpp",
         "sstream": "cpp",
         "string": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "chrono": "cpp",
+        "forward_list": "cpp",
+        "iomanip": "cpp",
+        "optional": "cpp",
+        "ratio": "cpp"
     }
 }

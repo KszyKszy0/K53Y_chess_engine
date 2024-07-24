@@ -22,6 +22,10 @@ int main()
     string line;
     while (std::getline(std::cin, line)) {
         std::vector<string> tokens = split(line, ' ');
+        // for(string s : tokens)
+        // {
+        //     cout<<"'"<<s<<"'"<<endl;
+        // }
         if (tokens.empty()) continue;
 
         if (tokens[0] == "uci") {
@@ -37,6 +41,24 @@ int main()
                     moves.assign(tokens.begin() + 3, tokens.end());
                 }
                 engine.setPosition(moves);
+            }
+            if (tokens.size() > 1 && tokens[1] == "fen") {
+                std::vector<std::string> moves;
+                string FEN = tokens[2] + " " + tokens[3] + " " + tokens[4] + " " + tokens[5] + " " + tokens[6] + " " + tokens[7];
+                if(tokens.size() > 8)
+                    moves.assign(tokens.begin() + 9,tokens.end());
+
+                if( moves.size() == 0 )
+                {
+                    engine.newGame(FEN);
+                }else
+                {
+                    engine.setPosition(moves);
+                }
+                // for(string s : moves)
+                // {
+                //     cout<<"'"<<s<<"'"<<endl;
+                // }
             }
         } else if (tokens[0] == "go") {
             engine.go();
