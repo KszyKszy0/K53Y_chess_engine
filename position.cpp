@@ -340,115 +340,45 @@ void Position::makeMove(Move move)
     }
 
 
-    if(flags == KNIGHT_PROMOTION)
+    if((flags > 7) && (flags < 12))
     {
         tempState.halfMove = 0;
+
+        int promotionType = Flags(move);
+
         clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
 
         bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
 
         if(STM == WHITE)
         {
+            promotionType -= 7;
+
             bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
 
-            setBit(piecesBitboards[WHITE_KNIGHT],targetSquare);
+            setBit(piecesBitboards[promotionType],targetSquare);
 
-            piecesArray[targetSquare] = WHITE_KNIGHT;
+            piecesArray[targetSquare] = promotionType;
         }else
         {
+            promotionType -= 1;
+
             bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
 
-            setBit(piecesBitboards[BLACK_KNIGHT],targetSquare);
+            setBit(piecesBitboards[promotionType],targetSquare);
 
-            piecesArray[targetSquare] = BLACK_KNIGHT;
+            piecesArray[targetSquare] = promotionType;
         }
 
         piecesArray[startSquare] = NO_PIECE;
     }
 
-    if(flags == BISHOP_PROMOTION)
-    {
-        tempState.halfMove = 0;
-        clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
-
-        bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
-
-        if(STM == WHITE)
-        {
-            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[WHITE_BISHOP],targetSquare);
-
-            piecesArray[targetSquare] = WHITE_BISHOP;
-        }else
-        {
-            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[BLACK_BISHOP],targetSquare);
-
-            piecesArray[targetSquare] = BLACK_BISHOP;
-        }
-
-        piecesArray[startSquare] = NO_PIECE;
-    }
-
-    if(flags == ROOK_PROMOTION)
-    {
-        tempState.halfMove = 0;
-        clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
-
-        bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
-
-        if(STM == WHITE)
-        {
-            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[WHITE_ROOK],targetSquare);
-
-            piecesArray[targetSquare] = WHITE_ROOK;
-        }else
-        {
-            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[BLACK_ROOK],targetSquare);
-
-            piecesArray[targetSquare] = BLACK_ROOK;
-        }
-
-        piecesArray[startSquare] = NO_PIECE;
-    }
-
-
-    if(flags == QUEEN_PROMOTION)
-    {
-        tempState.halfMove = 0;
-        clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
-
-        bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
-
-        if(STM == WHITE)
-        {
-            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[WHITE_QUEEN],targetSquare);
-
-            piecesArray[targetSquare] = WHITE_QUEEN;
-        }else
-        {
-            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[BLACK_QUEEN],targetSquare);
-
-            piecesArray[targetSquare] = BLACK_QUEEN;
-        }
-
-        piecesArray[startSquare] = NO_PIECE;
-    }
-
-    if(flags == KNIGHT_PROMOTION_CAPTURE)
+    if(flags > 11)
     {
         tempState.halfMove = 0;
         tempState.capturedPieceType = piecesArray[targetSquare];
+
+        int promotionType = Flags(move);
 
         clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
 
@@ -456,131 +386,32 @@ void Position::makeMove(Move move)
 
         if(STM == WHITE)
         {
+            promotionType -= 11;
+
             bitSwap(piecesBitboards[WHITE_PIECES], startSquare, targetSquare);
 
-            setBit(piecesBitboards[WHITE_KNIGHT],targetSquare);
+            setBit(piecesBitboards[promotionType],targetSquare);
 
             clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
             clearBit(piecesBitboards[BLACK_PIECES],targetSquare);
 
-            piecesArray[targetSquare] = WHITE_KNIGHT;
+            piecesArray[targetSquare] = promotionType;
         }else
         {
+            promotionType -= 5;
+
             bitSwap(piecesBitboards[BLACK_PIECES], startSquare, targetSquare);
 
-            setBit(piecesBitboards[BLACK_KNIGHT],targetSquare);
+            setBit(piecesBitboards[promotionType],targetSquare);
 
             clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
             clearBit(piecesBitboards[WHITE_PIECES],targetSquare);
 
-            piecesArray[targetSquare] = BLACK_KNIGHT;
+            piecesArray[targetSquare] = promotionType;
         }
 
         piecesArray[startSquare] = NO_PIECE;
     }
-
-    if(flags == BISHOP_PROMOTION_CAPTURE)
-    {
-        tempState.halfMove = 0;
-        tempState.capturedPieceType = piecesArray[targetSquare];
-
-        clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
-
-        clearBit(piecesBitboards[ALL_PIECES], startSquare);
-
-        if(STM == WHITE)
-        {
-            bitSwap(piecesBitboards[WHITE_PIECES], startSquare, targetSquare);
-
-            setBit(piecesBitboards[WHITE_BISHOP],targetSquare);
-
-            clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
-            clearBit(piecesBitboards[BLACK_PIECES],targetSquare);
-
-            piecesArray[targetSquare] = WHITE_BISHOP;
-        }else
-        {
-            bitSwap(piecesBitboards[BLACK_PIECES], startSquare, targetSquare);
-
-            setBit(piecesBitboards[BLACK_BISHOP],targetSquare);
-
-            clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
-            clearBit(piecesBitboards[WHITE_PIECES],targetSquare);
-
-            piecesArray[targetSquare] = BLACK_BISHOP;
-        }
-
-        piecesArray[startSquare] = NO_PIECE;
-    }
-
-    if(flags == ROOK_PROMOTION_CAPTURE)
-    {
-        tempState.halfMove = 0;
-        tempState.capturedPieceType = piecesArray[targetSquare];
-
-        clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
-
-        clearBit(piecesBitboards[ALL_PIECES], startSquare);
-
-        if(STM == WHITE)
-        {
-            bitSwap(piecesBitboards[WHITE_PIECES], startSquare, targetSquare);
-
-            setBit(piecesBitboards[WHITE_ROOK],targetSquare);
-
-            clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
-            clearBit(piecesBitboards[BLACK_PIECES],targetSquare);
-
-            piecesArray[targetSquare] = WHITE_ROOK;
-        }else
-        {
-            bitSwap(piecesBitboards[BLACK_PIECES], startSquare, targetSquare);
-
-            setBit(piecesBitboards[BLACK_ROOK],targetSquare);
-
-            clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
-            clearBit(piecesBitboards[WHITE_PIECES],targetSquare);
-
-            piecesArray[targetSquare] = BLACK_ROOK;
-        }
-
-        piecesArray[startSquare] = NO_PIECE;
-    }
-
-    if(flags == QUEEN_PROMOTION_CAPTURE)
-    {
-        tempState.halfMove = 0;
-        tempState.capturedPieceType = piecesArray[targetSquare];
-
-        clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
-
-        clearBit(piecesBitboards[ALL_PIECES], startSquare);
-
-        if(STM == WHITE)
-        {
-            bitSwap(piecesBitboards[WHITE_PIECES], startSquare, targetSquare);
-
-            setBit(piecesBitboards[WHITE_QUEEN],targetSquare);
-
-            clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
-            clearBit(piecesBitboards[BLACK_PIECES],targetSquare);
-
-            piecesArray[targetSquare] = WHITE_QUEEN;
-        }else
-        {
-            bitSwap(piecesBitboards[BLACK_PIECES], startSquare, targetSquare);
-
-            setBit(piecesBitboards[BLACK_QUEEN],targetSquare);
-
-            clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
-            clearBit(piecesBitboards[WHITE_PIECES],targetSquare);
-
-            piecesArray[targetSquare] = BLACK_QUEEN;
-        }
-
-        piecesArray[startSquare] = NO_PIECE;
-    }
-
 
     piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
 
@@ -749,13 +580,15 @@ void Position::undoMove(Move move)
     }
 
 
-    if(flags == KNIGHT_PROMOTION)
+    if((flags > 7) && (flags < 12))
     {
+        int promotionType = Flags(move);
 
         if(STM == BLACK)
         {
+            promotionType -= 7;
 
-            clearBit(piecesBitboards[WHITE_KNIGHT],targetSquare);
+            clearBit(piecesBitboards[promotionType],targetSquare);
 
             bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
 
@@ -768,113 +601,9 @@ void Position::undoMove(Move move)
 
         }else
         {
+            promotionType -= 1;
 
-            clearBit(piecesBitboards[BLACK_KNIGHT],targetSquare);
-
-            bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
-
-            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[BLACK_PAWN],startSquare);
-
-            piecesArray[startSquare] = BLACK_PAWN;
-            piecesArray[targetSquare] = NO_PIECE;
-
-        }
-
-    }
-
-    if(flags == BISHOP_PROMOTION)
-    {
-
-        if(STM == BLACK)
-        {
-
-            clearBit(piecesBitboards[WHITE_BISHOP],targetSquare);
-
-            bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
-
-            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[WHITE_PAWN],startSquare);
-
-            piecesArray[startSquare] = WHITE_PAWN;
-            piecesArray[targetSquare] = NO_PIECE;
-
-        }else
-        {
-
-            clearBit(piecesBitboards[BLACK_BISHOP],targetSquare);
-
-            bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
-
-            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[BLACK_PAWN],startSquare);
-
-            piecesArray[startSquare] = BLACK_PAWN;
-            piecesArray[targetSquare] = NO_PIECE;
-
-        }
-
-    }
-
-    if(flags == ROOK_PROMOTION)
-    {
-
-        if(STM == BLACK)
-        {
-
-            clearBit(piecesBitboards[WHITE_ROOK],targetSquare);
-
-            bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
-
-            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[WHITE_PAWN],startSquare);
-
-            piecesArray[startSquare] = WHITE_PAWN;
-            piecesArray[targetSquare] = NO_PIECE;
-
-        }else
-        {
-
-            clearBit(piecesBitboards[BLACK_ROOK],targetSquare);
-
-            bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
-
-            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[BLACK_PAWN],startSquare);
-
-            piecesArray[startSquare] = BLACK_PAWN;
-            piecesArray[targetSquare] = NO_PIECE;
-
-        }
-
-    }
-
-    if(flags == QUEEN_PROMOTION)
-    {
-
-        if(STM == BLACK)
-        {
-
-            clearBit(piecesBitboards[WHITE_QUEEN],targetSquare);
-
-            bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
-
-            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[WHITE_PAWN],startSquare);
-
-            piecesArray[startSquare] = WHITE_PAWN;
-            piecesArray[targetSquare] = NO_PIECE;
-
-        }else
-        {
-
-            clearBit(piecesBitboards[BLACK_QUEEN],targetSquare);
+            clearBit(piecesBitboards[promotionType],targetSquare);
 
             bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
 
@@ -890,9 +619,11 @@ void Position::undoMove(Move move)
     }
 
 
-    if(flags == KNIGHT_PROMOTION_CAPTURE)
+    if(flags > 11)
     {
         int captureType = stateInfoList[stateCounter].capturedPieceType;
+
+        int promotionType = Flags(move);
 
         setBit(piecesBitboards[captureType], targetSquare);
 
@@ -900,7 +631,9 @@ void Position::undoMove(Move move)
 
         if(STM == BLACK)
         {
-            clearBit(piecesBitboards[WHITE_KNIGHT],targetSquare);
+            promotionType -= 11;
+
+            clearBit(piecesBitboards[promotionType],targetSquare);
 
             setBit(piecesBitboards[WHITE_PAWN],startSquare);
 
@@ -914,127 +647,9 @@ void Position::undoMove(Move move)
             piecesArray[startSquare] = WHITE_PAWN;
         }else
         {
-            clearBit(piecesBitboards[BLACK_KNIGHT],targetSquare);
+            promotionType -= 5;
 
-            setBit(piecesBitboards[BLACK_PAWN],startSquare);
-
-            bitSwap(piecesBitboards[BLACK_PIECES], startSquare, targetSquare);
-
-
-
-            setBit(piecesBitboards[WHITE_PIECES], targetSquare);
-
-            piecesArray[targetSquare] = captureType;
-            piecesArray[startSquare] = BLACK_PAWN;
-        }
-    }
-
-
-    if(flags == BISHOP_PROMOTION_CAPTURE)
-    {
-        int captureType = stateInfoList[stateCounter].capturedPieceType;
-
-        setBit(piecesBitboards[captureType], targetSquare);
-
-        setBit(piecesBitboards[ALL_PIECES], startSquare);
-
-        if(STM == BLACK)
-        {
-            clearBit(piecesBitboards[WHITE_BISHOP],targetSquare);
-
-            setBit(piecesBitboards[WHITE_PAWN],startSquare);
-
-            bitSwap(piecesBitboards[WHITE_PIECES], startSquare, targetSquare);
-
-
-
-            setBit(piecesBitboards[BLACK_PIECES], targetSquare);
-
-            piecesArray[targetSquare] = captureType;
-            piecesArray[startSquare] = WHITE_PAWN;
-        }else
-        {
-            clearBit(piecesBitboards[BLACK_BISHOP],targetSquare);
-
-            setBit(piecesBitboards[BLACK_PAWN],startSquare);
-
-            bitSwap(piecesBitboards[BLACK_PIECES], startSquare, targetSquare);
-
-
-
-            setBit(piecesBitboards[WHITE_PIECES], targetSquare);
-
-            piecesArray[targetSquare] = captureType;
-            piecesArray[startSquare] = BLACK_PAWN;
-        }
-    }
-
-
-    if(flags == ROOK_PROMOTION_CAPTURE)
-    {
-        int captureType = stateInfoList[stateCounter].capturedPieceType;
-
-        setBit(piecesBitboards[captureType], targetSquare);
-
-        setBit(piecesBitboards[ALL_PIECES], startSquare);
-
-        if(STM == BLACK)
-        {
-            clearBit(piecesBitboards[WHITE_ROOK],targetSquare);
-
-            setBit(piecesBitboards[WHITE_PAWN],startSquare);
-
-            bitSwap(piecesBitboards[WHITE_PIECES], startSquare, targetSquare);
-
-
-
-            setBit(piecesBitboards[BLACK_PIECES], targetSquare);
-
-            piecesArray[targetSquare] = captureType;
-            piecesArray[startSquare] = WHITE_PAWN;
-        }else
-        {
-            clearBit(piecesBitboards[BLACK_ROOK],targetSquare);
-
-            setBit(piecesBitboards[BLACK_PAWN],startSquare);
-
-            bitSwap(piecesBitboards[BLACK_PIECES], startSquare, targetSquare);
-
-
-
-            setBit(piecesBitboards[WHITE_PIECES], targetSquare);
-
-            piecesArray[targetSquare] = captureType;
-            piecesArray[startSquare] = BLACK_PAWN;
-        }
-    }
-
-
-    if(flags == QUEEN_PROMOTION_CAPTURE)
-    {
-        int captureType = stateInfoList[stateCounter].capturedPieceType;
-
-        setBit(piecesBitboards[captureType], targetSquare);
-
-        setBit(piecesBitboards[ALL_PIECES], startSquare);
-
-        if(STM == BLACK)
-        {
-            clearBit(piecesBitboards[WHITE_QUEEN],targetSquare);
-
-            setBit(piecesBitboards[WHITE_PAWN],startSquare);
-
-            bitSwap(piecesBitboards[WHITE_PIECES], startSquare, targetSquare);
-
-
-
-            setBit(piecesBitboards[BLACK_PIECES], targetSquare);
-
-            piecesArray[targetSquare] = captureType;
-            piecesArray[startSquare] = WHITE_PAWN;
-        }else
-        {
-            clearBit(piecesBitboards[BLACK_QUEEN],targetSquare);
+            clearBit(piecesBitboards[promotionType],targetSquare);
 
             setBit(piecesBitboards[BLACK_PAWN],startSquare);
 

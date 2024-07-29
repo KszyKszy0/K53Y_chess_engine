@@ -175,3 +175,18 @@ inline Move uciToMove(const std::string& uci, Position& pos, Move (&moveList)[21
 
     return createMove(startSquare, targetSquare, flags);
 }
+
+inline int StartSquare(Move m)
+{
+    return m & 0x3F;
+}
+
+inline int TargetSqaure(Move m)
+{
+    return (m >> 6) & 0x3F;
+}
+
+inline int Flags(Move m)
+{
+    return (m >> 12) & 0b1111;
+}

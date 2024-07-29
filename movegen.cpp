@@ -6,9 +6,9 @@
 #include <vector>
 
 
-void MoveGenerator::generateTypeMoves(Position& pos, Bitboard target, Move (&movesList)[218], int& movesListCounter, int type, int checks, Bitboard pins)
-{
 
+void MoveGenerator::generatePawnMoves(Position& pos, Bitboard target, Move (&movesList)[218],int& movesListCounter, int type, Bitboard pins)
+{
     if(pos.STM == WHITE)
     {
     //pawn moves
@@ -27,63 +27,8 @@ void MoveGenerator::generateTypeMoves(Position& pos, Bitboard target, Move (&mov
         }
         }
     }
-
-    //white knights
-    iterated = pos.piecesBitboards[WHITE_KNIGHT];
-    while(iterated)
-    {
-        int index = popLSB(iterated);   //Get knight index
-        if(!isBitSet(pins,index))       //If not pinned gen Moves
-        addKnightsMoves(index, movesList, movesListCounter, pos,target);
-        // Bitboard possibleMoves = BBManager.knightMoves[index] & target;
-        // possibleMoves &= ~ pos.piecesBitboards[WHITE_PIECES];
-        // addMoves(index, possibleMoves, movesList, movesListCounter, pos);
-    }
-
-    //white bishops
-    iterated = pos.piecesBitboards[WHITE_BISHOP];
-    while(iterated)
-    {
-        int index = popLSB(iterated);   //Get bishop index
-        if(!isBitSet(pins,index))       //If not pinned gen Moves and so on for each piece
-        addBishopsMoves(index, movesList, movesListCounter, pos,target);
-        // Bitboard possibleMoves = BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])] & target;
-        // possibleMoves &= ~ pos.piecesBitboards[WHITE_PIECES];
-        // addMoves(index, possibleMoves, movesList, movesListCounter, pos);
-    }
-
-    //white rooks
-    iterated = pos.piecesBitboards[WHITE_ROOK];
-    while(iterated)
-    {
-        int index = popLSB(iterated);
-        if(!isBitSet(pins,index))
-        addRookMoves(index, movesList, movesListCounter, pos,target);
-        // Bitboard possibleMoves = BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])] & target;
-        // possibleMoves &= ~ pos.piecesBitboards[WHITE_PIECES];
-        // addMoves(index, possibleMoves, movesList, movesListCounter, pos);
-    }
-
-    //white queens
-    iterated = pos.piecesBitboards[WHITE_QUEEN];
-    while(iterated)
-    {
-        int index = popLSB(iterated);
-        if(!isBitSet(pins,index))       //combination of rook and bishop
-        {
-        addBishopsMoves(index, movesList, movesListCounter, pos,target);
-        addRookMoves(index, movesList, movesListCounter, pos,target);
-        }
-        // Bitboard possibleMoves = BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])] & target;
-        // possibleMoves |= BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])] & target;
-        // possibleMoves &= ~ pos.piecesBitboards[WHITE_PIECES];
-        // addMoves(index, possibleMoves, movesList, movesListCounter, pos);
-    }
-
-
     }else
     {
-
     //pawn moves
     Bitboard iterated = pos.piecesBitboards[BLACK_PAWN];
     while(iterated)
@@ -100,67 +45,32 @@ void MoveGenerator::generateTypeMoves(Position& pos, Bitboard target, Move (&mov
         }
         }
     }
-
-    //white knights
-    iterated = pos.piecesBitboards[BLACK_KNIGHT];
-    while(iterated)
-    {
-        int index = popLSB(iterated);
-        if(!isBitSet(pins,index))
-        addKnightsMoves(index, movesList, movesListCounter, pos,target);
-        // Bitboard possibleMoves = BBManager.knightMoves[index] & target;
-        // possibleMoves &= ~ pos.piecesBitboards[BLACK_PIECES];
-        // addMoves(index, possibleMoves, movesList, movesListCounter, pos);
     }
+}
 
-    //white bishops
-    iterated = pos.piecesBitboards[BLACK_BISHOP];
-    while(iterated)
-    {
-        int index = popLSB(iterated);
-        if(!isBitSet(pins,index))
-        addBishopsMoves(index, movesList, movesListCounter, pos,target);
-        // Bitboard possibleMoves = BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])] & target;
-        // possibleMoves &= ~ pos.piecesBitboards[BLACK_PIECES];
-        // addMoves(index, possibleMoves, movesList, movesListCounter, pos);
-    }
 
-    //white rooks
-    iterated = pos.piecesBitboards[BLACK_ROOK];
-    while(iterated)
+void MoveGenerator::generateTypeMoves(Position& pos, Bitboard target, Move (&movesList)[218], int& movesListCounter, Bitboard whatCanMove)
+{
+    while(whatCanMove)
     {
-        int index = popLSB(iterated);
-        if(!isBitSet(pins,index))
-        addRookMoves(index, movesList, movesListCounter, pos,target);
-        // Bitboard possibleMoves = BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])] & target;
-        // possibleMoves &= ~ pos.piecesBitboards[BLACK_PIECES];
-        // addMoves(index, possibleMoves, movesList, movesListCounter, pos);
-    }
+        int index = popLSB(whatCanMove);
 
-    //white queens
-    iterated = pos.piecesBitboards[BLACK_QUEEN];
-    while(iterated)
-    {
-        int index = popLSB(iterated);
-        if(!isBitSet(pins,index))
+        int pieceType = pos.piecesArray[index];
+
+        if((pieceType == WHITE_KNIGHT) || (pieceType == BLACK_KNIGHT))
+            addKnightsMoves(index, movesList, movesListCounter, pos,target);
+
+        if((pieceType == WHITE_BISHOP) || (pieceType == BLACK_BISHOP))
+            addBishopsMoves(index, movesList, movesListCounter, pos,target);
+
+        if((pieceType == WHITE_ROOK) || (pieceType == BLACK_ROOK))
+            addRookMoves(index, movesList, movesListCounter, pos,target);
+
+        if((pieceType == WHITE_QUEEN) || (pieceType == BLACK_QUEEN))
         {
-        addBishopsMoves(index, movesList, movesListCounter, pos,target);
-        addRookMoves(index, movesList, movesListCounter, pos,target);
+            addBishopsMoves(index, movesList, movesListCounter, pos,target);
+            addRookMoves(index, movesList, movesListCounter, pos,target);
         }
-        // Bitboard possibleMoves = BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index],BBManager.rooksMagics[index],BBManager.rookBits[index])] & target;
-        // possibleMoves |= BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index],BBManager.bishopsMagics[index],BBManager.bishopBits[index])] & target;
-        // possibleMoves &= ~ pos.piecesBitboards[BLACK_PIECES];
-        // addMoves(index, possibleMoves, movesList, movesListCounter, pos);
-    }
-    //white kings
-    // Bitboard iterated = pos.piecesBitboards[BLACK_KING];
-    // while(iterated)
-    // {
-    //     int index = popLSB(iterated);
-    //     Bitboard possibleMoves = BBManager.kingMoves[index] & target;
-    //     possibleMoves &= ~ pos.piecesBitboards[BLACK_PIECES];
-    //     addMoves(index, possibleMoves, movesList, movesListCounter, pos);
-    // }
     }
 }
 
@@ -242,18 +152,26 @@ void MoveGenerator::fullMovesList(Position& pos, Move (&movesList)[218])
             }
         }
 
-        //quiets
-        generateTypeMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,movesList,movesCounter,0,checks,pins);
-
-
         if(pos.STM == WHITE)
         {
+            //quiets
+            generateTypeMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,movesList,movesCounter,pos.piecesBitboards[WHITE_PIECES] &~ pins);
+            generatePawnMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,movesList,movesCounter,0,pins);
+
+
             //captures
-            generateTypeMoves(pos,captureTargets,movesList,movesCounter,1,checks,pins);
+            generateTypeMoves(pos,captureTargets,movesList,movesCounter,pins);
+            generatePawnMoves(pos,captureTargets,movesList,movesCounter,1,pins);
         }else
         {
+            //quiets
+            generateTypeMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,movesList,movesCounter,pos.piecesBitboards[BLACK_PIECES] &~ pins);
+            generatePawnMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,movesList,movesCounter,0,pins);
+
+
             //captures
-            generateTypeMoves(pos,captureTargets,movesList,movesCounter,1,checks,pins);
+            generateTypeMoves(pos,captureTargets,movesList,movesCounter,pins);
+            generatePawnMoves(pos,captureTargets,movesList,movesCounter,1,pins);
         }
     }
     if(movesCounter == 0)

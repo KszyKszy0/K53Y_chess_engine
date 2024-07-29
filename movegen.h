@@ -7,8 +7,10 @@ class MoveGenerator
 {
     public:
 
+    void generateTypeMoves(Position& pos, Bitboard target, Move (&movesList)[218],int& movesListCounter, Bitboard whatCanMove);
+
     // 0 - quiets, 1 - captures
-    void generateTypeMoves(Position& pos, Bitboard target, Move (&movesList)[218],int& movesListCounter, int type, int checks, Bitboard pins);
+    void generatePawnMoves(Position& pos, Bitboard target, Move (&movesList)[218],int& movesListCounter, int type, Bitboard pins);
 
     //Generates moves from to doesnt care if legal
     void addMoves(int startSquare, Bitboard targets, Move (&movesList)[218],int& movesListCounter, Position& pos);
