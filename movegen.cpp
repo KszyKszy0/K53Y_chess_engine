@@ -728,7 +728,7 @@ void MoveGenerator::addPawnBlackEnpassant(Move (&movesList)[218], int& movesList
 void MoveGenerator::addKnightsMoves(int startSquare, Move (&movesList)[218], int& movesListCounter, Position& pos, Bitboard target)
 {
     Bitboard possibleMoves = BBManager.knightMoves[startSquare] & target;  //lookup
-    possibleMoves &= ~ pos.piecesBitboards[pos.STM ? WHITE_PIECES : BLACK_PIECES];  // - friendly
+    // possibleMoves &= ~ pos.piecesBitboards[pos.STM ? WHITE_PIECES : BLACK_PIECES];  // - friendly
     addMoves(startSquare, possibleMoves, movesList, movesListCounter, pos);   //go to move creator
 }
 
@@ -738,7 +738,7 @@ void MoveGenerator::addBishopsMoves(int startSquare, Move (&movesList)[218], int
     Bitboard possibleMoves = BBManager.bishopMoves[startSquare][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[startSquare],BBManager.bishopsMagics[startSquare],BBManager.bishopBits[startSquare])] & target;
 
     // - friendly
-    possibleMoves &= ~ pos.piecesBitboards[pos.STM ? WHITE_PIECES : BLACK_PIECES];
+    // possibleMoves &= ~ pos.piecesBitboards[pos.STM ? WHITE_PIECES : BLACK_PIECES];
 
     //go to move creator
     addMoves(startSquare, possibleMoves, movesList, movesListCounter, pos);
@@ -750,7 +750,7 @@ void MoveGenerator::addRookMoves(int startSquare, Move (&movesList)[218], int& m
     Bitboard possibleMoves = BBManager.rookMoves[startSquare][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[startSquare],BBManager.rooksMagics[startSquare],BBManager.rookBits[startSquare])] & target;
 
     // - friendly
-    possibleMoves &= ~ pos.piecesBitboards[pos.STM ? WHITE_PIECES : BLACK_PIECES];
+    // possibleMoves &= ~ pos.piecesBitboards[pos.STM ? WHITE_PIECES : BLACK_PIECES];
 
     //go to move creator
     addMoves(startSquare, possibleMoves, movesList, movesListCounter, pos);
@@ -759,50 +759,48 @@ void MoveGenerator::addRookMoves(int startSquare, Move (&movesList)[218], int& m
 Bitboard MoveGenerator::generateKingsMoves(Position& pos, Move (&movesList)[218], int& movesListCounter, Bitboard target, bool white, int checks)
 {
     //white kings
-    Bitboard iterated = pos.piecesBitboards[white ? WHITE_KING : BLACK_KING];
-    while(iterated)
-    {
-        int index = popLSB(iterated);
-        Bitboard possibleMoves = BBManager.kingMoves[index] & target;
-        possibleMoves &= ~ pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
-        addMoves(index, possibleMoves, movesList, movesListCounter, pos);
+    int index = LSB(pos.piecesBitboards[white ? WHITE_KING : BLACK_KING]);
 
-        if(checks < 1)
+    Bitboard possibleMoves = BBManager.kingMoves[index] & target;
+    possibleMoves &= ~ pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
+    addMoves(index, possibleMoves, movesList, movesListCounter, pos);
+
+    if(checks < 1)
+    {
+        int castlingRights = pos.stateInfoList[pos.stateCounter].castlingRights;
+        if(white)
         {
-            int castlingRights = pos.stateInfoList[pos.stateCounter].castlingRights;
-            if(white)
+            // Bitboard emptySpaces = 96; // 1ULL << 5 | 1ULL << 6;
+            // Bitboard targetedEmptySpaces = emptySpaces & target;
+            // Bitboard occupiedEmptySpaces = emptySpaces & pos.piecesBitboards[ALL_PIECES];
+            if((castlingRights & 8) && ((96 & target) == 96) && ((96 & pos.piecesBitboards[ALL_PIECES]) == 0))
             {
-                Bitboard emptySpaces = 96; // 1ULL << 5 | 1ULL << 6;
-                Bitboard targetedEmptySpaces = emptySpaces & target;
-                Bitboard occupiedEmptySpaces = emptySpaces & pos.piecesBitboards[ALL_PIECES];
-                if((castlingRights & 8) && (targetedEmptySpaces == 96) && (occupiedEmptySpaces == 0))
-                {
-                    addMoves(index, 1ULL << 6, movesList, movesListCounter, pos, 2);
-                }
-                // emptySpaces = 12; // 1ULL << 3 | 1ULL << 4;
-                targetedEmptySpaces = 12 & target;
-                occupiedEmptySpaces = 14 & pos.piecesBitboards[ALL_PIECES];
-                if((castlingRights & 4) && (targetedEmptySpaces == 12) && (occupiedEmptySpaces == 0))
-                {
-                    addMoves(index, 1ULL << 2, movesList, movesListCounter, pos, 3);
-                }
-            }else
+                addMoves(index, 1ULL << 6, movesList, movesListCounter, pos, 2);
+            }
+            // emptySpaces = 12; // 1ULL << 3 | 1ULL << 4;
+            // targetedEmptySpaces = 12 & target;
+            // occupiedEmptySpaces = 14 & pos.piecesBitboards[ALL_PIECES];
+            if((castlingRights & 4) && ((12 & target) == 12) && ((14 & pos.piecesBitboards[ALL_PIECES]) == 0))
             {
-                Bitboard emptySpaces = 6917529027641081856; // 1ULL << 61 | 1ULL << 62;
-                Bitboard targetedEmptySpaces = emptySpaces & target;
-                Bitboard occupiedEmptySpaces = emptySpaces & pos.piecesBitboards[ALL_PIECES];
-                if((castlingRights & 2) && (targetedEmptySpaces == 6917529027641081856) && (occupiedEmptySpaces == 0))
-                {
-                    addMoves(index, 1ULL << 62, movesList, movesListCounter, pos, 2);
-                }
-                // emptySpaces = 864691128455135232; // 1ULL << 58 | 1ULL << 59;
-                targetedEmptySpaces = 864691128455135232 & target;
-                occupiedEmptySpaces = 1008806316530991104 & pos.piecesBitboards[ALL_PIECES];
-                if((castlingRights & 1) && (targetedEmptySpaces == 864691128455135232) && (occupiedEmptySpaces == 0))
-                {
-                    addMoves(index, 1ULL << 58, movesList, movesListCounter, pos, 3);
-                }
+                addMoves(index, 1ULL << 2, movesList, movesListCounter, pos, 3);
+            }
+        }else
+        {
+            // Bitboard emptySpaces = 6917529027641081856; // 1ULL << 61 | 1ULL << 62;
+            // Bitboard targetedEmptySpaces = emptySpaces & target;
+            // Bitboard occupiedEmptySpaces = emptySpaces & pos.piecesBitboards[ALL_PIECES];
+            if((castlingRights & 2) && ((6917529027641081856 & target) == 6917529027641081856) && ((6917529027641081856 & pos.piecesBitboards[ALL_PIECES]) == 0))
+            {
+                addMoves(index, 1ULL << 62, movesList, movesListCounter, pos, 2);
+            }
+            // emptySpaces = 864691128455135232; // 1ULL << 58 | 1ULL << 59;
+            // targetedEmptySpaces = 864691128455135232 & target;
+            // occupiedEmptySpaces = 1008806316530991104 & pos.piecesBitboards[ALL_PIECES];
+            if((castlingRights & 1) && ((864691128455135232 & target) == 864691128455135232) && ((1008806316530991104 & pos.piecesBitboards[ALL_PIECES]) == 0))
+            {
+                addMoves(index, 1ULL << 58, movesList, movesListCounter, pos, 3);
             }
         }
     }
+
 }

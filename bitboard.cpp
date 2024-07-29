@@ -41,12 +41,14 @@ int popLSB(Bitboard &bb)
 //Number of set bits
 int popCount (Bitboard x)
 {
-    int count = 0;
-    while (x) {
-    count++;
-    x &= x - 1;
-    }
-    return count;
+    // int count = 0;
+    // while (x) {
+    // count++;
+    // x &= x - 1;
+    // }
+    // return count;
+
+    return __builtin_popcount(x);
 }
 
 //Print bitboards in 8x8 format
