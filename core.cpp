@@ -33,6 +33,22 @@ int core::perft(int depth)
         return moves.size;
     }
 
+    // for(int i=0; i<=moves.size-1; i++)
+    // {
+    //     int localCounter = 0;
+
+    //     pos.makeMove(moves.moveList[i]);
+
+    //     localCounter += perft(depth-1);
+    //     counter += localCounter;
+    //     pos.undoMove(moves.moveList[i]);
+
+    //     if(depth==6)
+    //     {
+    //         printMove(moves.moveList[i]);
+    //         cout<<": "<<localCounter<<endl;
+    //     }
+    // }
     for(Move m : moves)
     {
         if(m == 0)

@@ -220,8 +220,8 @@ void MoveGenerator::addMoves(int startSquare, Bitboard targers, MoveList& moveLi
         {
             flags = 4;                                      //change flag
         }
-        Move temp = createMove(startSquare,index,flags);    //go to move creator
-        *moveList.cur++=temp;                          //add move to moves list
+        //go to move creator
+        *moveList.cur++= createMove(startSquare,index,flags);   //add move to moves list
         moveList.size++;
         // moveList.moveList[moveList.size++]=temp;
     }
@@ -229,8 +229,8 @@ void MoveGenerator::addMoves(int startSquare, Bitboard targers, MoveList& moveLi
 
 void MoveGenerator::addMoves(int startSquare,int index,int flags, MoveList& moveList)
 {
-    Move temp = createMove(startSquare,index,flags);    //go to move creator
-    *moveList.cur++=temp;                          //add move to moves list
+    //go to move creator
+    *moveList.cur++ = createMove(startSquare,index,flags);      //add move to moves list
     moveList.size++;
     // moveList.moveList[moveList.size++]=temp;
 }
@@ -245,8 +245,7 @@ void MoveGenerator::addMoves(int startSquare, Bitboard targers, MoveList& moveLi
         // {
         //     flags = 4;
         // }
-        Move temp = createMove(startSquare,index,flag);
-        *moveList.cur++=temp;                          //add move to moves list
+        *moveList.cur++=createMove(startSquare,index,flag);                          //add move to moves list
         moveList.size++;
         // moveList.moveList[moveList.size++]=temp;
     }
