@@ -26,7 +26,27 @@ enum MoveFlag
     QUEEN_PROMOTION_CAPTURE
 };
 
+struct MoveList
+{
+    Move moveList[218];
+    Move* cur = &moveList[0];
+    Move* last;
+    int size;
 
+    MoveList()
+    {
+        size = 0;
+        cur = &moveList[0];
+    }
+
+    Move* begin() {
+        return &moveList[0];
+    }
+
+    Move* end() {
+        return &moveList[size];
+    }
+};
 
 inline Move createMove(int startSquare, int targetSquare, int flags){
     return startSquare + (targetSquare << 6) + (flags << 12);
@@ -128,7 +148,7 @@ inline string moveToUci(Move move) {
     return uciMove;
 }
 
-inline Move uciToMove(const std::string& uci, Position& pos, Move (&moveList)[218]) {
+inline Move uciToMove(const std::string& uci, Position& pos, Move* moveList) {
     int startSquare = nameToSquare(uci.substr(0, 2));
     int targetSquare = nameToSquare(uci.substr(2, 2));
     int flags = QUIET;
@@ -157,14 +177,16 @@ inline Move uciToMove(const std::string& uci, Position& pos, Move (&moveList)[21
         }
     }else
     {
-        for(Move m : moveList)
+        Move* temp = moveList;
+        while(*temp != 0)
         {
-            int mStartSquare = m & 0x3F;
-            int mtargetSquare = (m >> 6) & 0x3F;
+            int mStartSquare = *temp & 0x3F;
+            int mtargetSquare = (*temp >> 6) & 0x3F;
             if((mStartSquare == startSquare) && (mtargetSquare == targetSquare))
             {
-                return m;
+                return *temp;
             }
+            *temp++;
         }
     }
 

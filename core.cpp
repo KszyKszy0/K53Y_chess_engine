@@ -13,21 +13,27 @@ int core::perft(int depth)
         return 1;
     }
 
-    Move moveList[218];
-    moveGenerator.fullMovesList(pos, moveList);
+    MoveList moves;
+    moveGenerator.fullMovesList(pos, moves);
 
     if(depth == 1)
     {
-        int count = 0;
-        for(Move m : moveList)
-        {
-            if(m == 0)
-                return count;
-            count++;
-        }
+        // int count = 0;
+        // for(Move m : moves.moveList)
+        // {
+        //     if(m == 0)
+        //         return count;
+        //     count++;
+        // }
+        // for(int i=0; i<=moves.size; i++)
+        // {
+        //     printMove(moves.moveList[i]);
+        //     cout<<endl;
+        // }
+        return moves.size;
     }
 
-    for(Move m : moveList)
+    for(Move m : moves)
     {
         if(m == 0)
             return counter;
@@ -80,9 +86,9 @@ void core::setPosition(vector<string>& moves)
     if(moves.size() > 0)
     {
         string move = moves[positionCounter-1];
-        Move movesList[218];
-        moveGenerator.fullMovesList(pos, movesList);
-        pos.makeMove(uciToMove(move,pos,movesList));
+        MoveList moveList;
+        moveGenerator.fullMovesList(pos, moveList);
+        pos.makeMove(uciToMove(move,pos,moveList.moveList));
     }
 }
 

@@ -4,7 +4,7 @@
 
 int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGenerator& moveGenerator, Position& pos, Evaluator& eval)
 {
-    Move moveList[218];
+    MoveList moveList;
     moveGenerator.fullMovesList(pos,moveList);
 
     if(pos.isCheckmate)

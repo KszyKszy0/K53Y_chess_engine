@@ -67,6 +67,7 @@ int main()
     //     }
     // }
 
+    // engine.pos.parseFEN("rnbqkbnr/ppp1pppp/8/1B1p4/8/4P3/PPPP1PPP/RNBQK1NR b KQkq - 1 2",engine.pos.piecesBitboards);
     auto start = chrono::high_resolution_clock::now();
     engine.pos.parseFEN(engine.startingFen,engine.pos.piecesBitboards);
     cout<<engine.perft(6)<<endl;
