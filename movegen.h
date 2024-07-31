@@ -29,7 +29,7 @@ class MoveGenerator
 
     void generateKingsMoves(Position& pos, MoveList& moveList, Bitboard target, bool white, int checks);
 
-    Bitboard getPinners(Position& pos, bool white, MoveList& moveList, Bitboard target);
+    Bitboard getPinners(Position& pos, bool white, MoveList& moveList, Bitboard target, int checks);
 
 
     void addPawnWhiteQuiet(int startSquare, MoveList& moveList, Position& pos, Bitboard target);

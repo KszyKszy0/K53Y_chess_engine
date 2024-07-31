@@ -144,7 +144,7 @@ void MoveGenerator::fullMovesList(Position& pos, MoveList& moveList)
     if(checks < 2)
     {
         //pin generation for normal pieces (quiets and captures) and normal pins for pawns (quiet and captures) (without enpassant)
-        Bitboard pins = getPinners(pos, pos.STM, moveList, checksAttacks == 0 ? MAX : checkTargets);
+        Bitboard pins = getPinners(pos, pos.STM, moveList, checksAttacks == 0 ? MAX : checkTargets, checks);
 
 
         //if check it is bb with checking piece ELSE its full bitboard of enemies so it doesnt mess in pins only for one checking piece tho
@@ -385,7 +385,7 @@ Bitboard MoveGenerator::getSideAttacks(Position& pos, bool white, bool forKingMo
 
 
 
-Bitboard MoveGenerator::getPinners(Position& pos, bool white, MoveList& moveList, Bitboard tar)
+Bitboard MoveGenerator::getPinners(Position& pos, bool white, MoveList& moveList, Bitboard tar, int checks)
 {
     Bitboard allPinned = 0;         //returned bb with all pinned pieces for side
     int kingIndex = LSB(pos.piecesBitboards[white ? WHITE_KING : BLACK_KING]);      //index of king
@@ -421,6 +421,9 @@ Bitboard MoveGenerator::getPinners(Position& pos, bool white, MoveList& moveList
 
         // we add pinned index to all pinned bb
         setBit(allPinned,pinnedIndex);
+
+        if(checks > 0)
+            continue;
 
         // get target without pinner
         Bitboard target = BBManager.rectangularLookup[pinnerIndex][kingIndex];
