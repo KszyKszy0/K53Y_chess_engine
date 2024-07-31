@@ -156,6 +156,11 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
 
     //add game state to list
     stateCounter = 0;
+    if(enPassant[0] == '-')
+    {
+        addState(0,castlingRights(castling),halfmove,fullmove,NO_PIECE);
+        return;
+    }
     addState(nameToSquare(enPassant),castlingRights(castling),halfmove,fullmove,NO_PIECE);
 }
 
@@ -173,31 +178,47 @@ void Position::makeMove(Move move)
 
     if(startSquare == 7 || targetSquare == 7)
     {
+        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
         tempState.castlingRights &= ~8;
+        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
     }
     if(startSquare == 0 || targetSquare == 0)
     {
+        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
         tempState.castlingRights &= ~4;
+        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
     }
     if(startSquare == 4)
     {
+        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
         tempState.castlingRights &= ~12;
+        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
     }
 
     if(startSquare == 63 || targetSquare == 63)
     {
+        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
         tempState.castlingRights &= ~2;
+        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
     }
     if(startSquare == 56 || targetSquare == 56)
     {
+        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
         tempState.castlingRights &= ~1;
+        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
     }
     if(startSquare == 60)
     {
+        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
         tempState.castlingRights &= ~3;
+        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
     }
 
+    if(tempState.enPassantSquare != 0)
+        positionHash ^= zobrist.zobristTable[784 + (tempState.enPassantSquare % 8)];
+
     tempState.enPassantSquare = 0;
+
 
 
     if(flags == PAWN_DOUBLE_MOVE)
@@ -206,9 +227,11 @@ void Position::makeMove(Move move)
         if(STM)
         {
             tempState.enPassantSquare = targetSquare-8;
+            positionHash ^= zobrist.zobristTable[784 + (tempState.enPassantSquare % 8)];
         }else
         {
             tempState.enPassantSquare = targetSquare+8;
+            positionHash ^= zobrist.zobristTable[784 + (tempState.enPassantSquare % 8)];
         }
 
         bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
@@ -453,6 +476,10 @@ void Position::makeMove(Move move)
     STM = !STM;
 
     stateCounter++;
+
+    //change move side
+    positionHash ^= zobrist.zobristTable[792];
+
     addState(tempState);
 }
 
