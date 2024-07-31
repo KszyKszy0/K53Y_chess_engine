@@ -7,3 +7,4 @@ most optimalization i guess
 and compile all files
 perft 6 optimalization flags and pointers 0.73s
 perft 6 merging pins 0.7s
+perft 6 merging movegen 0.57s

@@ -177,22 +177,24 @@ void MoveGenerator::fullMovesList(Position& pos, MoveList& moveList)
         if(pos.STM == WHITE)
         {
             //quiets
-            generateTypeMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
+            // generateTypeMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
             generatePawnMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,0,pins);
 
+            generateTypeMoves(pos,checksAttacks == 0 ? (MAX &~ pos.piecesBitboards[WHITE_PIECES]) : (captureTargets | checkTargets), moveList, pos.piecesBitboards[WHITE_PIECES] &~ pins);
 
             //captures
-            generateTypeMoves(pos,captureTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
+            // generateTypeMoves(pos,captureTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
             generatePawnMoves(pos,captureTargets,moveList,1,pins);
         }else
         {
             //quiets
-            generateTypeMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
+            // generateTypeMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
             generatePawnMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,0,pins);
 
+            generateTypeMoves(pos,checksAttacks == 0 ? (MAX &~ pos.piecesBitboards[BLACK_PIECES]) : (captureTargets | checkTargets), moveList, pos.piecesBitboards[BLACK_PIECES] &~ pins);
 
             //captures
-            generateTypeMoves(pos,captureTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
+            // generateTypeMoves(pos,captureTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
             generatePawnMoves(pos,captureTargets,moveList,1,pins);
         }
     }
