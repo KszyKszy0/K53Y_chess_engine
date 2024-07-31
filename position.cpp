@@ -37,6 +37,9 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
         piecesArray[i]=NO_PIECE;
     }
 
+    //reset position hash
+    positionHash = 0;
+
     //loop through fen
     for (char ch : board)
     {
@@ -58,49 +61,61 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
             case 'P':
                 setBit(bitboards[WHITE_PAWN], position);
                 piecesArray[position]=WHITE_PAWN;
+                positionHash ^= zobrist.zobristTable[WHITE_PAWN*64+position];
                 break;
             case 'N':
                 setBit(bitboards[WHITE_KNIGHT], position);
                 piecesArray[position]=WHITE_KNIGHT;
+                positionHash ^= zobrist.zobristTable[WHITE_KNIGHT*64+position];
                 break;
             case 'B':
                 setBit(bitboards[WHITE_BISHOP], position);
                 piecesArray[position]=WHITE_BISHOP;
+                positionHash ^= zobrist.zobristTable[WHITE_BISHOP*64+position];
                 break;
             case 'R':
                 setBit(bitboards[WHITE_ROOK], position);
                 piecesArray[position]=WHITE_ROOK;
+                positionHash ^= zobrist.zobristTable[WHITE_ROOK*64+position];
                 break;
             case 'Q':
                 setBit(bitboards[WHITE_QUEEN], position);
                 piecesArray[position]=WHITE_QUEEN;
+                positionHash ^= zobrist.zobristTable[WHITE_QUEEN*64+position];
                 break;
             case 'K':
                 setBit(bitboards[WHITE_KING], position);
                 piecesArray[position]=WHITE_KING;
+                positionHash ^= zobrist.zobristTable[WHITE_KING*64+position];
                 break;
             case 'p':
                 setBit(bitboards[BLACK_PAWN], position);
+                positionHash ^= zobrist.zobristTable[BLACK_PAWN*64+position];
                 piecesArray[position]=BLACK_PAWN;
                 break;
             case 'n':
                 setBit(bitboards[BLACK_KNIGHT], position);
+                positionHash ^= zobrist.zobristTable[BLACK_KNIGHT*64+position];
                 piecesArray[position]=BLACK_KNIGHT;
                 break;
             case 'b':
                 setBit(bitboards[BLACK_BISHOP], position);
+                positionHash ^= zobrist.zobristTable[BLACK_BISHOP*64+position];
                 piecesArray[position]=BLACK_BISHOP;
                 break;
             case 'r':
                 setBit(bitboards[BLACK_ROOK], position);
+                positionHash ^= zobrist.zobristTable[BLACK_ROOK*64+position];
                 piecesArray[position]=BLACK_ROOK;
                 break;
             case 'q':
                 setBit(bitboards[BLACK_QUEEN], position);
+                positionHash ^= zobrist.zobristTable[BLACK_QUEEN*64+position];
                 piecesArray[position]=BLACK_QUEEN;
                 break;
             case 'k':
                 setBit(bitboards[BLACK_KING], position);
+                positionHash ^= zobrist.zobristTable[BLACK_KING*64+position];
                 piecesArray[position]=BLACK_KING;
                 break;
             }
@@ -108,6 +123,17 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
         }
     }
 
+    //Setup rest of hash
+    positionHash ^= zobrist.zobristTable[768+castlingRights(castling)];
+
+    int enPassantFile = 0;
+    if(enPassant[0] != '-')
+        enPassantFile = enPassant[0] - 'a';
+
+    positionHash ^= zobrist.zobristTable[784+enPassantFile];
+
+    if(!STM)
+        positionHash ^= zobrist.zobristTable[792];
 
     // Set bitboard for all pieces
 

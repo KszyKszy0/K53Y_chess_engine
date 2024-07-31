@@ -5,15 +5,23 @@
 #include "stateInfo.h"
 #include <string>
 #include <list>
+#include "zobrist.h"
 
 using namespace std;
 
 class Position
 {
     public:
-    Bitboard piecesBitboards[16];                                       //All pieces BB look enums.h
 
-    void parseFEN(string fen, Bitboard (&bitboards)[16]);               //Creates position from FEN
+    //All pieces BB look enums.h
+    Bitboard piecesBitboards[16];
+
+    //Creates position from FEN
+    void parseFEN(string fen, Bitboard (&bitboards)[16]);
+
+    Zobrist zobrist;
+
+    Bitboard positionHash;
 
     bool STM;
 
