@@ -28,7 +28,9 @@ bool isBitSet(Bitboard &bb, int index)
 
 //Returns index of LSB
 int LSB(Bitboard &bb)
-{ return __builtin_ctzll(bb); }
+{
+    return __builtin_ctzll(bb);
+}
 
 //Returns index of LSB and removes it
 int popLSB(Bitboard &bb)
@@ -329,9 +331,9 @@ void printPieceArray(int array[64])
     }
     }
 
-    inline int BB_utils::getMagicIndex(Bitboard blockers, Bitboard magic, int bits)
+    int BB_utils::getMagicIndex(Bitboard blockers, Bitboard magic, int bits)
     {
-        return ((blockers * magic) >> (64 - bits));
+        return (int)((blockers * magic) >> (64 - bits));
     }
 
     Bitboard BB_utils::generateRookBitboardAttacksBlockers(int sq, Bitboard blockers) {

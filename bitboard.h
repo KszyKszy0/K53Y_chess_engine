@@ -10,11 +10,11 @@ typedef uint64_t Bitboard;
 
 using namespace std;
 
-inline Bitboard MAX = 0xffffffffffffffff;
+static Bitboard MAX = 0xffffffffffffffff;
 
-inline Bitboard RANK_8 = 0xff00000000000000;
+static Bitboard RANK_8 = 0xff00000000000000;
 
-inline Bitboard RANK_1 = 0xff;
+static Bitboard RANK_1 = 0xff;
 
 //Sets bit at index to 1
 void setBit(Bitboard &bb, int index);
@@ -119,7 +119,7 @@ void initRookAttacks();
 void initBishopAttacks();
 
 //Magic index conversion
-inline int getMagicIndex(Bitboard blockers, Bitboard magic, int bits);
+int getMagicIndex(Bitboard blockers, Bitboard magic, int bits);
 
 //BB moves for rook blockers mask
 Bitboard generateRookBitboardAttacksBlockers(int sq, Bitboard blockers);

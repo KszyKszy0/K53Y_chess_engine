@@ -392,14 +392,20 @@ Bitboard MoveGenerator::getPinners(Position& pos, bool white, MoveList& moveList
     Bitboard kingRooksAttacks = BBManager.rookMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[kingIndex],BBManager.rooksMagics[kingIndex],BBManager.rookBits[kingIndex])] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
 
     //new attacks omitting intersections
-    Bitboard pinnersRook = BBManager.rookMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] ^ kingRooksAttacks) & BBManager.rookMasks[kingIndex],BBManager.rooksMagics[kingIndex],BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[white ? BLACK_ROOK : WHITE_ROOK] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN]);
+    Bitboard pinners = BBManager.rookMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] ^ kingRooksAttacks) & BBManager.rookMasks[kingIndex],BBManager.rooksMagics[kingIndex],BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[white ? BLACK_ROOK : WHITE_ROOK] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN]);
+
+    //attacks from king bishop shape intersect with allies
+    Bitboard kingsBishopAttacks = BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[kingIndex],BBManager.bishopsMagics[kingIndex],BBManager.bishopBits[kingIndex])] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
+
+    //new attacks omitting intersections
+    pinners |= BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] ^ kingsBishopAttacks) & BBManager.bishopMasks[kingIndex],BBManager.bishopsMagics[kingIndex],BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[white ? BLACK_BISHOP : WHITE_BISHOP] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN]);
 
     // cout<<((pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[kingIndex]) ^ kingRooksAttacks)<<endl;
     // cout<<BBManager.rookMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[kingIndex]) ^ kingRooksAttacks,BBManager.rooksMagics[kingIndex],BBManager.rookBits[kingIndex])]<<endl;
     // cout<<(pos.piecesBitboards[white ? BLACK_ROOK : WHITE_ROOK] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN])<<endl;
-    while(pinnersRook) //loop through all PINNERS
+    while(pinners) //loop through all PINNERS
     {
-        int pinnerIndex = popLSB(pinnersRook);  //Get index of pinner
+        int pinnerIndex = popLSB(pinners);  //Get index of pinner
 
         //get lane of pin thorugh rectangular lookup
         Bitboard bbPinned = BBManager.rectangularLookup[pinnerIndex][kingIndex] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
@@ -426,75 +432,6 @@ Bitboard MoveGenerator::getPinners(Position& pos, bool white, MoveList& moveList
         // get piecetype of pin
         int pieceType = pos.piecesArray[pinnedIndex];
 
-        // movegen depending on piece
-        switch (pieceType)
-        {
-        case WHITE_PAWN:
-            addPawnWhiteQuiet(pinnedIndex, moveList, pos, target);
-            addPawnWhiteCaptures(pinnedIndex, moveList, pos, target);
-            break;
-        case WHITE_BISHOP:
-            addBishopsMoves(pinnedIndex, moveList, pos, target);
-            break;
-        case WHITE_ROOK:
-            addRookMoves(pinnedIndex, moveList, pos, target);
-            break;
-        case WHITE_QUEEN:
-            addBishopsMoves(pinnedIndex, moveList, pos, target);
-            addRookMoves(pinnedIndex, moveList, pos, target);
-            break;
-        case BLACK_PAWN:
-            addPawnBlackQuiet(pinnedIndex, moveList, pos, target);
-            addPawnWhiteCaptures(pinnedIndex, moveList, pos, target);
-            break;
-        case BLACK_BISHOP:
-            addBishopsMoves(pinnedIndex, moveList, pos, target);
-            break;
-        case BLACK_ROOK:
-            addRookMoves(pinnedIndex, moveList, pos, target);
-            break;
-        case BLACK_QUEEN:
-            addBishopsMoves(pinnedIndex, moveList, pos, target);
-            addRookMoves(pinnedIndex, moveList, pos, target);
-            break;
-        default:
-            break;
-        }
-    }
-
-    //attacks from king bishop shape intersect with allies
-    Bitboard kingsBishopAttacks = BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[kingIndex],BBManager.bishopsMagics[kingIndex],BBManager.bishopBits[kingIndex])] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
-
-    //new attacks omitting intersections
-    Bitboard pinnersBishop = BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] ^ kingsBishopAttacks) & BBManager.bishopMasks[kingIndex],BBManager.bishopsMagics[kingIndex],BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[white ? BLACK_BISHOP : WHITE_BISHOP] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN]);
-
-    while(pinnersBishop)
-    {
-        //Get index of pinner
-        int pinnerIndex = popLSB(pinnersBishop);
-
-        //get lane of pin thorugh rectangular lookup
-        Bitboard bbPinned = BBManager.rectangularLookup[pinnerIndex][kingIndex] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
-
-        if(bbPinned == 0)   //safety check for position& where you check king but intersect with ally on other side
-            continue;          //example rnbqkbnr/ppp1pppp/8/3p4/Q1P5/8/PP1PPPPP/RNB1KBNR b KQkq - 1 2 check from a4 but intersection on f7
-
-
-        //lsb of lane pinned
-        int pinnedIndex = LSB(bbPinned);
-
-        //add pinned to all
-        setBit(allPinned,pinnedIndex);
-
-
-
-
-        //create target bitboard with pinner to king lane
-        Bitboard target = BBManager.rectangularLookup[pinnerIndex][kingIndex];
-        setBit(target,pinnerIndex);
-        target &= tar;
-        //piecetype movegen
-        int pieceType = pos.piecesArray[pinnedIndex];
         // movegen depending on piece
         switch (pieceType)
         {
@@ -530,6 +467,75 @@ Bitboard MoveGenerator::getPinners(Position& pos, bool white, MoveList& moveList
             break;
         }
     }
+
+    //attacks from king bishop shape intersect with allies
+    // Bitboard kingsBishopAttacks = BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[kingIndex],BBManager.bishopsMagics[kingIndex],BBManager.bishopBits[kingIndex])] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
+
+    //new attacks omitting intersections
+    // Bitboard pinnersBishop = BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] ^ kingsBishopAttacks) & BBManager.bishopMasks[kingIndex],BBManager.bishopsMagics[kingIndex],BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[white ? BLACK_BISHOP : WHITE_BISHOP] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN]);
+
+    // while(pinnersBishop)
+    // {
+    //     //Get index of pinner
+    //     int pinnerIndex = popLSB(pinnersBishop);
+
+    //     //get lane of pin thorugh rectangular lookup
+    //     Bitboard bbPinned = BBManager.rectangularLookup[pinnerIndex][kingIndex] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
+
+    //     if(bbPinned == 0)   //safety check for position& where you check king but intersect with ally on other side
+    //         continue;          //example rnbqkbnr/ppp1pppp/8/3p4/Q1P5/8/PP1PPPPP/RNB1KBNR b KQkq - 1 2 check from a4 but intersection on f7
+
+
+    //     //lsb of lane pinned
+    //     int pinnedIndex = LSB(bbPinned);
+
+    //     //add pinned to all
+    //     setBit(allPinned,pinnedIndex);
+
+
+
+
+    //     //create target bitboard with pinner to king lane
+    //     Bitboard target = BBManager.rectangularLookup[pinnerIndex][kingIndex];
+    //     setBit(target,pinnerIndex);
+    //     target &= tar;
+    //     //piecetype movegen
+    //     int pieceType = pos.piecesArray[pinnedIndex];
+    //     // movegen depending on piece
+    //     switch (pieceType)
+    //     {
+    //     case WHITE_PAWN:
+    //         addPawnWhiteQuiet(pinnedIndex, moveList, pos, target);
+    //         addPawnWhiteCaptures(pinnedIndex, moveList, pos, target & pos.piecesBitboards[BLACK_PIECES]);
+    //         break;
+    //     case WHITE_BISHOP:
+    //         addBishopsMoves(pinnedIndex, moveList, pos, target);
+    //         break;
+    //     case WHITE_ROOK:
+    //         addRookMoves(pinnedIndex, moveList, pos, target);
+    //         break;
+    //     case WHITE_QUEEN:
+    //         addBishopsMoves(pinnedIndex, moveList, pos, target);
+    //         addRookMoves(pinnedIndex, moveList, pos, target);
+    //         break;
+    //     case BLACK_PAWN:
+    //         addPawnBlackQuiet(pinnedIndex, moveList, pos, target);
+    //         addPawnBlackCaptures(pinnedIndex, moveList, pos, target & pos.piecesBitboards[WHITE_PIECES]);
+    //         break;
+    //     case BLACK_BISHOP:
+    //         addBishopsMoves(pinnedIndex, moveList, pos, target);
+    //         break;
+    //     case BLACK_ROOK:
+    //         addRookMoves(pinnedIndex, moveList, pos, target);
+    //         break;
+    //     case BLACK_QUEEN:
+    //         addBishopsMoves(pinnedIndex, moveList, pos, target);
+    //         addRookMoves(pinnedIndex, moveList, pos, target);
+    //         break;
+    //     default:
+    //         break;
+    //     }
+    // }
     return allPinned;
 }
 
@@ -759,7 +765,7 @@ void MoveGenerator::addRookMoves(int startSquare, MoveList& moveList, Position& 
     addMoves(startSquare, possibleMoves, moveList, pos);
 }
 
-Bitboard MoveGenerator::generateKingsMoves(Position& pos, MoveList& moveList, Bitboard target, bool white, int checks)
+void MoveGenerator::generateKingsMoves(Position& pos, MoveList& moveList, Bitboard target, bool white, int checks)
 {
     //white kings
     int index = LSB(pos.piecesBitboards[white ? WHITE_KING : BLACK_KING]);
