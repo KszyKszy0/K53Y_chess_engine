@@ -4,8 +4,9 @@
 #include "enums.h"
 #include "stateInfo.h"
 #include <string>
-#include <list>
+#include "TT.h"
 #include "zobrist.h"
+
 
 using namespace std;
 
@@ -22,6 +23,8 @@ class Position
     Zobrist zobrist;
 
     Bitboard positionHash;
+
+    TranspositionTable TT;
 
     bool STM;
 

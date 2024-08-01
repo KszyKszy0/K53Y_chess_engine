@@ -1,4 +1,5 @@
 #include "core.h"
+#include "position.h"
 
 core::core() : bbManager(BB_utils()), moveGenerator(bbManager)
 {
@@ -67,7 +68,7 @@ Bitboard core::perft(int depth)
             cout<<"error";
         }
 
-        if(depth==3)
+        if(depth==6)
         {
             printMove(m);
             cout<<": "<<localCounter<<endl;

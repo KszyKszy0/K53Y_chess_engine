@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-
+#include "position.h"
 
 typedef uint16_t Move;
 

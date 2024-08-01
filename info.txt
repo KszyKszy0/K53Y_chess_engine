@@ -9,3 +9,4 @@ perft 6 optimalization flags and pointers 0.73s
 perft 6 merging pins 0.7s
 perft 6 merging movegen 0.57s
 perft 6 canceling pin when in check 0.53s
+perft 6 with hashgen 0.6s

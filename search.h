@@ -10,4 +10,10 @@ class Search
     int negamax(int depth, int ply, int alpha, int beta,int color, MoveGenerator& moveGenerator, Position& pos, Evaluator& eval);
 
     Move search();
+
+    Bitboard transpositionCount=0;
+
+    Bitboard nodesCount=0;
+
+    Bitboard matchedTranspositions=0;
 };

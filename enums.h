@@ -24,3 +24,7 @@ enum enumSquares {
 enum colors{
     WHITE=true, BLACK=false
 };
+
+enum nodeType{
+    PVnode=1, Cutnode, Allnode
+};
