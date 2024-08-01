@@ -67,7 +67,7 @@ Bitboard core::perft(int depth)
             cout<<"error";
         }
 
-        if(depth==7)
+        if(depth==3)
         {
             printMove(m);
             cout<<": "<<localCounter<<endl;

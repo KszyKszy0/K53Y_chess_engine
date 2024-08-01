@@ -68,8 +68,8 @@ int main()
     // }
 
     auto start = chrono::high_resolution_clock::now();
-    engine.pos.parseFEN(engine.startingFen,engine.pos.piecesBitboards);
-    cout<<engine.perft(7)<<endl;
+    engine.pos.parseFEN("8/2p5/3p4/1P5r/1R2P2k/K7/5pP1/8 b - - 1 3",engine.pos.piecesBitboards);
+    cout<<engine.perft(3)<<endl;
     auto end = chrono::high_resolution_clock::now();
     auto t = chrono::duration_cast<chrono::milliseconds>(end - start);
     cout<<t.count();

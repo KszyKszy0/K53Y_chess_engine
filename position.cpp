@@ -773,7 +773,6 @@ void Position::undoMove(Move move)
         {
             //hash update for pawn
             positionHash ^= zobrist.zobristTable[WHITE_PAWN*64+startSquare];
-            positionHash ^= zobrist.zobristTable[WHITE_PAWN*64+targetSquare];
 
             promotionType -= 7;
 
@@ -795,7 +794,6 @@ void Position::undoMove(Move move)
         {
             //hash update for pawn
             positionHash ^= zobrist.zobristTable[BLACK_PAWN*64+startSquare];
-            positionHash ^= zobrist.zobristTable[BLACK_PAWN*64+targetSquare];
 
             promotionType -= 1;
 
@@ -835,7 +833,6 @@ void Position::undoMove(Move move)
         {
             //hash update for pawn
             positionHash ^= zobrist.zobristTable[WHITE_PAWN*64+startSquare];
-            positionHash ^= zobrist.zobristTable[WHITE_PAWN*64+targetSquare];
 
             promotionType -= 11;
 
@@ -858,7 +855,6 @@ void Position::undoMove(Move move)
         {
             //hash update for pawn
             positionHash ^= zobrist.zobristTable[BLACK_PAWN*64+startSquare];
-            positionHash ^= zobrist.zobristTable[BLACK_PAWN*64+targetSquare];
 
             promotionType -= 5;
 
