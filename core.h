@@ -18,7 +18,7 @@ class core
 
     core();
 
-    int perft(int depth);
+    Bitboard perft(int depth);
 
     void uci();
     void isReady();

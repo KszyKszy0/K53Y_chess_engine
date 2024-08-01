@@ -5,9 +5,9 @@ core::core() : bbManager(BB_utils()), moveGenerator(bbManager)
 
 }
 
-int core::perft(int depth)
+Bitboard core::perft(int depth)
 {
-    int counter=0;
+    Bitboard counter=0;
     if(depth==0)
     {
         return 1;
@@ -54,15 +54,20 @@ int core::perft(int depth)
         if(m == 0)
             return counter;
         // printMove(m);
-        int localCounter = 0;
+        Bitboard localCounter = 0;
 
+        Bitboard hash = pos.positionHash;
         pos.makeMove(m);
 
         localCounter += perft(depth-1);
         counter += localCounter;
         pos.undoMove(m);
+        if(hash != pos.positionHash)
+        {
+            cout<<"error";
+        }
 
-        if(depth==6)
+        if(depth==7)
         {
             printMove(m);
             cout<<": "<<localCounter<<endl;
