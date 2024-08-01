@@ -3,11 +3,12 @@
 #include "move.h"
 #include "movegen.h"
 #include "eval.h"
+#include <chrono>
 
 class Search
 {
     public:
-    int negamax(int depth, int ply, int alpha, int beta,int color, MoveGenerator& moveGenerator, Position& pos, Evaluator& eval);
+    int negamax(int depth, int ply, int alpha, int beta,int color, MoveGenerator& moveGenerator, Position& pos, Evaluator& eval, chrono::steady_clock::time_point start);
 
     Move search(Position& pos, MoveGenerator& mg, Evaluator& eval);
 
@@ -16,4 +17,6 @@ class Search
     Bitboard nodesCount=0;
 
     Bitboard matchedTranspositions=0;
+
+    Move bestMovePrevious;
 };
