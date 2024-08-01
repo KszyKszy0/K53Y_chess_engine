@@ -121,5 +121,6 @@ void core::quit()
 
 void core::go()
 {
-    search.negamax(5, 0, -100000, 100000,pos.STM ? 1 : -1, moveGenerator, pos, eval);
+    // search.negamax(5, 0, -100000, 100000,pos.STM ? 1 : -1, moveGenerator, pos, eval);
+    search.search(pos,moveGenerator,eval);
 }

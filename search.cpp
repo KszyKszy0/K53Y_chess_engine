@@ -2,9 +2,11 @@
 #include "movegen.h"
 #include "eval.h"
 #include "TT.h"
+#include <chrono>
 
 int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGenerator& moveGenerator, Position& pos, Evaluator& eval)
 {
+
     Bitboard key = pos.positionHash;
 
     TTEntry entry = pos.TT.transpositionTable[key % pos.TT.size];
@@ -17,7 +19,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     if(key == entry.zorbistKey)
     {
         transpositionCount++;
-        if(entry.depth > depth)
+        if((entry.depth >= depth) && (ply > 0))
         {
             if(entry.type == PVnode || ((entry.type == Cutnode) && (entry.score >= beta)) || ((entry.type == Allnode) && (entry.score <= alpha)))
             {
@@ -60,6 +62,8 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         if(m == 0)
             break;
 
+
+
         Bitboard hash = pos.positionHash;
         pos.makeMove(m);
         int value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval);
@@ -97,9 +101,25 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     }
 
     if(ply == 0)
-    {
-        pos.makeMove(bestMove);
-        cout << "bestmove " << moveToUci(bestMove) << endl;
-    }
+        return bestMove;
+
     return best;
+}
+
+Move Search::search(Position& pos, MoveGenerator& mg, Evaluator& eval)
+{
+    Move bestMove = 0;
+    auto start = chrono::high_resolution_clock::now();
+    for(int i=2; i<=7; i++)
+    {
+        bestMove=negamax(i, 0, -100000, 100000,pos.STM ? 1 : -1, mg, pos, eval);
+        auto end = chrono::high_resolution_clock::now();
+        if(chrono::duration_cast<chrono::milliseconds>(end - start).count() > 5000)
+        {
+            break;
+        }
+    }
+    pos.makeMove(bestMove);
+    cout << "bestmove " << moveToUci(bestMove) << endl;
+    return bestMove;
 }

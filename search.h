@@ -9,7 +9,7 @@ class Search
     public:
     int negamax(int depth, int ply, int alpha, int beta,int color, MoveGenerator& moveGenerator, Position& pos, Evaluator& eval);
 
-    Move search();
+    Move search(Position& pos, MoveGenerator& mg, Evaluator& eval);
 
     Bitboard transpositionCount=0;
 
