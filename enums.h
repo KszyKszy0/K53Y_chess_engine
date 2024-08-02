@@ -28,3 +28,7 @@ enum colors{
 enum nodeType{
     PVnode=1, Cutnode, Allnode
 };
+
+enum specialScores{
+    NO_MOVE=10000000, CHECKMATE=100000
+};

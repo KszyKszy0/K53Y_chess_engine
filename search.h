@@ -19,4 +19,6 @@ class Search
     Bitboard matchedTranspositions=0;
 
     Move bestMovePrevious;
+
+    int oldEval = 0;
 };
