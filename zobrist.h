@@ -1,5 +1,8 @@
 #pragma once
 #include "bitboard.h"
+#include <cstddef>
+#include <random>
+
 
 class Zobrist
 {
@@ -7,22 +10,16 @@ class Zobrist
 
     Bitboard zobristTable[793];
 
-    Bitboard random_uint64() {
-    Bitboard u1, u2, u3, u4;
-        u1 = (Bitboard)(rand()) & 0xFFFF; u2 = (Bitboard)(rand()) & 0xFFFF;
-        u3 = (Bitboard)(rand()) & 0xFFFF; u4 = (Bitboard)(rand()) & 0xFFFF;
-        return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
-    }
-
-    Bitboard random_uint64_fewbits() {
-    return random_uint64() & random_uint64() & random_uint64();
-    }
-
     Zobrist()
     {
+        //mersene prime generator
+        std::mt19937_64 gen(0);
+        std::uniform_int_distribution<uint64_t> dist(0, UINT64_MAX);
+
         for(int i=0; i<=792; i++)
         {
-            zobristTable[i] = random_uint64_fewbits();
+            //get random zobrist for each feature
+            zobristTable[i] = dist(gen);
         }
     }
 };
