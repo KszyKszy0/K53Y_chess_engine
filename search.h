@@ -12,11 +12,13 @@ class Search
 
     Move search(Position& pos, MoveGenerator& mg, Evaluator& eval);
 
-    Bitboard transpositionCount=0;
+    Bitboard transpositionCount = 0;
 
-    Bitboard nodesCount=0;
+    Bitboard nodesCount = 0;
 
-    Bitboard matchedTranspositions=0;
+    Bitboard matchedTranspositions = 0;
+
+    Bitboard collisions = 0;
 
     Move bestMovePrevious;
 

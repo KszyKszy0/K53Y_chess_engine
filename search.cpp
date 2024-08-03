@@ -15,7 +15,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     Move transpositionMove = 0;
 
     //we set it to all node in case it fails low
-    int newFlag = Allnode;
+    int newFlag = UPPER_BOUND;
 
     nodesCount++;
 
@@ -25,13 +25,15 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         transpositionMove = entry.bestMove;
         if((entry.depth >= depth) && (ply > 0))
         {
-            if(entry.type == PVnode || ((entry.type == Cutnode) && (entry.score >= beta)) || ((entry.type == Allnode) && (entry.score <= alpha)))
+            if((entry.type == EXACT_SCORE) || ((entry.type == LOWER_BOUND) && (entry.score >= beta)) || ((entry.type == LOWER_BOUND) && (entry.score <= alpha)))
             {
                 matchedTranspositions++;
                 return entry.score;
             }
         }
-
+    }else if(entry.zorbistKey != 0)
+    {
+        collisions++;
     }
 
     MoveList moveList;
@@ -80,6 +82,12 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     Move bestMove = 0;
     for(Move m : moveList)
     {
+        // if(((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > 5000) && (ply != 0))
+        // {
+        //     return CHECKMATE;  //worst outcome still better than NO_MOVE
+        // }
+
+
         if(m == 0)
             break;
 
@@ -95,10 +103,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
             value = oldEval;
         }
 
-        if(((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > 5000) && (ply != 0))
-        {
-            return CHECKMATE;  //worst outcome still better than NO_MOVE
-        }
+
 
 
         if(hash != pos.positionHash)
@@ -110,19 +115,19 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         {
             best = value;
 
-            //new best move found
-            newFlag = PVnode;
-
             bestMove = m;
         }
         if(best > alpha)
         {
+            //new best move found
+            newFlag = EXACT_SCORE;
+
             alpha = best;
         }
         if(alpha >= beta)
         {
             //move causes cutoff
-            newFlag = Cutnode;
+            newFlag = LOWER_BOUND;
 
             break;  // Alpha-beta pruning
         }
@@ -156,7 +161,7 @@ Move Search::search(Position& pos, MoveGenerator& mg, Evaluator& eval)
     Move bestMove = 0;
     oldEval = 0;
     auto start = chrono::steady_clock::now();
-    for(int i=1; i<=100; i++)
+    for(int i=1; i<=5; i++)
     {
         // bestMovePrevious = bestMove;
         bestMove = negamax(i, 0, -100000, 100000,pos.STM ? 1 : -1, mg, pos, eval, start);
@@ -165,10 +170,10 @@ Move Search::search(Position& pos, MoveGenerator& mg, Evaluator& eval)
             bestMovePrevious = bestMove;
         }
         auto end = chrono::steady_clock::now();
-        if(chrono::duration_cast<chrono::milliseconds>(end - start).count() > 5000)
-        {
-            break;
-        }
+        // if(chrono::duration_cast<chrono::milliseconds>(end - start).count() > 3000)
+        // {
+        //     break;
+        // }
     }
     pos.makeMove(bestMovePrevious);
     cout << "bestmove " << moveToUci(bestMovePrevious) << endl;

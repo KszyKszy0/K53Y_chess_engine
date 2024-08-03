@@ -26,7 +26,7 @@ enum colors{
 };
 
 enum nodeType{
-    PVnode=1, Cutnode, Allnode
+    EXACT_SCORE=1, LOWER_BOUND, UPPER_BOUND
 };
 
 enum specialScores{

@@ -22,7 +22,7 @@ class TranspositionTable
 {
     public:
 
-    Bitboard size = 1ULL << 20;
+    Bitboard size = 1ULL << 24;
 
     TTEntry *transpositionTable;
 
