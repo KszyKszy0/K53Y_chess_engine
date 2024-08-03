@@ -16,13 +16,13 @@ int Evaluator::evaluate(Position& pos)
     while(white)
     {
         int index = popLSB(white);
-        eval += psqtArray[index];
+        eval += psqtArray[pos.piecesArray[index]][index];
     }
 
     while(black)
     {
         int index = popLSB(black);
-        eval -= psqtArray[index];
+        eval -= psqtArray[pos.piecesArray[index]][index];
     }
 
     return pawns + knight + bishop + rook + queens + eval;

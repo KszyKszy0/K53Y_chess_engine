@@ -61,12 +61,16 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 
     if (transpositionMove != 0)
     {
+        Move* move = &moveList.moveList[1];
         for (size_t i = 0; i < moveList.size; ++i)
         {
             if (moveList.moveList[i] == transpositionMove)
             {
                 std::swap(moveList.moveList[0], moveList.moveList[i]);
-                break;
+            }
+            if(Flags(moveList.moveList[i] == CAPTURE))
+            {
+                std::swap(*move++,moveList.moveList[i]);
             }
         }
     }
@@ -82,10 +86,6 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     Move bestMove = 0;
     for(Move m : moveList)
     {
-        // if(((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > 5000) && (ply != 0))
-        // {
-        //     return CHECKMATE;  //worst outcome still better than NO_MOVE
-        // }
 
 
         if(m == 0)
