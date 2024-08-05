@@ -157,6 +157,7 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
 
     //add game state to list
     stateCounter = 0;
+    positionHistory[stateCounter] = positionHash;
     if(enPassant[0] == '-')
     {
         addState(0,castlingRights(castling),halfmove,fullmove,NO_PIECE);
@@ -556,7 +557,7 @@ void Position::makeMove(Move move)
     STM = !STM;
 
     stateCounter++;
-
+    positionHistory[stateCounter]=positionHash;
     //change move side
     positionHash ^= zobrist.zobristTable[792];
 

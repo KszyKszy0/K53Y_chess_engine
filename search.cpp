@@ -25,7 +25,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         transpositionMove = entry.bestMove;
         if((entry.depth >= depth) && (ply > 0))
         {
-            if((entry.type == EXACT_SCORE) || ((entry.type == LOWER_BOUND) && (entry.score >= beta)) || ((entry.type == LOWER_BOUND) && (entry.score <= alpha)))
+            if((entry.type == EXACT_SCORE) || ((entry.type == LOWER_BOUND) && (entry.score >= beta)) || ((entry.type == UPPER_BOUND) && (entry.score < alpha)))
             {
                 matchedTranspositions++;
                 return entry.score;
@@ -61,17 +61,17 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 
     if (transpositionMove != 0)
     {
-        Move* move = &moveList.moveList[1];
+        // Move* move = &moveList.moveList[1];
         for (size_t i = 0; i < moveList.size; ++i)
         {
             if (moveList.moveList[i] == transpositionMove)
             {
                 std::swap(moveList.moveList[0], moveList.moveList[i]);
             }
-            if(Flags(moveList.moveList[i] == CAPTURE))
-            {
-                std::swap(*move++,moveList.moveList[i]);
-            }
+            // if(Flags(moveList.moveList[i] == CAPTURE))
+            // {
+            //     std::swap(*move++,moveList.moveList[i]);
+            // }
         }
     }
 
@@ -86,10 +86,27 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     Move bestMove = 0;
     for(Move m : moveList)
     {
-
-
         if(m == 0)
             break;
+
+        if((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > 5000)
+        {
+            if(ply >= 1)
+            {
+                return (ply % 2 == 1) ? CHECKMATE : -CHECKMATE;
+            }
+            if(ply == 0)
+            {
+                if(best != -CHECKMATE)
+                    oldEval = best;
+
+                cout<<"info depth "<<depth;
+                // cout<<" Change Best Move to: ";
+                // printMove(bestMove);
+                cout<<" score cp "<<best<<endl;
+                return bestMove;
+            }
+        }
 
         int captureExtension = Flags(m) == CAPTURE ? 1 : 0;
 
@@ -97,11 +114,6 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         pos.makeMove(m);
         int value = -negamax(depth - 1 + captureExtension, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
         pos.undoMove(m);
-
-        if((ply == 0) && (value == -CHECKMATE))
-        {
-            value = oldEval;
-        }
 
 
 
@@ -161,7 +173,7 @@ Move Search::search(Position& pos, MoveGenerator& mg, Evaluator& eval)
     Move bestMove = 0;
     oldEval = 0;
     auto start = chrono::steady_clock::now();
-    for(int i=1; i<=5; i++)
+    for(int i=1; i<=20; i++)
     {
         // bestMovePrevious = bestMove;
         bestMove = negamax(i, 0, -100000, 100000,pos.STM ? 1 : -1, mg, pos, eval, start);

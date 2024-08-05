@@ -26,6 +26,8 @@ class Position
 
     TranspositionTable TT;
 
+    Bitboard positionHistory[300];
+
     bool STM;
 
     //Make move doesnt care if its legal
