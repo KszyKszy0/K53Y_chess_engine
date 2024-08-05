@@ -25,4 +25,8 @@ class Search
     int oldEval = 0;
 
     bool isRepeated(Position& pos);
+
+    int timeLimit;
+
+    bool isCancelled;
 };

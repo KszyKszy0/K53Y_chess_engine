@@ -6,6 +6,9 @@
 
 int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGenerator& moveGenerator, Position& pos, Evaluator& eval, chrono::steady_clock::time_point start)
 {
+    //this gives info about checkmate and stalemate so it must be the first thing to consider
+    MoveList moveList;
+    moveGenerator.fullMovesList(pos,moveList);
 
 
     Bitboard key = pos.positionHash;
@@ -27,6 +30,14 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         {
             if((entry.type == EXACT_SCORE) || ((entry.type == LOWER_BOUND) && (entry.score >= beta)) || ((entry.type == UPPER_BOUND) && (entry.score < alpha)))
             {
+                if(entry.score <= -NO_MOVE)
+                {
+                    cout<<"????";
+                }
+                if(entry.score > 1000000)
+                {
+                    cout<<"????";
+                }
                 matchedTranspositions++;
                 return entry.score;
             }
@@ -36,8 +47,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         collisions++;
     }
 
-    MoveList moveList;
-    moveGenerator.fullMovesList(pos,moveList);
+
 
     if(pos.isCheckmate)
     {
@@ -89,11 +99,12 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         if(m == 0)
             break;
 
-        if((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > 5000)
+        if((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit)
         {
+            isCancelled = true;
             if(ply >= 1)
             {
-                return (ply % 2 == 1) ? CHECKMATE : -CHECKMATE;
+                return CHECKMATE;
             }
             if(ply == 0)
             {
@@ -108,13 +119,41 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
             }
         }
 
-        int captureExtension = Flags(m) == CAPTURE ? 1 : 0;
+        // int captureExtension = Flags(m) == CAPTURE ? 1 : 0;
 
         Bitboard hash = pos.positionHash;
         pos.makeMove(m);
-        int value = -negamax(depth - 1 + captureExtension, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
+        int value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
         pos.undoMove(m);
 
+        if((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit)
+        {
+            isCancelled = true;
+            if(ply >= 1)
+            {
+                return CHECKMATE;
+            }
+            if(ply == 0)
+            {
+                if((best != -CHECKMATE) && (best != -NO_MOVE))
+                    oldEval = best;
+
+                cout<<"info depth "<<depth;
+                // cout<<" Change Best Move to: ";
+                // printMove(bestMove);
+                cout<<" score cp "<<oldEval<<endl;
+                return bestMove;
+            }
+        }
+
+        if(value <= -NO_MOVE)
+        {
+            cout<<"????";
+        }
+        if(value > 1000000)
+        {
+            cout<<"????";
+        }
 
 
 
@@ -129,6 +168,12 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 
             bestMove = m;
         }
+
+        if(best <= -NO_MOVE)
+        {
+            cout<<"????";
+        }
+
         if(best > alpha)
         {
             //new best move found
@@ -145,7 +190,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         }
     }
 
-    if(depth > entry.depth)
+    if((depth > entry.depth) && !isCancelled)
     {
         pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
     }
@@ -165,7 +210,14 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         return bestMove;
     }
 
-
+    if(best <= -NO_MOVE)
+    {
+        cout<<"????";
+    }
+    if(best > 1000000)
+    {
+        cout<<"????";
+    }
     return best;
 }
 
@@ -174,18 +226,24 @@ Move Search::search(Position& pos, MoveGenerator& mg, Evaluator& eval)
     Move bestMove = 0;
     oldEval = 0;
     auto start = chrono::steady_clock::now();
-    for(int i=1; i<=40; i++)
+    timeLimit = 5000;
+    isCancelled = false;
+    for(int depth=1; depth<=40; depth++)
     {
         // bestMovePrevious = bestMove;
-        bestMove = negamax(i, 0, -100000000, 10000000,pos.STM ? 1 : -1, mg, pos, eval, start);
+        bestMove = negamax(depth, 0, -100000000, 100000000,pos.STM ? 1 : -1, mg, pos, eval, start);
         if(bestMove != 0)
         {
             bestMovePrevious = bestMove;
         }
         auto end = chrono::steady_clock::now();
-        if(chrono::duration_cast<chrono::milliseconds>(end - start).count() > 5000)
+
+        if(chrono::duration_cast<chrono::milliseconds>(end - start).count() > timeLimit)
         {
-            break;
+            if(depth > 5)
+                break;
+
+            timeLimit+=5000;
         }
     }
     pos.makeMove(bestMovePrevious);
@@ -196,7 +254,7 @@ Move Search::search(Position& pos, MoveGenerator& mg, Evaluator& eval)
 bool Search::isRepeated(Position& pos)
 {
     int counter = 0;
-    int startIndex = (pos.stateCounter > 15) ? (pos.stateCounter - 15) : 0;
+    int startIndex = (pos.stateCounter > 20) ? (pos.stateCounter - 20) : 0;
     for(int i=startIndex; i<=pos.stateCounter; i++)
     {
         if(pos.positionHash == pos.positionHistory[i])
