@@ -46,7 +46,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
           // Prefer faster checkmate
     }
 
-    if(pos.isStalemate || (pos.stateInfoList[pos.stateCounter].halfMove >= 50))
+    if(pos.isStalemate || (pos.stateInfoList[pos.stateCounter].halfMove >= 50) || (isRepeated(pos) && (ply != 0)))
     {
         return 0;
     }
@@ -103,7 +103,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
                 cout<<"info depth "<<depth;
                 // cout<<" Change Best Move to: ";
                 // printMove(bestMove);
-                cout<<" score cp "<<best<<endl;
+                cout<<" score cp "<<oldEval<<endl;
                 return bestMove;
             }
         }
@@ -152,11 +152,12 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 
     if(ply == 0)
     {
-        oldEval = best;
+        if(best != -CHECKMATE)
+            oldEval = best;
         cout<<"info depth "<<depth;
         // cout<<" Change Best Move to: ";
         // printMove(bestMove);
-        cout<<" score cp "<<best<<endl;
+        cout<<" score cp "<<oldEval<<endl;
         // if((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > 5000)
         // {
         //     cout<<"TIME CUTOFF!!"<<endl;
@@ -173,21 +174,37 @@ Move Search::search(Position& pos, MoveGenerator& mg, Evaluator& eval)
     Move bestMove = 0;
     oldEval = 0;
     auto start = chrono::steady_clock::now();
-    for(int i=1; i<=20; i++)
+    for(int i=1; i<=40; i++)
     {
         // bestMovePrevious = bestMove;
-        bestMove = negamax(i, 0, -100000, 100000,pos.STM ? 1 : -1, mg, pos, eval, start);
+        bestMove = negamax(i, 0, -100000000, 10000000,pos.STM ? 1 : -1, mg, pos, eval, start);
         if(bestMove != 0)
         {
             bestMovePrevious = bestMove;
         }
         auto end = chrono::steady_clock::now();
-        // if(chrono::duration_cast<chrono::milliseconds>(end - start).count() > 3000)
-        // {
-        //     break;
-        // }
+        if(chrono::duration_cast<chrono::milliseconds>(end - start).count() > 5000)
+        {
+            break;
+        }
     }
     pos.makeMove(bestMovePrevious);
     cout << "bestmove " << moveToUci(bestMovePrevious) << endl;
     return bestMovePrevious;
+}
+
+bool Search::isRepeated(Position& pos)
+{
+    int counter = 0;
+    int startIndex = (pos.stateCounter > 15) ? (pos.stateCounter - 15) : 0;
+    for(int i=startIndex; i<=pos.stateCounter; i++)
+    {
+        if(pos.positionHash == pos.positionHistory[i])
+        {
+            counter++;
+            if(counter >= 3)
+                return true;
+        }
+    }
+    return false;
 }

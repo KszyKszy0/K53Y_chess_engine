@@ -23,4 +23,6 @@ class Search
     Move bestMovePrevious;
 
     int oldEval = 0;
+
+    bool isRepeated(Position& pos);
 };
