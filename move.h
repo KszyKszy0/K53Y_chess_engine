@@ -31,10 +31,12 @@ struct MoveList
     Move moveList[218];
     Move* cur = &moveList[0];
     Move* last;
+    int checks;
     int size;
 
     MoveList()
     {
+        checks = 0;
         size = 0;
         cur = &moveList[0];
     }
@@ -45,6 +47,16 @@ struct MoveList
 
     Move* end() {
         return &moveList[size];
+    }
+
+    bool isCheckmate()
+    {
+        return (size == 0) && (checks > 0);
+    }
+
+    bool isStalemate()
+    {
+        return (size == 0) && (checks == 0);
     }
 };
 

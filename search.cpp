@@ -22,6 +22,26 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 
     nodesCount++;
 
+
+
+    if(moveList.isCheckmate())
+    {
+        return -CHECKMATE+ply;
+        // return -10000000+ply;
+          // Prefer faster checkmate
+    }
+
+    if((moveList.isStalemate() || (pos.stateInfoList[pos.stateCounter].halfMove >= 100) || (isRepeated(pos))) && (ply > 0))
+    {
+        return 0;
+    }
+
+    if(depth == 0)
+    {
+        return eval.evaluate(pos) * color;
+    }
+
+
     if(key == entry.zorbistKey)
     {
         transpositionCount++;
@@ -30,14 +50,6 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         {
             if((entry.type == EXACT_SCORE) || ((entry.type == LOWER_BOUND) && (entry.score >= beta)) || ((entry.type == UPPER_BOUND) && (entry.score < alpha)))
             {
-                if(entry.score <= -NO_MOVE)
-                {
-                    cout<<"????";
-                }
-                if(entry.score > 1000000)
-                {
-                    cout<<"????";
-                }
                 matchedTranspositions++;
                 return entry.score;
             }
@@ -46,28 +58,6 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     {
         collisions++;
     }
-
-
-
-    if(pos.isCheckmate)
-    {
-        return -CHECKMATE+ply;
-        // return -10000000+ply;
-          // Prefer faster checkmate
-    }
-
-    if(pos.isStalemate || (pos.stateInfoList[pos.stateCounter].halfMove >= 50) || (isRepeated(pos) && (ply != 0)))
-    {
-        return 0;
-    }
-
-
-    if(depth == 0)
-    {
-        return eval.evaluate(pos) * color;
-    }
-
-
 
     if (transpositionMove != 0)
     {
@@ -93,7 +83,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     // }
 
     int best = -NO_MOVE;
-    Move bestMove = 0;
+    Move bestMove = moveList.moveList[0];
     for(Move m : moveList)
     {
         if(m == 0)
@@ -108,13 +98,15 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
             }
             if(ply == 0)
             {
-                if(best != -CHECKMATE)
+                if((best != -CHECKMATE) && (best != -NO_MOVE))
                     oldEval = best;
 
-                cout<<"info depth "<<depth;
+                // cout<<"info depth "<<depth;
                 // cout<<" Change Best Move to: ";
                 // printMove(bestMove);
-                cout<<" score cp "<<oldEval<<endl;
+                // cout<<" score cp "<<oldEval;
+
+                //in case of first move cancel we return nullmove so its detected in seatch when bestmove != 0
                 return bestMove;
             }
         }
@@ -138,21 +130,14 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
                 if((best != -CHECKMATE) && (best != -NO_MOVE))
                     oldEval = best;
 
-                cout<<"info depth "<<depth;
+                // cout<<"info depth "<<depth;
                 // cout<<" Change Best Move to: ";
                 // printMove(bestMove);
-                cout<<" score cp "<<oldEval<<endl;
+                // cout<<" score cp "<<oldEval;
+
+                //in case of first move cancel we return nullmove so its detected in seatch when bestmove != 0
                 return bestMove;
             }
-        }
-
-        if(value <= -NO_MOVE)
-        {
-            cout<<"????";
-        }
-        if(value > 1000000)
-        {
-            cout<<"????";
         }
 
 
@@ -167,11 +152,6 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
             best = value;
 
             bestMove = m;
-        }
-
-        if(best <= -NO_MOVE)
-        {
-            cout<<"????";
         }
 
         if(best > alpha)
@@ -197,27 +177,18 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 
     if(ply == 0)
     {
-        if(best != -CHECKMATE)
+        if((best != -CHECKMATE) && (best != -NO_MOVE))
             oldEval = best;
-        cout<<"info depth "<<depth;
+
+        // cout<<"info depth "<<depth;
         // cout<<" Change Best Move to: ";
         // printMove(bestMove);
-        cout<<" score cp "<<oldEval<<endl;
-        // if((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > 5000)
-        // {
-        //     cout<<"TIME CUTOFF!!"<<endl;
-        // }
+        // cout<<" score cp "<<oldEval;
+
+        //in case of first move cancel we return nullmove so its detected in seatch when bestmove != 0
         return bestMove;
     }
 
-    if(best <= -NO_MOVE)
-    {
-        cout<<"????";
-    }
-    if(best > 1000000)
-    {
-        cout<<"????";
-    }
     return best;
 }
 
@@ -235,18 +206,31 @@ Move Search::search(Position& pos, MoveGenerator& mg, Evaluator& eval)
         if(bestMove != 0)
         {
             bestMovePrevious = bestMove;
+        }else
+        {
+            cout<<"Nie ma ruchu"<<endl;
         }
         auto end = chrono::steady_clock::now();
 
+        cout<<"info depth "<<depth;
+        cout<<" score cp "<<oldEval;
+        cout<<endl;
+
+        if((oldEval >= CHECKMATE-5) || (oldEval <= -CHECKMATE+5))
+        {
+            break;
+        }
         if(chrono::duration_cast<chrono::milliseconds>(end - start).count() > timeLimit)
         {
             if(depth > 5)
                 break;
 
+            isCancelled = false;
             timeLimit+=5000;
         }
     }
     pos.makeMove(bestMovePrevious);
+    cout<<endl;
     cout << "bestmove " << moveToUci(bestMovePrevious) << endl;
     return bestMovePrevious;
 }
@@ -254,13 +238,12 @@ Move Search::search(Position& pos, MoveGenerator& mg, Evaluator& eval)
 bool Search::isRepeated(Position& pos)
 {
     int counter = 0;
-    int startIndex = (pos.stateCounter > 20) ? (pos.stateCounter - 20) : 0;
-    for(int i=startIndex; i<=pos.stateCounter; i++)
+    for(int i=0; i<=pos.stateCounter; i++)
     {
         if(pos.positionHash == pos.positionHistory[i])
         {
             counter++;
-            if(counter >= 3)
+            if(counter >= 2)
                 return true;
         }
     }

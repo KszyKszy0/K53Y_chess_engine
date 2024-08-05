@@ -48,9 +48,5 @@ class Position
     //Array of all pieces types on chessboard
     int piecesArray[64];
 
-    bool isStalemate;
-
-    bool isCheckmate;
-
     int stateCounter = 0;
 };

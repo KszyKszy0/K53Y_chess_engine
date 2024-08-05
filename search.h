@@ -29,4 +29,5 @@ class Search
     int timeLimit;
 
     bool isCancelled;
+    
 };

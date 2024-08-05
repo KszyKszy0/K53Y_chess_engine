@@ -198,16 +198,7 @@ void MoveGenerator::fullMovesList(Position& pos, MoveList& moveList)
             generatePawnMoves(pos,captureTargets,moveList,1,pins);
         }
     }
-    if(moveList.size == 0)
-    {
-        if(checks > 0)
-        {
-            pos.isCheckmate = true;
-        }else
-        {
-            pos.isStalemate = true;
-        }
-    }
+    moveList.checks = checks;
     *moveList.cur++ = 0;
 
 }

@@ -10,9 +10,6 @@ using namespace std;
 
 void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
 {
-    //stalemate checkmate flags off
-    isStalemate = false;
-    isCheckmate = false;
 
     //reseting bitboards
     for (int i = 0; i < 16; i++)
@@ -556,10 +553,11 @@ void Position::makeMove(Move move)
 
     STM = !STM;
 
-    stateCounter++;
-    positionHistory[stateCounter]=positionHash;
     //change move side
     positionHash ^= zobrist.zobristTable[792];
+
+    stateCounter++;
+    positionHistory[stateCounter]=positionHash;
 
     addState(tempState);
 }
@@ -894,8 +892,7 @@ void Position::undoMove(Move move)
 
     piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
 
-    isCheckmate = false;
-    isStalemate = false;
+
 
     STM = !STM;
     //change move side
