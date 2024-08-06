@@ -4,7 +4,7 @@
 TTEntry::TTEntry()
 {
     score = 0;
-    depth = 0;
+    depth = -100;
     bestMove = 0;
     type = 0;
     zorbistKey = 0;

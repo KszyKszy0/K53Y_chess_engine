@@ -38,9 +38,9 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 
     if(depth == 0)
     {
-        return eval.evaluate(pos) * color;
+        return quiescence(depth, ply, alpha, beta, color, moveGenerator, pos, eval, start);
+        // return eval.evaluate(pos) * color;
     }
-
 
     if(key == entry.zorbistKey)
     {
@@ -199,9 +199,11 @@ Move Search::search(Position& pos, MoveGenerator& mg, Evaluator& eval)
     auto start = chrono::steady_clock::now();
     timeLimit = 5000;
     isCancelled = false;
-    for(int depth=1; depth<=40; depth++)
+    for(int depth=2; depth<=40; depth++)
     {
         // bestMovePrevious = bestMove;
+        nodesCount = 0;
+        queiscenceNodes = 0;
         bestMove = negamax(depth, 0, -100000000, 100000000,pos.STM ? 1 : -1, mg, pos, eval, start);
         if(bestMove != 0)
         {
@@ -212,8 +214,14 @@ Move Search::search(Position& pos, MoveGenerator& mg, Evaluator& eval)
         }
         auto end = chrono::steady_clock::now();
 
+        float time = chrono::duration_cast<chrono::milliseconds>(end - start).count();
         cout<<"info depth "<<depth;
         cout<<" score cp "<<oldEval;
+        cout<<" nodes "<<nodesCount;
+        cout<<" nps "<<(int)(nodesCount/(time/1000));
+        cout<<" time "<<time;
+        cout<<" quiescence nodes "<<queiscenceNodes;
+        cout<<" quiescenceTT "<<quiescenceTT;
         cout<<endl;
 
         if((oldEval >= CHECKMATE-5) || (oldEval <= -CHECKMATE+5))
@@ -248,4 +256,163 @@ bool Search::isRepeated(Position& pos)
         }
     }
     return false;
+}
+
+
+
+
+
+int Search::quiescence(int depth, int ply, int alpha, int beta, int color, MoveGenerator& moveGenerator, Position& pos, Evaluator& eval, chrono::steady_clock::time_point start)
+{
+
+    int newFlag = UPPER_BOUND;
+
+    Bitboard key = pos.positionHash;
+
+    TTEntry entry = pos.TT.transpositionTable[key % pos.TT.size];
+
+    Move transpositionMove = 0;
+
+    if(key == entry.zorbistKey)
+    {
+        if(entry.depth >= depth)
+        {
+        transpositionCount++;
+        transpositionMove = entry.bestMove;
+
+            if((entry.type == EXACT_SCORE) || ((entry.type == LOWER_BOUND) && (entry.score >= beta)) || ((entry.type == UPPER_BOUND) && (entry.score < alpha)))
+            {
+                matchedTranspositions++;
+                quiescenceTT++;
+                return entry.score;
+            }
+        }
+    }else if(entry.zorbistKey != 0)
+    {
+        collisions++;
+    }
+
+
+    queiscenceNodes++;
+
+
+    int evaluation = eval.evaluate(pos) * color;
+
+    if( evaluation >= beta )
+    {
+        return evaluation;
+    }
+    if( evaluation > alpha )
+    {
+        alpha = evaluation;
+    }
+
+
+    //this gives info about checkmate and stalemate so it must be the first thing to consider
+    MoveList moveList;
+    moveGenerator.fullCapturesList(pos,moveList);
+    int MVVs[218];
+    if (transpositionMove != 0)
+    {
+        // Move* move = &moveList.moveList[1];
+        for (int i = 0; i < moveList.size; ++i)
+        {
+            if (moveList.moveList[i] == transpositionMove)
+            {
+                std::swap(moveList.moveList[0], moveList.moveList[i]);
+                break;
+            }
+
+            // for(int j=0; j<=i; j++)
+            // {
+            //     if(MVV > MVVs[j])
+            //     {
+            //         std::swap(moveList.moveList[j], moveList.moveList[i]);
+            //         std::swap(MVVs[j], MVVs[i]);
+            //         break;
+            //     }
+            // }
+            // if(Flags(moveList.moveList[i] == CAPTURE))
+            // {
+            //     std::swap(*move++,moveList.moveList[i]);
+            // }
+        }
+    }else
+    {
+        for (int i = 0; i < moveList.size; ++i)
+        {
+            int MVV = MVVLVA [ pos.piecesArray[ StartSquare(moveList.moveList[i]) ] ] [ pos.piecesArray [ TargetSqaure(moveList.moveList[i] ) ] ];
+            MVVs[i] = MVV;
+        }
+        for (int i = 0; i < moveList.size; ++i)
+        {
+            for (int j = i+1; j < moveList.size; ++j)
+            {
+                if(MVVs[j] > MVVs[i])
+                {
+                    std::swap(moveList.moveList[i], moveList.moveList[j]);
+                    std::swap(MVVs[i], MVVs[j]);
+                }
+            }
+        }
+    }
+
+    Move bestMove = moveList.moveList[0];
+    int best = evaluation;
+    for(Move m : moveList)
+    {
+        if(m == 0)
+            break;
+
+        if((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit)
+        {
+            isCancelled = true;
+            return CHECKMATE;
+        }
+
+        // int captureExtension = Flags(m) == CAPTURE ? 1 : 0;
+
+        Bitboard hash = pos.positionHash;
+        pos.makeMove(m);
+        int value = -quiescence(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
+        pos.undoMove(m);
+
+        if((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit)
+        {
+            isCancelled = true;
+            return CHECKMATE;
+        }
+
+
+
+        if(hash != pos.positionHash)
+        {
+            cout<<"error";
+        }
+
+        if(value > best)
+        {
+            best = value;
+            bestMove = m;
+        }
+        if(best > alpha)
+        {
+            alpha = best;
+            newFlag = EXACT_SCORE;
+        }
+        if(alpha >= beta)
+        {
+            //move causes cutoff
+            newFlag = LOWER_BOUND;
+
+            break;
+        }
+    }
+
+    if((depth > entry.depth) && !isCancelled)
+    {
+        pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
+    }
+
+    return alpha;
 }

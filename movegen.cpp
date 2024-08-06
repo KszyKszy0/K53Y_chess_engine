@@ -200,7 +200,112 @@ void MoveGenerator::fullMovesList(Position& pos, MoveList& moveList)
     }
     moveList.checks = checks;
     *moveList.cur++ = 0;
+}
 
+
+void MoveGenerator::fullCapturesList(Position& pos, MoveList& moveList)
+{
+    //moveList that will be used for all substeps
+    //preparations
+
+    //index of king
+    int kingIndex = LSB(pos.piecesBitboards[pos.STM ? WHITE_KING : BLACK_KING]);
+
+    //bitboard of all pieces that attack square
+    Bitboard checksAttacks = howManyAttacks(pos,!pos.STM,kingIndex);
+
+    //Amount of checks; >2 skips most of generation
+    int checks = popCount(checksAttacks);
+
+    //rect lookup without the checking piece
+    Bitboard checkTargets = 0;
+
+    //index of checking piece
+    int singleCheckIndex = 100;
+
+    if(checks == 1)
+    {
+        //get index of checking piece
+        singleCheckIndex = LSB(checksAttacks);
+        //update check rect lookup
+        checkTargets |= BBManager.rectangularLookup[kingIndex][singleCheckIndex];
+        // setBit(checkTargets,index);
+    }
+
+    // if(checksAttacks == 0)
+    // {
+    //     checkTargets = pos.piecesBitboards[NO_PIECE]; //maybe dangerous because of pawn check ->empty rectangular lookup
+    // }
+
+    //this should be used for king only!!!! attacks on board without king
+
+    Bitboard enemyAttacks = getSideAttacks(pos, !pos.STM, true);      //Get enemy attacks
+
+    Bitboard enemyPieces = pos.STM ? pos.piecesBitboards[BLACK_PIECES] : pos.piecesBitboards[WHITE_PIECES];
+    //kings Moves
+    generateKingsMoves(pos, moveList, enemyPieces & ~enemyAttacks, pos.STM, checks);
+
+    //Check targets is for quiets
+    //Capture targets is for captures
+    if(checks < 2)
+    {
+        //pin generation for normal pieces (quiets and captures) and normal pins for pawns (quiet and captures) (without enpassant)
+        Bitboard pins = getPinners(pos, pos.STM, moveList, checksAttacks == 0 ? MAX : checkTargets, checks);
+
+
+        //if check it is bb with checking piece ELSE its full bitboard of enemies so it doesnt mess in pins only for one checking piece tho
+        Bitboard captureTargets = singleCheckIndex == 100 ? MAX : 1ULL << singleCheckIndex;
+
+        //if there is no check we set it to enemies pieces for captures
+        captureTargets &= pos.STM ? pos.piecesBitboards[BLACK_PIECES] : pos.piecesBitboards[WHITE_PIECES];
+
+        int enPassantSquare = pos.stateInfoList[pos.stateCounter].enPassantSquare;
+
+        //only check en passant if its possible
+        if(enPassantSquare != 0)
+        {
+            Bitboard enpassantCheckCapture = checkTargets;
+            if((captureTargets & 1ULL<<singleCheckIndex) & (pos.piecesBitboards[WHITE_PAWN] | pos.piecesBitboards[BLACK_PAWN]))
+            {
+                setBit(enpassantCheckCapture,enPassantSquare);
+            }
+            if(pos.STM)
+            {
+                //enpassant moves and enpassant pins check targets dont have checking piece bcoz enpassant will never capture it
+                addPawnWhiteEnpassant(moveList, pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : enpassantCheckCapture, enPassantSquare);
+            }else
+            {
+                //enpassant moves and enpassant pins check targets dont have checking piece bcoz enpassant will never capture it
+                addPawnBlackEnpassant(moveList, pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : enpassantCheckCapture, enPassantSquare);
+            }
+        }
+
+        if(pos.STM == WHITE)
+        {
+            //quiets
+            // generateTypeMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
+            // generatePawnMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,0,pins);
+
+            generateTypeMoves(pos, captureTargets, moveList, pos.piecesBitboards[WHITE_PIECES] &~ pins);
+
+            //captures
+            // generateTypeMoves(pos,captureTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
+            generatePawnMoves(pos, captureTargets,moveList,1,pins);
+        }else
+        {
+            //quiets
+            // generateTypeMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
+            // generatePawnMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,0,pins);
+
+            generateTypeMoves(pos, captureTargets, moveList, pos.piecesBitboards[BLACK_PIECES] &~ pins);
+
+            //captures
+            // generateTypeMoves(pos,captureTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
+            generatePawnMoves(pos,captureTargets,moveList,1,pins);
+        }
+    }
+    moveList.checks = checks;
+    *moveList.cur++ = 0;
 }
 
 void MoveGenerator::addMoves(int startSquare, Bitboard targers, MoveList& moveList, Position& pos)

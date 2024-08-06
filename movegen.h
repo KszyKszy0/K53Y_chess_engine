@@ -23,6 +23,9 @@ class MoveGenerator
     //Returns all legal moves list
     void fullMovesList(Position& pos, MoveList& moveList);
 
+    //Returns all legal moves list
+    void fullCapturesList(Position& pos, MoveList& moveList);
+
     Bitboard getSideAttacks(Position& pos, bool white, bool forKingMoves);
 
     Bitboard howManyAttacks(Position& pos, bool white, int index);
