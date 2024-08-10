@@ -2,8 +2,10 @@
 #include <stdint.h>
 #include "position.h"
 
+// Move definition
 typedef uint16_t Move;
 
+// Move flags
 enum MoveFlag
 {
     QUIET,
@@ -26,11 +28,13 @@ enum MoveFlag
     QUEEN_PROMOTION_CAPTURE
 };
 
+// Simple array wrapped with size and check counted
+// Size and checks used for mate/stalemate detection
 struct MoveList
 {
     Move moveList[218];
-    Move* cur = &moveList[0];
-    Move* last;
+    Move *cur = &moveList[0];
+    Move *last;
     int checks;
     int size;
 
@@ -41,69 +45,107 @@ struct MoveList
         cur = &moveList[0];
     }
 
-    Move* begin() {
+    // Access first element of Movelist
+    Move *begin()
+    {
         return &moveList[0];
     }
 
-    Move* end() {
+    // Access last element of Movelist
+    Move *end()
+    {
         return &moveList[size];
     }
 
+    // Check if there is checkmate in current position
+    // Size eqauls 0? && Checks greater than 0?
     bool isCheckmate()
     {
         return (size == 0) && (checks > 0);
     }
 
+    // Check if there is stalemate in current position
+    // Size eqauls 0? && Checks equal 0?
     bool isStalemate()
     {
         return (size == 0) && (checks == 0);
     }
 };
 
-inline Move createMove(int startSquare, int targetSquare, int flags){
+// Simple move constructor
+// Start square
+// Target square << 6 (shifted 6 bits left)
+// Flags << 12 (shifted 12 bits left)
+inline Move createMove(int startSquare, int targetSquare, int flags)
+{
     return startSquare + (targetSquare << 6) + (flags << 12);
 }
 
+// We take index of sqaure and convert it to name of square
 inline string squareToName(int index)
 {
+    // We take 'a' char value and add file value from a-h
+    // a = 0, b = 1, ..., h = 7
+    // Then 'a' + file value gives us new char
     char file = 'a' + (index % 8);
-    // Rzędy szachownicy od '1' do '8'
+
+    // Then we take '1' char value and add rank value from 1-8
+    // 1st rank gives 0, 2nd rank gives 1, ..., 8th rank gives 7
+    // Then 'a' + rank value gives us new char
     char rank = '1' + (index / 8);
 
+    // Now we return strings combined
     return string(1, file) + string(1, rank);
 }
 
-inline int nameToSquare(std::string square) {
+// Take name of square and convert it to square index
+// Considering its legal
+inline int nameToSquare(std::string square)
+{
 
+    // Take file name as char
     char file = tolower(square[0]);
-    // Rzędy od '1' do '8'
+
+    // Then rank name as char
     char rank = square[1];
 
-    // Obliczenie indeksu
+    // Index calculation is:
+    // For file: 'file char' - 'a' so for example 'c' - 'a' = 2  [99 - 97 = 2]
+    // For rank: 'rank char' - '1' so for example '4' - '1' = 3  [52 - 49 = 3]
     int index = (file - 'a') + (rank - '1') * 8;
 
     return index;
 }
 
-inline int castlingRights(std::string txt) {
+// Initializing castling rights from fen string
+inline int castlingRights(std::string txt)
+{
+    // Default value = 0
     int value = 0;
-    for(char c : txt)
+
+    // For each char we add special number to the value
+    // that corresponds to certain castling type
+    // 8 => White short
+    // 4 => White long
+    // 2 => Black short
+    // 1 => Black long
+    for (char c : txt)
     {
-        switch(c)
+        switch (c)
         {
-            case 'K':
-            value+=8;
+        case 'K':
+            value += 8;
             break;
-            case 'Q':
-            value+=4;
+        case 'Q':
+            value += 4;
             break;
-            case 'k':
-            value+=2;
+        case 'k':
+            value += 2;
             break;
-            case 'q':
-            value+=1;
+        case 'q':
+            value += 1;
             break;
-            default:
+        default:
             break;
         }
     }
@@ -111,90 +153,100 @@ inline int castlingRights(std::string txt) {
     return value;
 }
 
+// Print move in uci form
 inline void printMove(Move m)
 {
-    int startSquare = m & 0b111111;
-    int targetSquare = m>>6 & 0b111111;
-    int flags = m>>12 & 0b1111;
-    cout<<squareToName(startSquare)<<squareToName(targetSquare);//<<flags<<endl;
-    if(flags == KNIGHT_PROMOTION || flags == KNIGHT_PROMOTION_CAPTURE)
-        cout<<"n";
-    if(flags == BISHOP_PROMOTION || flags == BISHOP_PROMOTION_CAPTURE)
-        cout<<"b";
-    if(flags == ROOK_PROMOTION || flags == ROOK_PROMOTION_CAPTURE)
-        cout<<"r";
-    if(flags == QUEEN_PROMOTION || flags == QUEEN_PROMOTION_CAPTURE)
-        cout<<"q";
+    // Prepare move info
+    int startSquare = StartSquare(m);
+
+    int targetSquare = TargetSqaure(m);
+
+    int flags = Flags(m);
+
+    // Use functions for name conversion
+    // Print start sqaure and target square
+    cout << squareToName(startSquare) << squareToName(targetSquare);
+
+    // Add letter for promotion
+    if (flags == KNIGHT_PROMOTION || flags == KNIGHT_PROMOTION_CAPTURE)
+        cout << "n";
+    if (flags == BISHOP_PROMOTION || flags == BISHOP_PROMOTION_CAPTURE)
+        cout << "b";
+    if (flags == ROOK_PROMOTION || flags == ROOK_PROMOTION_CAPTURE)
+        cout << "r";
+    if (flags == QUEEN_PROMOTION || flags == QUEEN_PROMOTION_CAPTURE)
+        cout << "q";
 }
 
+// Return move in uci form
+inline string moveToUci(Move move)
+{
 
-inline string moveToUci(Move move) {
-    int startSquare = move & 0x3F;        // 6 bitów na startowe pole
-    int targetSquare = (move >> 6) & 0x3F; // Kolejne 6 bitów na docelowe pole
-    int flags = (move >> 12) & 0xF;       // Ostatnie 4 bity na flagi
+    // Prepare move info
+    int startSquare = StartSquare(move);
+    int targetSquare = TargetSqaure(move);
+    int flags = Flags(move);
 
+    // Print move in uci format
     string uciMove = squareToName(startSquare) + squareToName(targetSquare);
 
-    // Dodawanie odpowiednich promocyjnych figur, jeśli jest to promocja
-    switch (flags) {
-        case KNIGHT_PROMOTION:
-        case KNIGHT_PROMOTION_CAPTURE:
-            uciMove += 'n';
-            break;
-        case BISHOP_PROMOTION:
-        case BISHOP_PROMOTION_CAPTURE:
-            uciMove += 'b';
-            break;
-        case ROOK_PROMOTION:
-        case ROOK_PROMOTION_CAPTURE:
-            uciMove += 'r';
-            break;
-        case QUEEN_PROMOTION:
-        case QUEEN_PROMOTION_CAPTURE:
-            uciMove += 'q';
-            break;
-        default:
-            break;
-    }
+    // Add letter for promotion
+    if (flags == KNIGHT_PROMOTION || flags == KNIGHT_PROMOTION_CAPTURE)
+        cout << "n";
+    if (flags == BISHOP_PROMOTION || flags == BISHOP_PROMOTION_CAPTURE)
+        cout << "b";
+    if (flags == ROOK_PROMOTION || flags == ROOK_PROMOTION_CAPTURE)
+        cout << "r";
+    if (flags == QUEEN_PROMOTION || flags == QUEEN_PROMOTION_CAPTURE)
+        cout << "q";
 
     return uciMove;
 }
 
-inline Move uciToMove(const std::string& uci, Position& pos, Move* moveList) {
+// Highly unoptimized function TODO!!!
+inline Move uciToMove(const std::string &uci, Position &pos, Move *moveList)
+{
+    // Prepare move info
     int startSquare = nameToSquare(uci.substr(0, 2));
     int targetSquare = nameToSquare(uci.substr(2, 2));
     int flags = QUIET;
 
-
+    // Default move
     Move targetMove = 0;
 
-    if (uci.length() == 5) {
-        switch (uci[4]) {
-            case 'n':
-                flags = KNIGHT_PROMOTION;
-                break;
-            case 'b':
-                flags = BISHOP_PROMOTION;
-                break;
-            case 'r':
-                flags = ROOK_PROMOTION;
-                break;
-            case 'q':
-                flags = QUEEN_PROMOTION;
-                break;
+    // Check for promotion flags
+    if (uci.length() == 5)
+    {
+        switch (uci[4])
+        {
+        case 'n':
+            flags = KNIGHT_PROMOTION;
+            break;
+        case 'b':
+            flags = BISHOP_PROMOTION;
+            break;
+        case 'r':
+            flags = ROOK_PROMOTION;
+            break;
+        case 'q':
+            flags = QUEEN_PROMOTION;
+            break;
         }
-        if(pos.piecesArray[targetSquare] != NO_PIECE)
+        if (pos.piecesArray[targetSquare] != NO_PIECE)
         {
             flags += 4;
         }
-    }else
+    }
+    else
     {
-        Move* temp = moveList;
-        while(*temp != 0)
+        // Loop through moveList to check if moves start and target match
+        // If so we make to move because only one move in position can have same start and destination
+        Move *temp = moveList;
+        while (*temp != 0)
         {
             int mStartSquare = *temp & 0x3F;
             int mtargetSquare = (*temp >> 6) & 0x3F;
-            if((mStartSquare == startSquare) && (mtargetSquare == targetSquare))
+            if ((mStartSquare == startSquare) && (mtargetSquare == targetSquare))
             {
                 return *temp;
             }
@@ -202,24 +254,23 @@ inline Move uciToMove(const std::string& uci, Position& pos, Move* moveList) {
         }
     }
 
-
-
-    // Dodatkowa logika do rozpoznawania innych flag (np. roszady, bicie, en passant)
-    // Na potrzeby tego przykładu zakładamy, że nie są obecne inne specjalne ruchy
-
+    // Return move using start, target and flags
     return createMove(startSquare, targetSquare, flags);
 }
 
+// Returns start square of move
 inline int StartSquare(Move m)
 {
     return m & 0x3F;
 }
 
+// Returns target square of move
 inline int TargetSqaure(Move m)
 {
     return (m >> 6) & 0x3F;
 }
 
+// Returns flags of move
 inline int Flags(Move m)
 {
     return (m >> 12) & 0b1111;

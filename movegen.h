@@ -39,7 +39,7 @@ class MoveGenerator
 
     void addPawnWhiteCaptures(int startSquare, MoveList& moveList, Position& pos, Bitboard target);
 
-    void addPawnWhiteEnpassant(MoveList& moveList, Position& pos, Bitboard target, int enPassantSquare); //wazne
+    void addPawnWhiteEnpassant(MoveList& moveList, Position& pos, Bitboard target, int enPassantSquare);
 
 
 
@@ -47,7 +47,7 @@ class MoveGenerator
 
     void addPawnBlackCaptures(int startSquare, MoveList& moveList, Position& pos, Bitboard target);
 
-    void addPawnBlackEnpassant(MoveList& moveList, Position& pos, Bitboard target, int enPassantSquare); //wazne
+    void addPawnBlackEnpassant(MoveList& moveList, Position& pos, Bitboard target, int enPassantSquare);
 
 
 

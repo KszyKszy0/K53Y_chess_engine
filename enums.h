@@ -1,15 +1,18 @@
 #pragma once
 #include <stdint.h>
 
+//Move definition
 typedef uint16_t Move;
 
+
+//PieceTypes definition
 enum pieceType
 {   WHITE_PAWN, WHITE_KNIGHT, WHITE_BISHOP, WHITE_ROOK, WHITE_QUEEN, WHITE_KING,
     BLACK_PAWN, BLACK_KNIGHT, BLACK_BISHOP, BLACK_ROOK, BLACK_QUEEN, BLACK_KING,
     WHITE_PIECES, BLACK_PIECES, ALL_PIECES, NO_PIECE
 };
 
-
+//Squares to numebrs definition
 enum enumSquares {
   a1, b1, c1, d1, e1, f1, g1, h1,
   a2, b2, c2, d2, e2, f2, g2, h2,
@@ -21,14 +24,26 @@ enum enumSquares {
   a8, b8, c8, d8, e8, f8, g8, h8
 };
 
+//Colors definition
 enum colors{
     WHITE=true, BLACK=false
 };
 
+//Node type for Transposition Table
 enum nodeType{
-    EXACT_SCORE=1, LOWER_BOUND, UPPER_BOUND
+    //In AB window
+    EXACT_SCORE=1,
+    //Cutoff
+    LOWER_BOUND,
+    //Fail low
+    UPPER_BOUND
 };
 
+
+//Scores given for alpha, nomove, checkmate and time interrupt
+//So we dont end up in not picking any move
+//Also values need to be considered so we pick anything over nomove and alpha
+//Also alpha should be less than nomove so at least something is picked
 enum specialScores{
     NO_MOVE=10000000, CHECKMATE=100000
 };
