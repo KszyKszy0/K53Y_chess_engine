@@ -322,85 +322,91 @@ bool Search::isRepeated(Position &pos)
 
 
 
-int Search::quiescence(int depth, int ply, int alpha, int beta, int color, MoveGenerator &moveGenerator, Position &pos, Evaluator &eval, chrono::steady_clock::time_point start)
+int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
+                       MoveGenerator &moveGenerator, Position &pos,
+                       Evaluator &eval, chrono::steady_clock::time_point start)
 {
-
+    // Initialize a new flag for the type of bound (Upper Bound by default)
     int newFlag = UPPER_BOUND;
 
+    // Calculate the key for the current position in the transposition table
     Bitboard key = pos.positionHash;
 
+    // Retrieve the transposition table entry for the current position
     TTEntry entry = pos.TT.transpositionTable[key % pos.TT.size];
 
+    // Initialize the transposition move (no move by default)
     Move transpositionMove = 0;
 
+    // Check if the transposition table entry is valid for the current position
     if (key == entry.zorbistKey)
     {
+        // If the stored depth is sufficient for this search
         if (entry.depth >= depth)
         {
-            transpositionCount++;
-            transpositionMove = entry.bestMove;
+            transpositionCount++; // Increment counter for transpositions
+            transpositionMove = entry.bestMove; // Use the best move from the transposition table
 
-            if ((entry.type == EXACT_SCORE) || ((entry.type == LOWER_BOUND) && (entry.score >= beta)) || ((entry.type == UPPER_BOUND) && (entry.score < alpha)))
+            // If the stored score is usable (exact score or bound-based pruning)
+            if ((entry.type == EXACT_SCORE) ||
+                ((entry.type == LOWER_BOUND) && (entry.score >= beta)) ||
+                ((entry.type == UPPER_BOUND) && (entry.score < alpha)))
             {
-                matchedTranspositions++;
-                quiescenceTT++;
-                return entry.score;
+                matchedTranspositions++; // Increment counter for matched transpositions
+                quiescenceTT++; // Increment counter for quiescence hits in the TT
+                return entry.score; // Return the stored score
             }
         }
     }
     else if (entry.zorbistKey != 0)
     {
+        // If there's a collision (another position with the same key), increment collision counter
         collisions++;
     }
 
+    // Increment counter for nodes visited in the quiescence search
     queiscenceNodes++;
 
+    // Perform a static evaluation of the position
     int evaluation = eval.evaluate(pos) * color;
 
+    // Beta cutoff: if the evaluation is greater than or equal to beta, return the evaluation
     if (evaluation >= beta)
     {
         return evaluation;
     }
+    // Alpha update: if the evaluation is better than alpha, update alpha
     if (evaluation > alpha)
     {
         alpha = evaluation;
     }
 
-    // this gives info about checkmate and stalemate so it must be the first thing to consider
+    // Generate a list of capture moves (quiescence search considers only captures)
     MoveList moveList;
     moveGenerator.fullCapturesList(pos, moveList);
+
+    // Array to store MVV (Most Valuable Victim) values for sorting
     int MVVs[218];
+
+    // If there's a move from the transposition table, place it at the top of the move list
     if (transpositionMove != 0)
     {
-        // Move* move = &moveList.moveList[1];
         for (int i = 0; i < moveList.size; ++i)
         {
             if (moveList.moveList[i] == transpositionMove)
             {
-                std::swap(moveList.moveList[0], moveList.moveList[i]);
+                std::swap(moveList.moveList[0], moveList.moveList[i]); // Move TT move to the front
                 break;
             }
-
-            // for(int j=0; j<=i; j++)
-            // {
-            //     if(MVV > MVVs[j])
-            //     {
-            //         std::swap(moveList.moveList[j], moveList.moveList[i]);
-            //         std::swap(MVVs[j], MVVs[i]);
-            //         break;
-            //     }
-            // }
-            // if(Flags(moveList.moveList[i] == CAPTURE))
-            // {
-            //     std::swap(*move++,moveList.moveList[i]);
-            // }
         }
     }
     else
     {
+        // Sort the moves based on MVV (Most Valuable Victim) heuristic
         for (int i = 0; i < moveList.size; ++i)
         {
-            int MVV = MVVLVA[pos.piecesArray[StartSquare(moveList.moveList[i])]][pos.piecesArray[TargetSqaure(moveList.moveList[i])]];
+            int MVV = MVVLVA[pos.piecesArray[StartSquare(moveList.moveList[i])]]
+                               [pos.piecesArray[TargetSqaure(moveList.moveList[i])]];
             MVVs[i] = MVV;
         }
         for (int i = 0; i < moveList.size; ++i)
@@ -409,67 +415,76 @@ int Search::quiescence(int depth, int ply, int alpha, int beta, int color, MoveG
             {
                 if (MVVs[j] > MVVs[i])
                 {
-                    std::swap(moveList.moveList[i], moveList.moveList[j]);
+                    std::swap(moveList.moveList[i], moveList.moveList[j]); // Sort by MVV
                     std::swap(MVVs[i], MVVs[j]);
                 }
             }
         }
     }
 
+    // Initialize best move and best score with the evaluation from static evaluation
     Move bestMove = moveList.moveList[0];
     int best = evaluation;
+
+    // Iterate through all moves in the move list
     for (Move m : moveList)
     {
-        if (m == 0)
+        if (m == 0) // Check for end of move list
             break;
 
+        // Check if the time limit for the search has been reached
         if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit)
         {
-            isCancelled = true;
-            return CHECKMATE;
+            isCancelled = true; // Mark the search as canceled
+            return CHECKMATE;   // Return a checkmate score
         }
 
-        // int captureExtension = Flags(m) == CAPTURE ? 1 : 0;
 
-        Bitboard hash = pos.positionHash;
+        // Make the move on the position
         pos.makeMove(m);
+
+        // Recursively call quiescence search with negated scores and swapped bounds
         int value = -quiescence(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
+
+        // Undo the move after evaluation
         pos.undoMove(m);
 
+        // Check if the time limit for the search has been reached again
         if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit)
         {
-            isCancelled = true;
-            return CHECKMATE;
+            isCancelled = true; // Mark the search as canceled
+            return CHECKMATE;   // Return a checkmate score
         }
 
-        if (hash != pos.positionHash)
-        {
-            cout << "error";
-        }
 
+        // If the move yields a better score than the current best score
         if (value > best)
         {
-            best = value;
-            bestMove = m;
+            best = value; // Update the best score
+            bestMove = m; // Update the best move
         }
+
+        // Alpha update: if the best score is better than alpha, update alpha
         if (best > alpha)
         {
             alpha = best;
-            newFlag = EXACT_SCORE;
+            newFlag = EXACT_SCORE; // Update flag to exact score
         }
+
+        // Beta cutoff: if alpha exceeds or equals beta, cut off the search
         if (alpha >= beta)
         {
-            // move causes cutoff
-            newFlag = LOWER_BOUND;
-
-            break;
+            newFlag = LOWER_BOUND; // Set flag for a lower bound cutoff
+            break; // Exit the loop as further moves are irrelevant
         }
     }
 
+    // Store the result in the transposition table if the search depth was sufficient and search wasn't canceled
     if ((depth > entry.depth) && !isCancelled)
     {
         pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
     }
 
+    // Return the best score found (alpha)
     return alpha;
 }

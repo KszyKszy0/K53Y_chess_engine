@@ -5,6 +5,24 @@
 // Move definition
 typedef uint16_t Move;
 
+// Returns start square of move
+inline int StartSquare(Move m)
+{
+    return m & 0x3F;
+}
+
+// Returns target square of move
+inline int TargetSqaure(Move m)
+{
+    return (m >> 6) & 0x3F;
+}
+
+// Returns flags of move
+inline int Flags(Move m)
+{
+    return (m >> 12) & 0b1111;
+}
+
 // Move flags
 enum MoveFlag
 {
@@ -192,13 +210,13 @@ inline string moveToUci(Move move)
 
     // Add letter for promotion
     if (flags == KNIGHT_PROMOTION || flags == KNIGHT_PROMOTION_CAPTURE)
-        cout << "n";
+        uciMove += "n";
     if (flags == BISHOP_PROMOTION || flags == BISHOP_PROMOTION_CAPTURE)
-        cout << "b";
+        uciMove += "b";
     if (flags == ROOK_PROMOTION || flags == ROOK_PROMOTION_CAPTURE)
-        cout << "r";
+        uciMove += "r";
     if (flags == QUEEN_PROMOTION || flags == QUEEN_PROMOTION_CAPTURE)
-        cout << "q";
+        uciMove += "q";
 
     return uciMove;
 }
@@ -256,22 +274,4 @@ inline Move uciToMove(const std::string &uci, Position &pos, Move *moveList)
 
     // Return move using start, target and flags
     return createMove(startSquare, targetSquare, flags);
-}
-
-// Returns start square of move
-inline int StartSquare(Move m)
-{
-    return m & 0x3F;
-}
-
-// Returns target square of move
-inline int TargetSqaure(Move m)
-{
-    return (m >> 6) & 0x3F;
-}
-
-// Returns flags of move
-inline int Flags(Move m)
-{
-    return (m >> 12) & 0b1111;
 }
