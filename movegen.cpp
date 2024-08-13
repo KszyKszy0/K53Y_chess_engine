@@ -340,14 +340,9 @@ void MoveGenerator::addMoves(int startSquare, Bitboard targers, MoveList &moveLi
     while (targers)
     {
         int index = popLSB(targers);
-        // int flags = 0;
-        // if(isBitSet(pos.piecesBitboards[ALL_PIECES],index))
-        // {
-        //     flags = 4;
-        // }
         *moveList.cur++ = createMove(startSquare, index, flag); // add move to moves list
         moveList.size++;
-        // moveList.moveList[moveList.size++]=temp;
+        // moveList.moveList[moveList.size++]=temp; n
     }
 }
 
@@ -749,18 +744,17 @@ void MoveGenerator::addPawnBlackEnpassant(MoveList &moveList, Position &pos, Bit
 
 void MoveGenerator::addKnightsMoves(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
 {
-    Bitboard possibleMoves = BBManager.knightMoves[startSquare] & target; // lookup
-    // possibleMoves &= ~ pos.piecesBitboards[pos.STM ? WHITE_PIECES : BLACK_PIECES];  // - friendly
-    addMoves(startSquare, possibleMoves, moveList, pos); // go to move creator
+    // lookup
+    Bitboard possibleMoves = BBManager.knightMoves[startSquare] & target;
+
+    // go to move creator
+    addMoves(startSquare, possibleMoves, moveList, pos);
 }
 
 void MoveGenerator::addBishopsMoves(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
 {
     // lookup
     Bitboard possibleMoves = BBManager.bishopMoves[startSquare][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[startSquare], BBManager.bishopsMagics[startSquare], BBManager.bishopBits[startSquare])] & target;
-
-    // - friendly
-    // possibleMoves &= ~ pos.piecesBitboards[pos.STM ? WHITE_PIECES : BLACK_PIECES];
 
     // go to move creator
     addMoves(startSquare, possibleMoves, moveList, pos);
@@ -771,56 +765,69 @@ void MoveGenerator::addRookMoves(int startSquare, MoveList &moveList, Position &
     // lookup
     Bitboard possibleMoves = BBManager.rookMoves[startSquare][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[startSquare], BBManager.rooksMagics[startSquare], BBManager.rookBits[startSquare])] & target;
 
-    // - friendly
-    // possibleMoves &= ~ pos.piecesBitboards[pos.STM ? WHITE_PIECES : BLACK_PIECES];
-
     // go to move creator
     addMoves(startSquare, possibleMoves, moveList, pos);
 }
 
 void MoveGenerator::generateKingsMoves(Position &pos, MoveList &moveList, Bitboard target, bool white, int checks)
 {
-    // white kings
+    // Get king index
     int index = LSB(pos.piecesBitboards[white ? WHITE_KING : BLACK_KING]);
 
+    // Get possible moves from lookup
     Bitboard possibleMoves = BBManager.kingMoves[index] & target;
+
+    // Subtract own pieces from lookup
     possibleMoves &= ~pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
+
+    // Add simple moves and captures for king
     addMoves(index, possibleMoves, moveList, pos);
 
+    // If there are no checks we can consider castling
     if (checks < 1)
     {
+        //Check castling rights from state list
         int castlingRights = pos.stateInfoList[pos.stateCounter].castlingRights;
+
+        //If there is no castling rights end king movegen
+        if(castlingRights == 0)
+        {
+            return;
+        }
+
+        //For white
         if (white)
         {
-            // Bitboard emptySpaces = 96; // 1ULL << 5 | 1ULL << 6;
-            // Bitboard targetedEmptySpaces = emptySpaces & target;
-            // Bitboard occupiedEmptySpaces = emptySpaces & pos.piecesBitboards[ALL_PIECES];
+
+            //If we have castling rights for short AND emptySpaces aren't targeted AND there are no pieces on empty spaces
             if ((castlingRights & 8) && ((96 & target) == 96) && ((96 & pos.piecesBitboards[ALL_PIECES]) == 0))
             {
+                //Add short castle
                 addMoves(index, 1ULL << 6, moveList, pos, 2);
             }
-            // emptySpaces = 12; // 1ULL << 3 | 1ULL << 4;
-            // targetedEmptySpaces = 12 & target;
-            // occupiedEmptySpaces = 14 & pos.piecesBitboards[ALL_PIECES];
+
+
+            //If we have castling rights for long AND emptySpaces aren't targeted AND there are no pieces on empty spaces
             if ((castlingRights & 4) && ((12 & target) == 12) && ((14 & pos.piecesBitboards[ALL_PIECES]) == 0))
             {
+                //Add long castle
                 addMoves(index, 1ULL << 2, moveList, pos, 3);
             }
         }
         else
         {
-            // Bitboard emptySpaces = 6917529027641081856; // 1ULL << 61 | 1ULL << 62;
-            // Bitboard targetedEmptySpaces = emptySpaces & target;
-            // Bitboard occupiedEmptySpaces = emptySpaces & pos.piecesBitboards[ALL_PIECES];
+
+            //If we have castling rights for short AND emptySpaces aren't targeted AND there are no pieces on empty spaces
             if ((castlingRights & 2) && ((6917529027641081856 & target) == 6917529027641081856) && ((6917529027641081856 & pos.piecesBitboards[ALL_PIECES]) == 0))
             {
+                //Add short castle
                 addMoves(index, 1ULL << 62, moveList, pos, 2);
             }
-            // emptySpaces = 864691128455135232; // 1ULL << 58 | 1ULL << 59;
-            // targetedEmptySpaces = 864691128455135232 & target;
-            // occupiedEmptySpaces = 1008806316530991104 & pos.piecesBitboards[ALL_PIECES];
+
+            //If we have castling rights for long AND emptySpaces aren't targeted AND there are no pieces on empty spaces
             if ((castlingRights & 1) && ((864691128455135232 & target) == 864691128455135232) && ((1008806316530991104 & pos.piecesBitboards[ALL_PIECES]) == 0))
             {
+                //Add long castle
                 addMoves(index, 1ULL << 58, moveList, pos, 3);
             }
         }

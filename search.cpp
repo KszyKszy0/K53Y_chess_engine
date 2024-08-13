@@ -41,7 +41,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     //Entering Quiescence at the end of search
     if (depth == 0)
     {
-        return quiescence(depth, ply, alpha, beta, color, moveGenerator, pos, eval, start);
+        return quiescence(depth - 1, ply + 1, alpha, beta, color, moveGenerator, pos, eval, start);
         // return eval.evaluate(pos) * color;
     }
 
@@ -273,7 +273,37 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
         cout << " time " << time;
         cout << " quiescence nodes " << queiscenceNodes;
         cout << " quiescenceTT " << quiescenceTT;
+
+        //
+        //          PV PRINTING SEGMENT
+        //
+        cout << " pv ";
+
+        // Move pvl[100];
+        // for(int i=1; i <= depth; i++)
+        // {
+        //     if( pos.TT.transpositionTable[pos.positionHash % pos.TT.size].zorbistKey == pos.positionHash )
+        //     {
+        //         printMove(pos.TT.transpositionTable[pos.positionHash % pos.TT.size].bestMove);
+        //         pvl[i] = pos.TT.transpositionTable[pos.positionHash % pos.TT.size].bestMove;
+        //         pos.makeMove(pos.TT.transpositionTable[pos.positionHash % pos.TT.size].bestMove);
+        //         cout<<" ";
+        //     }
+        // }
+        // for(int i=depth; i >= 1; i--)
+        // {
+        //     if( pos.TT.transpositionTable[pos.positionHash % pos.TT.size].zorbistKey == pos.positionHash )
+        //     {
+        //         pos.undoMove(pvl[i]);
+        //     }
+        // }
+
+        printMove(pos.TT.transpositionTable[pos.positionHash % pos.TT.size].bestMove);
         cout << endl;
+
+        //
+        //          END OF PV SEGMENT
+        //
 
         //If we have checkmate near don't search any deeper
         if ((oldEval >= CHECKMATE - 5) || (oldEval <= -CHECKMATE + 5))
