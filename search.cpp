@@ -251,8 +251,8 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
     for (int depth = 2; depth <= 40; depth++)
     {
         //Reset node count
-        nodesCount = 0;
-        queiscenceNodes = 0;
+        // nodesCount = 0;
+        // queiscenceNodes = 0;
 
         //Start negamax for current depth
         bestMove = negamax(depth, 0, -100000000, 100000000, pos.STM ? 1 : -1, mg, pos, eval, start);
@@ -265,14 +265,14 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
         //Time check and uci info
         auto end = chrono::steady_clock::now();
 
-        float time = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+        long long time = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
         cout << "info depth " << depth;
         cout << " score cp " << oldEval;
         cout << " nodes " << nodesCount;
-        cout << " nps " << (int)(nodesCount / (time / 1000));
-        cout << " time " << time;
-        cout << " quiescence nodes " << queiscenceNodes;
-        cout << " quiescenceTT " << quiescenceTT;
+        cout << " nps " << (long long)(nodesCount / (time / (double)1000000000));
+        cout << " time " << time/1000;
+        // cout << " quiescence nodes " << queiscenceNodes;
+        // cout << " quiescenceTT " << quiescenceTT;
 
         //
         //          PV PRINTING SEGMENT
