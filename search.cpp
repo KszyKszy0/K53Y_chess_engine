@@ -246,6 +246,9 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
 
     isCancelled = false;
 
+    //Reset node count
+    nodesCount = 0;
+
 
     //Iterative deepening loop
     for (int depth = 2; depth <= 40; depth++)
@@ -270,7 +273,7 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
         cout << " score cp " << oldEval;
         cout << " nodes " << nodesCount;
         cout << " nps " << (long long)(nodesCount / (time / (double)1000000000));
-        cout << " time " << time/1000;
+        cout << " time " << (long long)(time/(double)1000000);
         // cout << " quiescence nodes " << queiscenceNodes;
         // cout << " quiescenceTT " << quiescenceTT;
 
