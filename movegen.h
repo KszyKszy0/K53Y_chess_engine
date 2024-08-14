@@ -2,6 +2,7 @@
 #include "bitboard.h"
 #include "position.h"
 #include "move.h"
+#include "moveList.h"
 
 class MoveGenerator
 {

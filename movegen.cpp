@@ -3,6 +3,7 @@
 #include "position.h"
 #include "enums.h"
 #include "move.h"
+#include "moveList.h"
 #include <vector>
 
 void MoveGenerator::generatePawnMoves(Position &pos, Bitboard target, MoveList &moveList, int type, Bitboard pins)

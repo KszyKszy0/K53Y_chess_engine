@@ -4,6 +4,7 @@
 #include "movegen.h"
 #include "eval.h"
 #include <chrono>
+#include "moveList.h"
 
 class Search
 {
