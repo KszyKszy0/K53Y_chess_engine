@@ -220,11 +220,16 @@ vector<Bitboard> BB_utils::generateBlockers(Bitboard attackSet)
         // Loop through each square on the board
         for (int j = 0; j < BOARD_SIZE; ++j)
         {
-            // Check if the current square is part of the attack set (e.g., valid target square)
+            // Check if the current square is part of mask
             if (isBitSet(attackSet, j)) {
 
-                // Check if the current bit in 'i' corresponds to a blocker at position 'j'
-                // 'i' represents a combination of blocker positions encoded as bits
+                //If it is part of mask increment bitIndex at the end of loop
+                //Moreover if current bit index is in current combination in bit representation we add it to blockers for example
+                //We consider 40th combinations so we got 101000
+                //So if we are on 4th and 6th bitIndex we Setbit in our blockers
+                //It makes sense because full blockers would mean only 1's on all length so if we got 14 bits
+                //It would've been 14 1's where one means occupancy
+                //Each 0 bits tells us that at this square there is no blockers
                 if (i & (1 << bitIndex))
                 {
                     // Set the bit in 'blockerSet' at position 'j'
@@ -232,6 +237,8 @@ vector<Bitboard> BB_utils::generateBlockers(Bitboard attackSet)
                 }
 
                 // Move to the next bit in the combination 'i'
+                // Increment bitIndex so we chceck overlaping with next bit from mask with next combination bit setup
+                // We increment it every time we get bit from mask so we are "tracking" mask bits with it
                 ++bitIndex;
             }
         }
@@ -243,27 +250,53 @@ vector<Bitboard> BB_utils::generateBlockers(Bitboard attackSet)
     return blockers;
 }
 
-    Bitboard BB_utils::generateRectangularMask(int square1, int square2) {
+Bitboard BB_utils::generateRectangularMask(int square1, int square2)
+{
+    //Init mask and sqaures values
     Bitboard mask = 0ULL;
     int rank1 = square1 / 8, file1 = square1 % 8;
     int rank2 = square2 / 8, file2 = square2 % 8;
 
-    if (rank1 == rank2) {  // horizontal movement
+    if (rank1 == rank2)
+    {
+        // Horizontal movement
+
+        //Check which is smaller exclude start
         int startFile = std::min(file1, file2) + 1;
         int endFile = std::max(file1, file2);
-        for (int file = startFile; file < endFile; ++file) {
+
+        //Make "path" along it; go to < endFile so we leave one
+        for (int file = startFile; file < endFile; ++file)
+        {
             setBit(mask, rank1 * 8 + file);
         }
-    } else if (file1 == file2) {  // vertical movement
+
+    } else if (file1 == file2)
+    {
+        // Vertical movement
+
+        //Check which is smaller exclude start
         int startRank = std::min(rank1, rank2) + 1;
         int endRank = std::max(rank1, rank2);
-        for (int rank = startRank; rank < endRank; ++rank) {
+
+        //Make "path" along it; go to < endRank so we leave one
+        for (int rank = startRank; rank < endRank; ++rank)
+        {
             setBit(mask, rank * 8 + file1);
         }
-    } else if (std::abs(rank1 - rank2) == std::abs(file1 - file2)) {  // diagonal movement
+
+    } else if (std::abs(rank1 - rank2) == std::abs(file1 - file2))
+    {
+        // Diagonal movement
+
+        //Check which step do we take
         int rankStep = (rank2 > rank1) ? 1 : -1;
         int fileStep = (file2 > file1) ? 1 : -1;
+
+        //Add step to starting position
         int rank = rank1 + rankStep, file = file1 + fileStep;
+
+        //Make lane using calculated steps until we reach file2 or rank2 (ending squares)
         while (rank != rank2 && file != file2) {
             setBit(mask, rank * 8 + file);
             rank += rankStep;
@@ -272,148 +305,259 @@ vector<Bitboard> BB_utils::generateBlockers(Bitboard attackSet)
     }
 
     return mask;
-    }
+}
 
-
-    void BB_utils::generateRectangularLookup(Bitboard (&lookup)[64][64]) {
-    for (int square1 = 0; square1 < 64; ++square1) {
-        for (int square2 = 0; square2 < 64; ++square2) {
+//Generate rectangular lookup for all squares
+void BB_utils::generateRectangularLookup(Bitboard (&lookup)[64][64])
+{
+    for (int square1 = 0; square1 < 64; ++square1)
+    {
+        for (int square2 = 0; square2 < 64; ++square2)
+        {
             lookup[square1][square2] = generateRectangularMask(square1, square2);
         }
     }
-    }
+}
 
-    Bitboard BB_utils::generateKingMoves(int square) {
+//Generates king moves lookup
+Bitboard BB_utils::generateKingMoves(int square)
+{
+    //Initialize square and moves
     Bitboard moves = 0ULL;
     int rank = square / 8;
     int file = square % 8;
 
-    for (int r = -1; r <= 1; ++r) {
-        for (int f = -1; f <= 1; ++f) {
-            if (r == 0 && f == 0) continue;
+    //Go from -1 to +1 in both directions for bitboard with moves
+    for (int r = -1; r <= 1; ++r)
+    {
+        for (int f = -1; f <= 1; ++f)
+        {
+            //Skip the move in place
+            if (r == 0 && f == 0)
+                continue;
+
+            //Get new rank and new file
             int newRank = rank + r;
             int newFile = file + f;
-            if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) {
+
+            //If we don't go out of bounds add new moves
+            if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8)
+            {
                 setBit(moves, newRank * 8 + newFile);
             }
         }
     }
 
     return moves;
-    }
+}
 
-    void BB_utils::generatePawnMoves(Bitboard (&pawnMove)[64], Bitboard (&pawnAttack)[64], bool isWhite) {
-    for (int square = 0; square < 64; ++square) {
+
+//Generate pawn lookup for white and black
+void BB_utils::generatePawnMoves(Bitboard (&pawnMove)[64], Bitboard (&pawnAttack)[64], bool isWhite)
+{
+    //Foreach square
+    for (int square = 0; square < 64; ++square)
+    {
+        //Initialize moves attacks and square
         Bitboard moves = 0ULL;
         Bitboard attacks = 0ULL;
         int rank = square / 8;
         int file = square % 8;
 
-        // forward movement
-        if (isWhite) {
-            if (rank < 7) {
+        // For white we go up
+        if (isWhite)
+        {
+            //We cannot be on rank 7 since it is last rank
+            if (rank < 7)
+            {
                 setBit(moves, (rank + 1) * 8 + file);
             }
-        } else {
-            if (rank > 0) {
+        } else // We are black we go down
+        {
+            //We cannot be on rank 0 since it is first rank
+            if (rank > 0)
+            {
                 setBit(moves, (rank - 1) * 8 + file);
             }
         }
 
-        // Bicie
-        if (isWhite) {
-            if (rank < 7 && file > 0) {
+        // Captures
+        if (isWhite)
+        {
+            // We can only capture before 7 rank
+
+            //Skip left edge
+            if (rank < 7 && file > 0)
+            {
                 setBit(attacks, (rank + 1) * 8 + (file - 1));
             }
-            if (rank < 7 && file < 7) {
+
+            //Skip right edge
+            if (rank < 7 && file < 7)
+            {
                 setBit(attacks, (rank + 1) * 8 + (file + 1));
             }
-        } else {
-            if (rank > 0 && file > 0) {
+
+        } else // We are black
+        {
+
+            // We can only capture before 0 rank
+
+            //Skip right edge
+            if (rank > 0 && file > 0)
+            {
                 setBit(attacks, (rank - 1) * 8 + (file - 1));
             }
-            if (rank > 0 && file < 7) {
+
+            //Skip left edge
+            if (rank > 0 && file < 7)
+            {
                 setBit(attacks, (rank - 1) * 8 + (file + 1));
             }
         }
 
+        //Update lookup tables
         pawnMove[square] = moves;
         pawnAttack[square] = attacks;
     }
-    }
+}
 
-
-    void BB_utils::initRookAttacks() {
+//Magic lookup init
+void BB_utils::initRookAttacks()
+{
+    //For every square
     for (int square = 0; square < BOARD_SIZE; ++square) {
+
+        //Vector for this square combinations
         vector<Bitboard> tempSquare;
+
+        //Max mask size 2^12 because of skipping edges so we initialize to max size
         tempSquare.resize(4096);
 
-        for (int occupancy = 0; occupancy < rookBlockers[square].size(); ++occupancy) {
-
+        //Foreach possible blockers setup we get index
+        //Here we loop to 1 << bits so its less than 4096
+        //4096 is upper bound because we don't know if we get magic index like 4095 or sth like that
+        for (int occupancy = 0; occupancy < rookBlockers[square].size(); ++occupancy)
+        {
+            //Index calculated by magics
             int index = getMagicIndex(rookBlockers[square][occupancy], rooksMagics[square], rookBits[square]);
 
+            //Attacks generated for given blockMask
             Bitboard attacks = generateRookBitboardAttacksBlockers(square,rookBlockers[square][occupancy]);
 
+            //Assign attacks to magic index lookup table
             tempSquare[index] = attacks;
         }
+
+        //Assign square vector to whole piece vector lookup
         rookMoves.push_back(tempSquare);
     }
-    }
+}
 
-    void BB_utils::initBishopAttacks() {
-    for (int square = 0; square < BOARD_SIZE; ++square) {
+//Magic lookup init
+void BB_utils::initBishopAttacks()
+{
+
+    //For every square
+    for (int square = 0; square < BOARD_SIZE; ++square)
+    {
+
+        //Vector for this square combinations
         vector<Bitboard> tempSquare;
-        tempSquare.resize(512);
-        for (int occupancy = 0; occupancy < bishopBlockers[square].size(); ++occupancy) {
 
+        //Max mask size 2^9 because of skipping edges so we initialize to max size
+        tempSquare.resize(512);
+
+        //Foreach possible blockers setup we get index
+        //Here we loop to 1 << bits so its less than 4096
+        //4096 is upper bound because we don't know if we get magic index like 511 or sth like that
+        for (int occupancy = 0; occupancy < bishopBlockers[square].size(); ++occupancy)
+        {
+
+            //Foreach possible blockers setup we get index
+            //Here we loop to 1 << bits so its less than 4096
+            //4096 is upper bound because we don't know if we get magic index like 4095 or sth like that
             int index = getMagicIndex(bishopBlockers[square][occupancy], bishopsMagics[square], bishopBits[square]);
 
+            //Attacks generated for given blockMask
             Bitboard attacks = generateBishopBitboardAttacksBlockers(square,bishopBlockers[square][occupancy]);
 
+            //Assign attacks to magic index lookup table
             tempSquare[index] = attacks;
         }
+
+        //Assign square vector to whole piece vector lookup
         bishopMoves.push_back(tempSquare);
     }
-    }
+}
 
-    int BB_utils::getMagicIndex(Bitboard blockers, Bitboard magic, int bits)
-    {
-        return (int)((blockers * magic) >> (64 - bits));
-    }
+//Magic index is calculated for 64 bits magics
+//Bits are different for rook and bishop for each square
+int BB_utils::getMagicIndex(Bitboard blockers, Bitboard magic, int bits)
+{
+    return (int)((blockers * magic) >> (64 - bits));
+}
 
-    Bitboard BB_utils::generateRookBitboardAttacksBlockers(int sq, Bitboard blockers) {
+//Normal movegen like masks but for given blockers
+Bitboard BB_utils::generateRookBitboardAttacksBlockers(int sq, Bitboard blockers)
+{
+    //Moves and square initialization
     Bitboard moves = 0;
     int row = sq / 8;
     int col = sq % 8;
 
-    // right movement
-    for (int j = col + 1; j < 8; ++j) {
+    //Right movement
+    for (int j = col + 1; j < 8; ++j)
+    {
+        //Index of current square we iterate
         int temp = 8 * row + j;
+
+        //Append index to moves
         moves |= 1ULL << temp;
+
+        //If blockers intersect with current index we end this direction
         if ((blockers & (1ULL << temp)) == (1ULL << temp))
             break;
     }
 
-    // left movement
-    for (int j = col - 1; j >= 0; --j) {
+    //Left movement
+    for (int j = col - 1; j >= 0; --j)
+    {
+        //Index of current square we iterate
         int temp = 8 * row + j;
+
+        //Append index to moves
         moves |= 1ULL << temp;
+
+        //If blockers intersect with current index we end this direction
         if ((blockers & (1ULL << temp)) == (1ULL << temp))
             break;
     }
 
-    // down movement
-    for (int j = row + 1; j < 8; ++j) {
+    //Down movement
+    for (int j = row + 1; j < 8; ++j)
+    {
+        //Index of current square we iterate
         int temp = 8 * j + col;
+
+        //Append index to moves
         moves |= 1ULL << temp;
+
+        //If blockers intersect with current index we end this direction
         if ((blockers & (1ULL << temp)) == (1ULL << temp))
             break;
     }
 
-    // up movement
-    for (int j = row - 1; j >= 0; --j) {
+    //Up movement
+    for (int j = row - 1; j >= 0; --j)
+    {
+        //Index of current square we iterate
         int temp = 8 * j + col;
+
+        //Append index to moves
         moves |= 1ULL << temp;
+
+        //If blockers intersect with current index we end this direction
         if ((blockers & (1ULL << temp)) == (1ULL << temp))
             break;
     }
@@ -421,7 +565,10 @@ vector<Bitboard> BB_utils::generateBlockers(Bitboard attackSet)
     return moves;
 }
 
+//Normal movegen like masks but for given blockers
 Bitboard BB_utils::generateBishopBitboardAttacksBlockers(int sq, Bitboard blockers) {
+
+    //Moves and square initialization
     Bitboard moves = 0;
     int row = sq / 8;
     int col = sq % 8;
@@ -429,10 +576,16 @@ Bitboard BB_utils::generateBishopBitboardAttacksBlockers(int sq, Bitboard blocke
     // Diagonal left down
     int r = row + 1;
     int c = col - 1;
-    while (r < 8 && c >= 0) {
+    while (r < 8 && c >= 0)
+    {
+        //Append to moves current index
         moves |= 1ULL << (r * 8 + c);
+
+        //If blockers intersect with current index we end this direction
         if ((blockers & (1ULL << (r * 8 + c))) == (1ULL << (r * 8 + c)))
             break;
+
+        //Update index values
         ++r;
         --c;
     }
@@ -440,10 +593,16 @@ Bitboard BB_utils::generateBishopBitboardAttacksBlockers(int sq, Bitboard blocke
     // Diagonal right down
     r = row + 1;
     c = col + 1;
-    while (r < 8 && c < 8) {
+    while (r < 8 && c < 8)
+    {
+        //Append to moves current index
         moves |= 1ULL << (r * 8 + c);
+
+        //If blockers intersect with current index we end this direction
         if ((blockers & (1ULL << (r * 8 + c))) == (1ULL << (r * 8 + c)))
             break;
+
+        //Update index values
         ++r;
         ++c;
     }
@@ -451,10 +610,16 @@ Bitboard BB_utils::generateBishopBitboardAttacksBlockers(int sq, Bitboard blocke
     // Diagonal left up
     r = row - 1;
     c = col - 1;
-    while (r >= 0 && c >= 0) {
+    while (r >= 0 && c >= 0)
+    {
+        //Append to moves current index
         moves |= 1ULL << (r * 8 + c);
+
+        //If blockers intersect with current index we end this direction
         if ((blockers & (1ULL << (r * 8 + c))) == (1ULL << (r * 8 + c)))
             break;
+
+        //Update index values
         --r;
         --c;
     }
@@ -462,10 +627,16 @@ Bitboard BB_utils::generateBishopBitboardAttacksBlockers(int sq, Bitboard blocke
     // Diagonal right up
     r = row - 1;
     c = col + 1;
-    while (r >= 0 && c < 8) {
+    while (r >= 0 && c < 8)
+    {
+        //Append to moves current index
         moves |= 1ULL << (r * 8 + c);
+
+        //If blockers intersect with current index we end this direction
         if ((blockers & (1ULL << (r * 8 + c))) == (1ULL << (r * 8 + c)))
             break;
+
+        //Update index values
         --r;
         ++c;
     }
