@@ -1,6 +1,6 @@
 #pragma once
 #include "bitboard.h"
-// #include "move.h"
+#include "move.h"
 
 
 class TTEntry

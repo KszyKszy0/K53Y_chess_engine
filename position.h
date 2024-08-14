@@ -6,6 +6,7 @@
 #include <string>
 #include "TT.h"
 #include "zobrist.h"
+#include "move.h"
 
 
 using namespace std;

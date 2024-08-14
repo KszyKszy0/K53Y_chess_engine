@@ -1,9 +1,6 @@
 #pragma once
 #include <stdint.h>
 
-//Move definition
-typedef uint16_t Move;
-
 
 //PieceTypes definition
 enum pieceType

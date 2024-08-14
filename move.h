@@ -1,6 +1,5 @@
 #pragma once
 #include <stdint.h>
-#include "position.h"
 
 // Move definition
 typedef uint16_t Move;
@@ -221,57 +220,3 @@ inline string moveToUci(Move move)
     return uciMove;
 }
 
-// Highly unoptimized function TODO!!!
-inline Move uciToMove(const std::string &uci, Position &pos, Move *moveList)
-{
-    // Prepare move info
-    int startSquare = nameToSquare(uci.substr(0, 2));
-    int targetSquare = nameToSquare(uci.substr(2, 2));
-    int flags = QUIET;
-
-    // Default move
-    Move targetMove = 0;
-
-    // Check for promotion flags
-    if (uci.length() == 5)
-    {
-        switch (uci[4])
-        {
-        case 'n':
-            flags = KNIGHT_PROMOTION;
-            break;
-        case 'b':
-            flags = BISHOP_PROMOTION;
-            break;
-        case 'r':
-            flags = ROOK_PROMOTION;
-            break;
-        case 'q':
-            flags = QUEEN_PROMOTION;
-            break;
-        }
-        if (pos.piecesArray[targetSquare] != NO_PIECE)
-        {
-            flags += 4;
-        }
-    }
-    else
-    {
-        // Loop through moveList to check if moves start and target match
-        // If so we make to move because only one move in position can have same start and destination
-        Move *temp = moveList;
-        while (*temp != 0)
-        {
-            int mStartSquare = *temp & 0x3F;
-            int mtargetSquare = (*temp >> 6) & 0x3F;
-            if ((mStartSquare == startSquare) && (mtargetSquare == targetSquare))
-            {
-                return *temp;
-            }
-            *temp++;
-        }
-    }
-
-    // Return move using start, target and flags
-    return createMove(startSquare, targetSquare, flags);
-}
