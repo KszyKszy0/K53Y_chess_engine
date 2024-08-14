@@ -4,6 +4,7 @@
 #include "TT.h"
 #include <chrono>
 #include "moveList.h"
+#include "helperFunctions.h"
 
 int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGenerator &moveGenerator, Position &pos, Evaluator &eval, chrono::steady_clock::time_point start)
 {

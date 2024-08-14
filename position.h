@@ -7,6 +7,7 @@
 #include "TT.h"
 #include "zobrist.h"
 #include "move.h"
+#include "helperFunctions.h"
 
 
 using namespace std;
