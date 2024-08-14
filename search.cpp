@@ -131,11 +131,13 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
             {
                 //If we detect that at least one move was searched at root
                 //We can change oldEval to best so we get true evaluation in logs
+                //If there was no time cutoff AND we at least searched one move
+                //There is one in million chance that time cutoff will appear at the start of first ply before first move
                 if ((best != -CHECKMATE) && (best != -NO_MOVE))
                     oldEval = best;
 
 
-                // In case of first move cancel we return nullmove so its detected in seatch when bestmove != 0
+                // In case of first move cancel we return first move from list beacuse it is from TT
                 return bestMove;
             }
         }
@@ -171,13 +173,25 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
             {
                 //If we detect that at least one move was searched at root
                 //We can change oldEval to best so we get true evaluation in logs
+                //If there was no time cutoff AND we at least searched one move
+                //There is one in million chance that time cutoff will appear at the start of first ply before first move
                 if ((best != -CHECKMATE) && (best != -NO_MOVE))
                     oldEval = best;
 
 
-                // In case of first move cancel we return nullmove so its detected in seatch when bestmove != 0
+                // In case of first move cancel we return first move from list beacuse it is from TT
                 return bestMove;
             }
+        }
+
+
+        //If alpha exceeds beta break
+        if (alpha >= beta)
+        {
+            // move causes cutoff
+            newFlag = LOWER_BOUND;
+
+            break; // Alpha-beta pruning
         }
 
         //If we beat best
@@ -188,27 +202,19 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
             best = value;
 
             bestMove = m;
+
+            //If we beat alpha
+            //Make it EXACT_SCORE
+            //New possible pv found
+            if (best > alpha)
+            {
+                // new best move found
+                newFlag = EXACT_SCORE;
+
+                alpha = best;
+            }
         }
 
-        //If we beat alpha
-        //Make it EXACT_SCORE
-        //New possible pv found
-        if (best > alpha)
-        {
-            // new best move found
-            newFlag = EXACT_SCORE;
-
-            alpha = best;
-        }
-
-        //If alpha exceeds beta break
-        if (alpha >= beta)
-        {
-            // move causes cutoff
-            newFlag = LOWER_BOUND;
-
-            break; // Alpha-beta pruning
-        }
     }
 
     //Store transposition with flag unless search is being cancelled
@@ -223,14 +229,17 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     {
         //If we detect that at least one move was searched at root
         //We can change oldEval to best so we get true evaluation in logs
+        //If there was no time cutoff AND we at least searched one move
+        //There is one in million chance that time cutoff will appear at the start of first ply before first move
         if ((best != -CHECKMATE) && (best != -NO_MOVE))
             oldEval = best;
 
 
-        // In case of first move cancel we return nullmove so its detected in seatch when bestmove != 0
+        // In case of first move cancel we return first move from list beacuse it is from TT
         return bestMove;
     }
 
+    //Return best value from node up
     return best;
 }
 
@@ -238,14 +247,22 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
 {
     //Initializing starting values
 
+    //Best move we got current search
     Move bestMove = 0;
 
+    //Old evaluation of position
+    //It is not updated when time cutoff
+    //So we get reasonable value
     oldEval = 0;
 
+    //Timer for time management
     auto start = chrono::steady_clock::now();
 
+    //Currently hard limit
     timeLimit = 5000;
 
+    //Flag checking if search is cancelled used for
+    //Not storing faulty transpositions in TT
     isCancelled = false;
 
     //Reset node count
@@ -260,7 +277,7 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
         // queiscenceNodes = 0;
 
         //Start negamax for current depth
-        bestMove = negamax(depth, 0, -100000000, 100000000, pos.STM ? 1 : -1, mg, pos, eval, start);
+        bestMove = negamax(depth, 0, -INF, INF, pos.STM ? 1 : -1, mg, pos, eval, start);
         if (bestMove != 0)
         {
             //We didn't get nullmove we can take that move
@@ -491,26 +508,25 @@ int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
             return CHECKMATE;   // Return a checkmate score
         }
 
+        // Beta cutoff: if alpha exceeds or equals beta, cut off the search
+        if (alpha >= beta)
+        {
+            newFlag = LOWER_BOUND; // Set flag for a lower bound cutoff
+            break; // Exit the loop as further moves are irrelevant
+        }
 
         // If the move yields a better score than the current best score
         if (value > best)
         {
             best = value; // Update the best score
             bestMove = m; // Update the best move
-        }
 
-        // Alpha update: if the best score is better than alpha, update alpha
-        if (best > alpha)
-        {
-            alpha = best;
-            newFlag = EXACT_SCORE; // Update flag to exact score
-        }
-
-        // Beta cutoff: if alpha exceeds or equals beta, cut off the search
-        if (alpha >= beta)
-        {
-            newFlag = LOWER_BOUND; // Set flag for a lower bound cutoff
-            break; // Exit the loop as further moves are irrelevant
+            // Alpha update: if the best score is better than alpha, update alpha
+            if (best > alpha)
+            {
+                alpha = best;
+                newFlag = EXACT_SCORE; // Update flag to exact score
+            }
         }
     }
 

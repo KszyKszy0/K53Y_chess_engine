@@ -42,5 +42,15 @@ enum nodeType{
 //Also values need to be considered so we pick anything over nomove and alpha
 //Also alpha should be less than nomove so at least something is picked
 enum specialScores{
-    NO_MOVE=10000000, CHECKMATE=100000
+
+    //Used as lowest score so any move beats it in search
+    NO_MOVE=10000000,
+
+    //Simply checkmate score BUT
+    //Checkmate scores will always be smaller because of - ply
+    //Checkmate value indicates that the search was cancelled because of time
+    CHECKMATE=100000,
+
+    //Used for alpha and beta so even NO_MOVE beats it so any move is picked in search
+    INF=100000000
 };

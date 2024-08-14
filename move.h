@@ -22,6 +22,16 @@ inline int Flags(Move m)
     return (m >> 12) & 0b1111;
 }
 
+// Simple move constructor
+// Start square
+// Target square << 6 (shifted 6 bits left)
+// Flags << 12 (shifted 12 bits left)
+inline Move createMove(int startSquare, int targetSquare, int flags)
+{
+    return startSquare + (targetSquare << 6) + (flags << 12);
+}
+
+
 // Move flags
 enum MoveFlag
 {
@@ -44,13 +54,3 @@ enum MoveFlag
     ROOK_PROMOTION_CAPTURE,
     QUEEN_PROMOTION_CAPTURE
 };
-
-// Simple move constructor
-// Start square
-// Target square << 6 (shifted 6 bits left)
-// Flags << 12 (shifted 12 bits left)
-inline Move createMove(int startSquare, int targetSquare, int flags)
-{
-    return startSquare + (targetSquare << 6) + (flags << 12);
-}
-
