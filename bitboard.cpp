@@ -43,12 +43,13 @@ int popLSB(Bitboard &bb)
 //Number of set bits
 int popCount (Bitboard x)
 {
-    int count = 0;
-    while (x) {
-    count++;
-    x &= x - 1;
-    }
-    return count;
+    return __builtin_popcountll(x);
+    // int count = 0;
+    // while (x) {
+    // count++;
+    // x &= x - 1;
+    // }
+    // return count;
 }
 
 //Print bitboards in 8x8 format
@@ -79,8 +80,11 @@ void printPieceArray(int array[64])
     cout<< '\n';
 }
 
-    //rook moves
-    Bitboard BB_utils::generateRookMoves(int square) {
+//Rook moves for given square
+//Used for mask generation
+Bitboard BB_utils::generateRookMoves(int square)
+{
+    //Bitboard of moves
     Bitboard moves = 0ULL;
     int rank = square / 8;
     int file = square % 8;
@@ -100,16 +104,19 @@ void printPieceArray(int array[64])
     }
 
     return moves;
-    }
+}
 
 
-    // bishop moves
-    Bitboard BB_utils::generateBishopMoves(int square) {
+//Bishop moves for given square
+//Used for mask generation
+Bitboard BB_utils::generateBishopMoves(int square)
+{
+    //Bitboard of moves
     Bitboard moves = 0ULL;
     int rank = square / 8;
     int file = square % 8;
 
-    // all diagonals, pomijając skrajne pola
+    // all diagonals, skipping edges
     for (int d = 1; d < 7; ++d) {
         if (rank + d < 7 && file + d < 7) setBit(moves, (rank + d) * 8 + (file + d));
         if (rank + d < 7 && file - d > 0) setBit(moves, (rank + d) * 8 + (file - d));
@@ -118,85 +125,123 @@ void printPieceArray(int array[64])
     }
 
     return moves;
-    }
+}
 
-
-    Bitboard BB_utils::generateKnightMoves(int square) {
+//Knight moves
+//Used for lookup for knights
+Bitboard BB_utils::generateKnightMoves(int square)
+{
+    //Bitboard of moves
     Bitboard moves = 0ULL;
     int rank = square / 8;
     int file = square % 8;
 
+    //Offsets of moves from square
     const int knightMoves[8][2] = {
         {2, 1}, {2, -1}, {-2, 1}, {-2, -1},
         {1, 2}, {1, -2}, {-1, 2}, {-1, -2}
     };
 
+    //Foreach offset add that move to moves Bitboard
+    //If it doesn't go off the board
     for (const auto& move : knightMoves) {
+
+        //Rank and file after move
         int newRank = rank + move[0];
         int newFile = file + move[1];
+
+        //Check if out of bounds
         if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) {
             setBit(moves, newRank * 8 + newFile);
         }
     }
 
     return moves;
+}
+
+//Constructor
+BB_utils::BB_utils()
+{
+    //Initialization of movegen features
+    for (int square = 0; square < BOARD_SIZE; ++square) {
+
+        //Initialize masks for pieces
+        rookMasks[square] = generateRookMoves(square);
+        bishopMasks[square] = generateBishopMoves(square);
+
+        //Initialize moves for king and knight
+        knightMoves[square] = generateKnightMoves(square);
+        kingMoves[square] = generateKingMoves(square);
+
+        //Generate blockers combinations for bishops and rooks (also queens)
+        bishopBlockers.push_back(generateBlockers(bishopMasks[square]));
+        rookBlockers.push_back(generateBlockers(rookMasks[square]));
+
     }
 
+    //Generate pawn moves Lookup
+    generatePawnMoves(whitePawnMoves, whitePawnCaptures, true);
+    generatePawnMoves(blackPawnMoves, blackPawnCaptures, false);
 
-    BB_utils::BB_utils()
+    //Init magic rooks and bishop attacks
+    initRookAttacks();
+    initBishopAttacks();
+
+    //Generate rectangular lookup
+    generateRectangularLookup(rectangularLookup);
+}
+
+//Get blockers combinations for given mask
+vector<Bitboard> BB_utils::generateBlockers(Bitboard attackSet)
+{
+    //Vector of blockers
+    vector<Bitboard> blockers;
+    int count = 0;
+
+    //Get number of bits set in mask
+    for (int i = 0; i < BOARD_SIZE; ++i) {
+        if (isBitSet(attackSet, i)) {
+            ++count;
+        }
+    }
+
+    //Number of combinations is 2^bits == so == 1 << coount
+    int combinations = 1 << count;
+
+    //Foreach combination
+    for (int i = 0; i < combinations; ++i)
     {
+        //Reset blockers set
+        Bitboard blockerSet = 0ULL;
 
-        for (int square = 0; square < BOARD_SIZE; ++square) {
-            rookMasks[square] = generateRookMoves(square);
-            bishopMasks[square] = generateBishopMoves(square);
-            knightMoves[square] = generateKnightMoves(square);
-            kingMoves[square] = generateKingMoves(square);
+        //Reset index of bit;
+        int bitIndex = 0;
 
-            bishopBlockers.push_back(generateBlockers(bishopMasks[square]));
+        // Loop through each square on the board
+        for (int j = 0; j < BOARD_SIZE; ++j)
+        {
+            // Check if the current square is part of the attack set (e.g., valid target square)
+            if (isBitSet(attackSet, j)) {
 
-            rookBlockers.push_back(generateBlockers(rookMasks[square]));
-
-        }
-
-
-        generatePawnMoves(whitePawnMoves, whitePawnCaptures, true);
-        generatePawnMoves(blackPawnMoves, blackPawnCaptures, false);
-
-        initRookAttacks();
-        initBishopAttacks();
-
-        generateRectangularLookup(rectangularLookup);
-    }
-
-    vector<Bitboard> BB_utils::generateBlockers(Bitboard attackSet) {
-        vector<Bitboard> blockers;
-        int count = 0;
-
-
-        for (int i = 0; i < BOARD_SIZE; ++i) {
-            if (isBitSet(attackSet, i)) {
-                ++count;
-            }
-        }
-
-        int combinations = 1 << count;
-
-        for (int i = 0; i < combinations; ++i) {
-            Bitboard blockerSet = 0ULL;
-            int bitIndex = 0;
-            for (int j = 0; j < BOARD_SIZE; ++j) {
-                if (isBitSet(attackSet, j)) {
-                    if (i & (1 << bitIndex)) {
-                        setBit(blockerSet, j);
-                    }
-                    ++bitIndex;
+                // Check if the current bit in 'i' corresponds to a blocker at position 'j'
+                // 'i' represents a combination of blocker positions encoded as bits
+                if (i & (1 << bitIndex))
+                {
+                    // Set the bit in 'blockerSet' at position 'j'
+                    setBit(blockerSet, j);
                 }
+
+                // Move to the next bit in the combination 'i'
+                ++bitIndex;
             }
-            blockers.push_back(blockerSet);
         }
 
-        return blockers;
+        // Add the current blocker set to the list of all possible blocker sets
+        blockers.push_back(blockerSet);
     }
+
+    return blockers;
+}
 
     Bitboard BB_utils::generateRectangularMask(int square1, int square2) {
     Bitboard mask = 0ULL;
