@@ -157,7 +157,7 @@ void MoveGenerator::fullMovesList(Position &pos, MoveList &moveList)
     if (checks < 2)
     {
         // pin generation for normal pieces (quiets and captures) and normal pins for pawns (quiet and captures) (without enpassant)
-        Bitboard pins = getPinners(pos, pos.STM, moveList, checksAttacks == 0 ? MAX : checkTargets, checks);
+        Bitboard pins = getPinners(pos, pos.STM, moveList, checks);
 
         // if check it is bb with checking piece ELSE its full bitboard of enemies so it doesnt mess in pins only for one checking piece tho
         Bitboard captureTargets = singleCheckIndex == NO_SQUARE ? MAX : 1ULL << singleCheckIndex;
@@ -263,7 +263,7 @@ void MoveGenerator::fullCapturesList(Position &pos, MoveList &moveList)
     if (checks < 2)
     {
         // pin generation for normal pieces (quiets and captures) and normal pins for pawns (quiet and captures) (without enpassant)
-        Bitboard pins = getPinners(pos, pos.STM, moveList, checksAttacks == 0 ? MAX : checkTargets, checks);
+        Bitboard pins = getPinners(pos, pos.STM, moveList, checks);
 
         // if check it is bb with checking piece ELSE its full bitboard of enemies so it doesnt mess in pins only for one checking piece tho
         Bitboard captureTargets = singleCheckIndex == 100 ? MAX : 1ULL << singleCheckIndex;
@@ -487,56 +487,60 @@ Bitboard MoveGenerator::getSideAttacks(Position &pos, bool white, bool forKingMo
     return attacks;
 }
 
-Bitboard MoveGenerator::getPinners(Position &pos, bool white, MoveList &moveList, Bitboard tar, int checks)
+Bitboard MoveGenerator::getPinners(Position &pos, bool white, MoveList &moveList, int checks)
 {
-    Bitboard allPinned = 0;                                                    // returned bb with all pinned pieces for side
-    int kingIndex = LSB(pos.piecesBitboards[white ? WHITE_KING : BLACK_KING]); // index of king
+    // Returned bb with all pinned pieces for side
+    Bitboard allPinned = 0;
 
-    // attacks from king rook shape intersect with allies
+    // Index of king
+    int kingIndex = LSB(pos.piecesBitboards[white ? WHITE_KING : BLACK_KING]);
+
+    // Attacks from king rook shape intersect with allies
     Bitboard kingRooksAttacks = BBManager.rookMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[kingIndex], BBManager.rooksMagics[kingIndex], BBManager.rookBits[kingIndex])] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
 
-    // new attacks omitting intersections
+    // New attacks omitting intersections
     Bitboard pinners = BBManager.rookMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] ^ kingRooksAttacks) & BBManager.rookMasks[kingIndex], BBManager.rooksMagics[kingIndex], BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[white ? BLACK_ROOK : WHITE_ROOK] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN]);
 
-    // attacks from king bishop shape intersect with allies
+    // Attacks from king bishop shape intersect with allies
     Bitboard kingsBishopAttacks = BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[kingIndex], BBManager.bishopsMagics[kingIndex], BBManager.bishopBits[kingIndex])] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
 
-    // new attacks omitting intersections
+    // New attacks omitting intersections
     pinners |= BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] ^ kingsBishopAttacks) & BBManager.bishopMasks[kingIndex], BBManager.bishopsMagics[kingIndex], BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[white ? BLACK_BISHOP : WHITE_BISHOP] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN]);
 
-    while (pinners) // loop through all PINNERS
+    // Loop through all PINNERS
+    while (pinners)
     {
-        int pinnerIndex = popLSB(pinners); // Get index of pinner
+        // Get index of pinner
+        int pinnerIndex = popLSB(pinners);
 
-        // get lane of pin thorugh rectangular lookup
+        // Get lane of pin thorugh rectangular lookup
         Bitboard bbPinned = BBManager.rectangularLookup[pinnerIndex][kingIndex] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
 
         if (bbPinned == 0) // safety check for position where you check king but intersect with ally on other side
             continue;      // example rnbqkbnr/ppp1pppp/8/3p4/Q1P5/8/PP1PPPPP/RNB1KBNR b KQkq - 1 2 check from a4 but intersection on f7
 
-        // pop index of lane to get pinned piece eg  lane: 1 1 1 1   &   piece in lane: 0 0 1 0  =  result 0 0 1 0
-        // there can only be ONE PIECE in lane because in bbPinned we check for enemies so allies are omitted
+
+        // Pop index of lane to get pinned piece eg  lane: 1 1 1 1   &   piece in lane: 0 0 1 0  =  result 0 0 1 0
+        // There can only be ONE PIECE in lane because in bbPinned we check for enemies so allies are omitted
         int pinnedIndex = LSB(bbPinned);
 
-        // we add pinned index to all pinned bb
+        // We add pinned index to all pinned bb
         setBit(allPinned, pinnedIndex);
 
+        // We cannot move pinned piece if we are in check
         if (checks > 0)
             continue;
 
-        // get target without pinner
+        // Get target without pinner
         Bitboard target = BBManager.rectangularLookup[pinnerIndex][kingIndex];
 
-        // add pinner to bitboard
+        // Add pinner to bitboard
         setBit(target, pinnerIndex);
 
-        // combine it with check bb
-        target &= tar;
-
-        // get piecetype of pin
+        // Get piecetype of pin
         int pieceType = pos.piecesArray[pinnedIndex];
 
-        // movegen depending on piece
+        // Movegen depending on piece
         switch (pieceType)
         {
         case WHITE_PAWN:

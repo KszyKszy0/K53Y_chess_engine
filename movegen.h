@@ -40,7 +40,7 @@ class MoveGenerator
     void generateKingsMoves(Position& pos, MoveList& moveList, Bitboard target, bool white, int checks);
 
     //Returns Bitboard containing all pinned pieces
-    Bitboard getPinners(Position& pos, bool white, MoveList& moveList, Bitboard target, int checks);
+    Bitboard getPinners(Position& pos, bool white, MoveList& moveList, int checks);
 
 
     //Adds pawn moves that are not captures can be promotions
