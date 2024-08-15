@@ -167,22 +167,26 @@ void MoveGenerator::fullMovesList(Position &pos, MoveList &moveList)
 
         int enPassantSquare = pos.stateInfoList[pos.stateCounter].enPassantSquare;
 
-        // only check en passant if its possible
+        // Only check en passant if its possible
         if (enPassantSquare != 0)
         {
+            //Copy check targets with possibly added enpassantSquare
             Bitboard enpassantCheckCapture = checkTargets;
-            if ((captureTargets & 1ULL << singleCheckIndex) & (pos.piecesBitboards[WHITE_PAWN] | pos.piecesBitboards[BLACK_PAWN]))
+
+            //If piece that is checking us is pawn
+            if ((1ULL << singleCheckIndex) & (pos.piecesBitboards[WHITE_PAWN] | pos.piecesBitboards[BLACK_PAWN]))
             {
+                //Set new target bit to the enpassantSquare so we can capture that pawn
                 setBit(enpassantCheckCapture, enPassantSquare);
             }
             if (pos.STM)
             {
-                // enpassant moves and enpassant pins check targets dont have checking piece bcoz enpassant will never capture it
+                // Enpassant moves and enpassant pins check targets dont have checking piece bcoz enpassant will never capture it
                 addPawnWhiteEnpassant(moveList, pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : enpassantCheckCapture, enPassantSquare);
             }
             else
             {
-                // enpassant moves and enpassant pins check targets dont have checking piece bcoz enpassant will never capture it
+                // Enpassant moves and enpassant pins check targets dont have checking piece bcoz enpassant will never capture it
                 addPawnBlackEnpassant(moveList, pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : enpassantCheckCapture, enPassantSquare);
             }
         }
@@ -639,30 +643,45 @@ void MoveGenerator::addPawnWhiteCaptures(int startSquare, MoveList &moveList, Po
 // enpassant moves and pins
 void MoveGenerator::addPawnWhiteEnpassant(MoveList &moveList, Position &pos, Bitboard target, int enPassantSquare)
 {
+    //Get pawns bitboard
     Bitboard iterated = pos.piecesBitboards[WHITE_PAWN];
+
+    //Loop through pawns
     while (iterated)
     {
+        //Get index of pawn
         int startSquare = popLSB(iterated);
 
+        //If enpassantSquare intersects with pawns attacks from square and target which is [NO_PIECE] or checkEvasions plus enpassantCapture
         if (((1ULL << enPassantSquare) & BBManager.whitePawnCaptures[startSquare] & target) == (1ULL << enPassantSquare))
         {
+            //It holds attacks from king using queen movements so we can check if we are in check after removing pawns
             Bitboard enpassantAttacks = 0;
+
+            //Init index of taken pawn
             int enpassantTakenIndex = enPassantSquare - 8;
 
-            // remove pawn and enpassant target to see if its legal
+            // Remove pawn and enpassant target to see if its legal
             Bitboard removingPawns = 1ULL << startSquare | 1ULL << enpassantTakenIndex;
 
+            // Get king index
             int kingIndex = LSB(pos.piecesBitboards[WHITE_KING]);
 
-            // try if we will be in check
-            // target must include target square bcoz rnbqkbnr/1pp2ppp/p7/3pP3/8/8/PPPKPPPP/RNBQ1BNR w kq d6 0 4 enpassant still blocks check
+            // Try if we will be in check
+            // Target must include target square because rnbqkbnr/1pp2ppp/p7/3pP3/8/8/PPPKPPPP/RNBQ1BNR w kq d6 0 4 enpassant still blocks check
+            //                                                                            //Normal blockers             WITH  enPassantSquare     INTERSECT   mask of piece       REMOVING moved pawns
+            //                                                                                                        (target after made move)                                    (the one that took and the one that was taken)
             enpassantAttacks |= BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare) & BBManager.bishopMasks[kingIndex] & ~removingPawns, BBManager.bishopsMagics[kingIndex], BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[BLACK_BISHOP] | pos.piecesBitboards[BLACK_QUEEN]);
             enpassantAttacks |= BBManager.rookMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare) & BBManager.rookMasks[kingIndex] & ~removingPawns, BBManager.rooksMagics[kingIndex], BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[BLACK_ROOK] | pos.piecesBitboards[BLACK_QUEEN]);
 
-            // if we are good to go gen moves
+            // If we are not in check after removing pawns
+            // we can generate moves
             if (enpassantAttacks == 0)
             {
+                //Bitboard with enpassantSquare
                 Bitboard possibleEnPassant = BBManager.whitePawnCaptures[startSquare] & (1ULL << enPassantSquare);
+
+                //Adding moves to list
                 addMoves(startSquare, possibleEnPassant, moveList, pos, EN_PASSANT);
             }
         }
@@ -729,29 +748,45 @@ void MoveGenerator::addPawnBlackCaptures(int startSquare, MoveList &moveList, Po
 // enpassant moves and pins
 void MoveGenerator::addPawnBlackEnpassant(MoveList &moveList, Position &pos, Bitboard target, int enPassantSquare)
 {
+    //Get pawns bitboard
     Bitboard iterated = pos.piecesBitboards[BLACK_PAWN];
+
+    //Loop through pawns
     while (iterated)
     {
+        //Get index of pawn
         int startSquare = popLSB(iterated);
 
+        //If enpassantSquare intersects with pawns attacks from square and target which is [NO_PIECE] or checkEvasions plus enpassantCapture
         if (((1ULL << enPassantSquare) & BBManager.blackPawnCaptures[startSquare] & target) == (1ULL << enPassantSquare))
         {
+            //It holds attacks from king using queen movements so we can check if we are in check after removing pawns
             Bitboard enpassantAttacks = 0;
+
+            //Init index of taken pawn
             int enpassantTakenIndex = enPassantSquare + 8;
 
-            // remove pawn and enpassant target to see if its legal
+            // Remove pawn and enpassant target to see if its legal
             Bitboard removingPawns = 1ULL << startSquare | 1ULL << enpassantTakenIndex;
 
+            // Get king index
             int kingIndex = LSB(pos.piecesBitboards[BLACK_KING]);
 
-            // try if we will be in check
-            // target must include target square bcoz rnbqkbnr/1pp2ppp/p7/3pP3/8/8/PPPKPPPP/RNBQ1BNR w kq d6 0 4 enpassant still blocks check
+            // Try if we will be in check
+            // Target must include target square because rnbqkbnr/1pp2ppp/p7/3pP3/8/8/PPPKPPPP/RNBQ1BNR w kq d6 0 4 enpassant still blocks check
+            //                                                                            //Normal blockers             WITH  enPassantSquare     INTERSECT   mask of piece       REMOVING moved pawns
+            //                                                                                                        (target after made move)                                    (the one that took and the one that was taken)
             enpassantAttacks |= BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare) & BBManager.bishopMasks[kingIndex] & ~removingPawns, BBManager.bishopsMagics[kingIndex], BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[WHITE_BISHOP] | pos.piecesBitboards[WHITE_QUEEN]);
             enpassantAttacks |= BBManager.rookMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare) & BBManager.rookMasks[kingIndex] & ~removingPawns, BBManager.rooksMagics[kingIndex], BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[WHITE_ROOK] | pos.piecesBitboards[WHITE_QUEEN]);
 
+            // If we are not in check after removing pawns
+            // we can generate moves
             if (enpassantAttacks == 0)
             {
+                //Bitboard with enpassantSquare
                 Bitboard possibleEnPassant = BBManager.blackPawnCaptures[startSquare] & (1ULL << enPassantSquare);
+
+                //Adding moves to list
                 addMoves(startSquare, possibleEnPassant, moveList, pos, EN_PASSANT);
             }
         }
