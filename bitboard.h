@@ -291,6 +291,7 @@ int bishopBits[64]=
     5, 5, 7, 7, 7, 7, 5, 5,
     5, 5, 5, 5, 5, 5, 5, 5,
     6, 5, 5, 5, 5, 5, 5, 6 };
+    
 //End of magics and bits shifts
 
 };

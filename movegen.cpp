@@ -14,14 +14,18 @@ void MoveGenerator::generatePawnMoves(Position &pos, Bitboard target, MoveList &
         Bitboard iterated = pos.piecesBitboards[WHITE_PAWN];
         while (iterated)
         {
-            int index = popLSB(iterated); // Get pawn index
-            if (!isBitSet(pins, index))   // Pin moves are generated in getPinners
+            // Get pawn index
+            int index = popLSB(iterated);
+
+            // Pin moves are generated in getPinners
+            if (!isBitSet(pins, index))
             {
-                if (type == 0) // If only quiets
+                // If only quiets
+                if (type == 0)
                 {
                     addPawnWhiteQuiet(index, moveList, pos, target);
                 }
-                else
+                else //Captures only
                 {
                     addPawnWhiteCaptures(index, moveList, pos, target);
                 }
@@ -34,14 +38,18 @@ void MoveGenerator::generatePawnMoves(Position &pos, Bitboard target, MoveList &
         Bitboard iterated = pos.piecesBitboards[BLACK_PAWN];
         while (iterated)
         {
-            int index = popLSB(iterated); // Get pawn index
-            if (!isBitSet(pins, index))   // Pin moves are generated in getPinners
+            // Get pawn index
+            int index = popLSB(iterated);
+
+            // Pin moves are generated in getPinners
+            if (!isBitSet(pins, index))
             {
-                if (type == 0) // If only quiets
+                // If only quiets
+                if (type == 0)
                 {
                     addPawnBlackQuiet(index, moveList, pos, target);
                 }
-                else
+                else //Captures only
                 {
                     addPawnBlackCaptures(index, moveList, pos, target);
                 }
@@ -50,13 +58,21 @@ void MoveGenerator::generatePawnMoves(Position &pos, Bitboard target, MoveList &
     }
 }
 
-void MoveGenerator::generateTypeMoves(Position &pos, Bitboard target, MoveList &moveList, Bitboard whatCanMove)
+//Go through side bitboard and create moves for each piece
+void MoveGenerator::generateMoves(Position &pos, Bitboard target, MoveList &moveList, Bitboard whatCanMove)
 {
+    //What can move is bitboard without pinned pieces
     while (whatCanMove)
     {
+
+        //Get index of piece
         int index = popLSB(whatCanMove);
 
+        //Check type of piece
         int pieceType = pos.piecesArray[index];
+
+
+        //Create moves based on that piece movement
 
         if ((pieceType == WHITE_KNIGHT) || (pieceType == BLACK_KNIGHT))
             addKnightsMoves(index, moveList, pos, target);
@@ -79,17 +95,9 @@ void MoveGenerator::generateTypeMoves(Position &pos, Bitboard target, MoveList &
 Bitboard MoveGenerator::howManyAttacks(Position &pos, bool white, int index)
 {
     Bitboard attacks = 0;
-    // combine all pieces with its attacks from lookup tables for all pieces that attack square
+    // Combine all pieces with its attacks from lookup tables for all pieces that attack square
     //"superpiece" at selected index used for check detection
-    if (!white)
-    {
-        attacks |= BBManager.whitePawnCaptures[index] & pos.piecesBitboards[BLACK_PAWN];
-        attacks |= BBManager.knightMoves[index] & pos.piecesBitboards[BLACK_KNIGHT];
-        attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index], BBManager.bishopsMagics[index], BBManager.bishopBits[index])] & (pos.piecesBitboards[BLACK_BISHOP] | pos.piecesBitboards[BLACK_QUEEN]);
-        attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index], BBManager.rooksMagics[index], BBManager.rookBits[index])] & (pos.piecesBitboards[BLACK_ROOK] | pos.piecesBitboards[BLACK_QUEEN]);
-        attacks |= BBManager.kingMoves[index] & pos.piecesBitboards[BLACK_KING];
-    }
-    else
+    if (white)
     {
         attacks |= BBManager.blackPawnCaptures[index] & pos.piecesBitboards[WHITE_PAWN];
         attacks |= BBManager.knightMoves[index] & pos.piecesBitboards[WHITE_KNIGHT];
@@ -97,48 +105,51 @@ Bitboard MoveGenerator::howManyAttacks(Position &pos, bool white, int index)
         attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index], BBManager.rooksMagics[index], BBManager.rookBits[index])] & (pos.piecesBitboards[WHITE_ROOK] | pos.piecesBitboards[WHITE_QUEEN]);
         attacks |= BBManager.kingMoves[index] & pos.piecesBitboards[WHITE_KING];
     }
+    else
+    {
+        attacks |= BBManager.whitePawnCaptures[index] & pos.piecesBitboards[BLACK_PAWN];
+        attacks |= BBManager.knightMoves[index] & pos.piecesBitboards[BLACK_KNIGHT];
+        attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index], BBManager.bishopsMagics[index], BBManager.bishopBits[index])] & (pos.piecesBitboards[BLACK_BISHOP] | pos.piecesBitboards[BLACK_QUEEN]);
+        attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index], BBManager.rooksMagics[index], BBManager.rookBits[index])] & (pos.piecesBitboards[BLACK_ROOK] | pos.piecesBitboards[BLACK_QUEEN]);
+        attacks |= BBManager.kingMoves[index] & pos.piecesBitboards[BLACK_KING];
+    }
     return attacks;
 }
 
 void MoveGenerator::fullMovesList(Position &pos, MoveList &moveList)
 {
-    // moveList that will be used for all substeps
-    // preparations
+    // MoveList that will be used for all substeps
 
-    // index of king
+    // Index of king
     int kingIndex = LSB(pos.piecesBitboards[pos.STM ? WHITE_KING : BLACK_KING]);
 
-    // bitboard of all pieces that attack square
+    // Bitboard of all pieces that attack square
     Bitboard checksAttacks = howManyAttacks(pos, !pos.STM, kingIndex);
 
     // Amount of checks; >2 skips most of generation
     int checks = popCount(checksAttacks);
 
-    // rect lookup without the checking piece
+    // Rect lookup without the checking piece
     Bitboard checkTargets = 0;
 
-    // index of checking piece
-    int singleCheckIndex = 100;
+    // Index of checking piece
+    int singleCheckIndex = NO_SQUARE;
 
+    // We can only make non-king moves if there is one check
     if (checks == 1)
     {
-        // get index of checking piece
+        // Get index of checking piece
         singleCheckIndex = LSB(checksAttacks);
-        // update check rect lookup
+
+        // Update check target with rect lookup
         checkTargets |= BBManager.rectangularLookup[kingIndex][singleCheckIndex];
         // setBit(checkTargets,index);
     }
 
-    // if(checksAttacks == 0)
-    // {
-    //     checkTargets = pos.piecesBitboards[NO_PIECE]; //maybe dangerous because of pawn check ->empty rectangular lookup
-    // }
-
-    // this should be used for king only!!!! attacks on board without king
-
+    // This should be used for king only!!!! attacks on board without king
     Bitboard enemyAttacks = getSideAttacks(pos, !pos.STM, true); // Get enemy attacks
 
-    // kings Moves
+    // Kings Moves
     generateKingsMoves(pos, moveList, ~enemyAttacks, pos.STM, checks);
 
     // Check targets is for quiets
@@ -149,7 +160,7 @@ void MoveGenerator::fullMovesList(Position &pos, MoveList &moveList)
         Bitboard pins = getPinners(pos, pos.STM, moveList, checksAttacks == 0 ? MAX : checkTargets, checks);
 
         // if check it is bb with checking piece ELSE its full bitboard of enemies so it doesnt mess in pins only for one checking piece tho
-        Bitboard captureTargets = singleCheckIndex == 100 ? MAX : 1ULL << singleCheckIndex;
+        Bitboard captureTargets = singleCheckIndex == NO_SQUARE ? MAX : 1ULL << singleCheckIndex;
 
         // if there is no check we set it to enemies pieces for captures
         captureTargets &= pos.STM ? pos.piecesBitboards[BLACK_PIECES] : pos.piecesBitboards[WHITE_PIECES];
@@ -179,25 +190,25 @@ void MoveGenerator::fullMovesList(Position &pos, MoveList &moveList)
         if (pos.STM == WHITE)
         {
             // quiets
-            //  generateTypeMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
+            //  generateMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
             generatePawnMoves(pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets, moveList, 0, pins);
 
-            generateTypeMoves(pos, checksAttacks == 0 ? (MAX & ~pos.piecesBitboards[WHITE_PIECES]) : (captureTargets | checkTargets), moveList, pos.piecesBitboards[WHITE_PIECES] & ~pins);
+            generateMoves(pos, checksAttacks == 0 ? (MAX & ~pos.piecesBitboards[WHITE_PIECES]) : (captureTargets | checkTargets), moveList, pos.piecesBitboards[WHITE_PIECES] & ~pins);
 
             // captures
-            //  generateTypeMoves(pos,captureTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
+            //  generateMoves(pos,captureTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
             generatePawnMoves(pos, captureTargets, moveList, 1, pins);
         }
         else
         {
             // quiets
-            //  generateTypeMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
+            //  generateMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
             generatePawnMoves(pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets, moveList, 0, pins);
 
-            generateTypeMoves(pos, checksAttacks == 0 ? (MAX & ~pos.piecesBitboards[BLACK_PIECES]) : (captureTargets | checkTargets), moveList, pos.piecesBitboards[BLACK_PIECES] & ~pins);
+            generateMoves(pos, checksAttacks == 0 ? (MAX & ~pos.piecesBitboards[BLACK_PIECES]) : (captureTargets | checkTargets), moveList, pos.piecesBitboards[BLACK_PIECES] & ~pins);
 
             // captures
-            //  generateTypeMoves(pos,captureTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
+            //  generateMoves(pos,captureTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
             generatePawnMoves(pos, captureTargets, moveList, 1, pins);
         }
     }
@@ -285,25 +296,25 @@ void MoveGenerator::fullCapturesList(Position &pos, MoveList &moveList)
         if (pos.STM == WHITE)
         {
             // quiets
-            //  generateTypeMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
+            //  generateMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
             //  generatePawnMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,0,pins);
 
-            generateTypeMoves(pos, captureTargets, moveList, pos.piecesBitboards[WHITE_PIECES] & ~pins);
+            generateMoves(pos, captureTargets, moveList, pos.piecesBitboards[WHITE_PIECES] & ~pins);
 
             // captures
-            //  generateTypeMoves(pos,captureTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
+            //  generateMoves(pos,captureTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
             generatePawnMoves(pos, captureTargets, moveList, 1, pins);
         }
         else
         {
             // quiets
-            //  generateTypeMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
+            //  generateMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
             //  generatePawnMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,0,pins);
 
-            generateTypeMoves(pos, captureTargets, moveList, pos.piecesBitboards[BLACK_PIECES] & ~pins);
+            generateMoves(pos, captureTargets, moveList, pos.piecesBitboards[BLACK_PIECES] & ~pins);
 
             // captures
-            //  generateTypeMoves(pos,captureTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
+            //  generateMoves(pos,captureTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
             generatePawnMoves(pos, captureTargets, moveList, 1, pins);
         }
     }
