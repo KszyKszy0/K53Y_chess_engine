@@ -128,6 +128,7 @@ void MoveGenerator::fullMovesList(Position &pos, MoveList &moveList)
 
     // Amount of checks; >2 skips most of generation
     int checks = popCount(checksAttacks);
+    moveList.checks = checks;
 
     // Rect lookup without the checking piece
     Bitboard checkTargets = 0;
@@ -165,23 +166,68 @@ void MoveGenerator::fullMovesList(Position &pos, MoveList &moveList)
         // if there is no check we set it to enemies pieces for captures
         captureTargets &= pos.STM ? pos.piecesBitboards[BLACK_PIECES] : pos.piecesBitboards[WHITE_PIECES];
 
+
+
+
+
+        if (pos.STM == WHITE)
+        {
+            // Quiets pawns
+            generatePawnMoves(pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets, moveList, 0, pins);
+
+            // All moves for other pieces
+            generateMoves(pos, checksAttacks == 0 ? (MAX & ~pos.piecesBitboards[WHITE_PIECES]) : (captureTargets | checkTargets), moveList, pos.piecesBitboards[WHITE_PIECES] & ~pins);
+
+            // Capture pawns
+            generatePawnMoves(pos, captureTargets, moveList, 1, pins);
+        }
+        else
+        {
+            // Quiets pawns
+            generatePawnMoves(pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets, moveList, 0, pins);
+
+            // All moves for other pieces
+            generateMoves(pos, checksAttacks == 0 ? (MAX & ~pos.piecesBitboards[BLACK_PIECES]) : (captureTargets | checkTargets), moveList, pos.piecesBitboards[BLACK_PIECES] & ~pins);
+
+            // Capture pawns
+            generatePawnMoves(pos, captureTargets, moveList, 1, pins);
+        }
+
+        // Check enpassantSquare
         int enPassantSquare = pos.stateInfoList[pos.stateCounter].enPassantSquare;
 
-        // Only check en passant if its possible
+         // Only check en passant if its possible
         if (enPassantSquare != 0)
         {
+            //If we can make enpassant capture and we are in one check that means we are checked by pawn
+            //OR pawn revealed attack with push for example bishop
+            //If it was pawn it means we need to add enpassantSquare to check evasions for pawn movegen
+            //If it is any other piece we simply add evasions to check
+
             //Copy check targets with possibly added enpassantSquare
             Bitboard enpassantCheckCapture = checkTargets;
 
-            //If piece that is checking us is pawn
-            if ((1ULL << singleCheckIndex) & (pos.piecesBitboards[WHITE_PAWN] | pos.piecesBitboards[BLACK_PAWN]))
+            //We can only take care of pawn check with enpassant
+            //If enpassant is legal and we are in check
+            //We can only make enpassant if that pawn is checking us
+            if (checks == 1)
             {
-                //Set new target bit to the enpassantSquare so we can capture that pawn
-                setBit(enpassantCheckCapture, enPassantSquare);
+                //If piece that is checking us is pawn
+                if ((1ULL << singleCheckIndex) & (pos.piecesBitboards[WHITE_PAWN] | pos.piecesBitboards[BLACK_PAWN]))
+                {
+                    //Set new target bit to the enpassantSquare so we can capture that pawn
+                    setBit(enpassantCheckCapture, enPassantSquare);
+                }else
+                {
+                    //If we are checked by something that is not pawn we cannot make enpassant to make evasions
+                    *moveList.cur++ = 0;
+                    return;
+                }
             }
             if (pos.STM)
             {
                 // Enpassant moves and enpassant pins check targets dont have checking piece bcoz enpassant will never capture it
+                //                                 if there are no checks  all empty squares         ELSE checkEvasions + pawn that checks us if its pawn!!
                 addPawnWhiteEnpassant(moveList, pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : enpassantCheckCapture, enPassantSquare);
             }
             else
@@ -190,34 +236,11 @@ void MoveGenerator::fullMovesList(Position &pos, MoveList &moveList)
                 addPawnBlackEnpassant(moveList, pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : enpassantCheckCapture, enPassantSquare);
             }
         }
-
-        if (pos.STM == WHITE)
-        {
-            // quiets
-            //  generateMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
-            generatePawnMoves(pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets, moveList, 0, pins);
-
-            generateMoves(pos, checksAttacks == 0 ? (MAX & ~pos.piecesBitboards[WHITE_PIECES]) : (captureTargets | checkTargets), moveList, pos.piecesBitboards[WHITE_PIECES] & ~pins);
-
-            // captures
-            //  generateMoves(pos,captureTargets,moveList,pos.piecesBitboards[WHITE_PIECES] &~ pins);
-            generatePawnMoves(pos, captureTargets, moveList, 1, pins);
-        }
-        else
-        {
-            // quiets
-            //  generateMoves(pos,checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
-            generatePawnMoves(pos, checksAttacks == 0 ? pos.piecesBitboards[NO_PIECE] : checkTargets, moveList, 0, pins);
-
-            generateMoves(pos, checksAttacks == 0 ? (MAX & ~pos.piecesBitboards[BLACK_PIECES]) : (captureTargets | checkTargets), moveList, pos.piecesBitboards[BLACK_PIECES] & ~pins);
-
-            // captures
-            //  generateMoves(pos,captureTargets,moveList,pos.piecesBitboards[BLACK_PIECES] &~ pins);
-            generatePawnMoves(pos, captureTargets, moveList, 1, pins);
-        }
     }
-    moveList.checks = checks;
+
+
     *moveList.cur++ = 0;
+    return;
 }
 
 void MoveGenerator::fullCapturesList(Position &pos, MoveList &moveList)
@@ -248,11 +271,6 @@ void MoveGenerator::fullCapturesList(Position &pos, MoveList &moveList)
         checkTargets |= BBManager.rectangularLookup[kingIndex][singleCheckIndex];
         // setBit(checkTargets,index);
     }
-
-    // if(checksAttacks == 0)
-    // {
-    //     checkTargets = pos.piecesBitboards[NO_PIECE]; //maybe dangerous because of pawn check ->empty rectangular lookup
-    // }
 
     // this should be used for king only!!!! attacks on board without king
 
