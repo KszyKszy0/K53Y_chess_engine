@@ -20,7 +20,10 @@ class Position
     Bitboard piecesBitboards[16];
 
     //Creates position from FEN
-    void parseFEN(string fen, Bitboard (&bitboards)[16]);
+    void parseFEN(string fen);
+
+    //Gets FEN from position
+    std::string getFEN();
 
     Zobrist zobrist;
 

@@ -75,6 +75,31 @@ inline int castlingRights(std::string txt)
     return value;
 }
 
+// Initializing castling rights from fen string
+inline std::string castlingRightsText(int rights)
+{
+    // Default value = 0
+    std::string rightsText = "";
+
+    // For each char we add special number to the value
+    // that corresponds to certain castling type
+    // 8 => White short
+    // 4 => White long
+    // 2 => Black short
+    // 1 => Black long
+    if(rights & 8)
+        rightsText += "K";
+    if(rights & 4)
+        rightsText += "Q";
+    if(rights & 2)
+        rightsText += "k";
+    if(rights & 1)
+        rightsText += "q";
+
+    return rightsText;
+}
+
+
 // Print move in uci form
 inline void printMove(Move m)
 {

@@ -144,12 +144,12 @@ void core::isReady() {
 }
 
 void core::newGame(){
-    pos.parseFEN(startingFen,pos.piecesBitboards);
+    pos.parseFEN(startingFen);
     positionCounter = 0;
 }
 
 void core::newGame(string FEN){
-    pos.parseFEN(FEN,pos.piecesBitboards);
+    pos.parseFEN(FEN);
     positionCounter = 0;
 }
 

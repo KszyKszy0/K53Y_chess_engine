@@ -8,13 +8,13 @@
 
 using namespace std;
 
-void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
+void Position::parseFEN(string fen)
 {
 
     //reseting bitboards
     for (int i = 0; i < 16; i++)
     {
-        bitboards[i] = 0ULL;
+        piecesBitboards[i] = 0ULL;
     }
 
     istringstream ss(fen);
@@ -22,7 +22,6 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
     int halfmove, fullmove;
 
     ss >> board >> turn >> castling >> enPassant >> halfmove >> fullmove;
-    // cout<<board<<endl<<turn<<endl<<castling<<endl<<halfmove<<endl<<fULLlmove<<endl;
 
     int rank = 7;
     int file = 0;
@@ -57,62 +56,62 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
             switch (ch)
             {
             case 'P':
-                setBit(bitboards[WHITE_PAWN], position);
+                setBit(piecesBitboards[WHITE_PAWN], position);
                 piecesArray[position]=WHITE_PAWN;
                 positionHash ^= zobrist.zobristTable[WHITE_PAWN*64+position];
                 break;
             case 'N':
-                setBit(bitboards[WHITE_KNIGHT], position);
+                setBit(piecesBitboards[WHITE_KNIGHT], position);
                 piecesArray[position]=WHITE_KNIGHT;
                 positionHash ^= zobrist.zobristTable[WHITE_KNIGHT*64+position];
                 break;
             case 'B':
-                setBit(bitboards[WHITE_BISHOP], position);
+                setBit(piecesBitboards[WHITE_BISHOP], position);
                 piecesArray[position]=WHITE_BISHOP;
                 positionHash ^= zobrist.zobristTable[WHITE_BISHOP*64+position];
                 break;
             case 'R':
-                setBit(bitboards[WHITE_ROOK], position);
+                setBit(piecesBitboards[WHITE_ROOK], position);
                 piecesArray[position]=WHITE_ROOK;
                 positionHash ^= zobrist.zobristTable[WHITE_ROOK*64+position];
                 break;
             case 'Q':
-                setBit(bitboards[WHITE_QUEEN], position);
+                setBit(piecesBitboards[WHITE_QUEEN], position);
                 piecesArray[position]=WHITE_QUEEN;
                 positionHash ^= zobrist.zobristTable[WHITE_QUEEN*64+position];
                 break;
             case 'K':
-                setBit(bitboards[WHITE_KING], position);
+                setBit(piecesBitboards[WHITE_KING], position);
                 piecesArray[position]=WHITE_KING;
                 positionHash ^= zobrist.zobristTable[WHITE_KING*64+position];
                 break;
             case 'p':
-                setBit(bitboards[BLACK_PAWN], position);
+                setBit(piecesBitboards[BLACK_PAWN], position);
                 positionHash ^= zobrist.zobristTable[BLACK_PAWN*64+position];
                 piecesArray[position]=BLACK_PAWN;
                 break;
             case 'n':
-                setBit(bitboards[BLACK_KNIGHT], position);
+                setBit(piecesBitboards[BLACK_KNIGHT], position);
                 positionHash ^= zobrist.zobristTable[BLACK_KNIGHT*64+position];
                 piecesArray[position]=BLACK_KNIGHT;
                 break;
             case 'b':
-                setBit(bitboards[BLACK_BISHOP], position);
+                setBit(piecesBitboards[BLACK_BISHOP], position);
                 positionHash ^= zobrist.zobristTable[BLACK_BISHOP*64+position];
                 piecesArray[position]=BLACK_BISHOP;
                 break;
             case 'r':
-                setBit(bitboards[BLACK_ROOK], position);
+                setBit(piecesBitboards[BLACK_ROOK], position);
                 positionHash ^= zobrist.zobristTable[BLACK_ROOK*64+position];
                 piecesArray[position]=BLACK_ROOK;
                 break;
             case 'q':
-                setBit(bitboards[BLACK_QUEEN], position);
+                setBit(piecesBitboards[BLACK_QUEEN], position);
                 positionHash ^= zobrist.zobristTable[BLACK_QUEEN*64+position];
                 piecesArray[position]=BLACK_QUEEN;
                 break;
             case 'k':
-                setBit(bitboards[BLACK_KING], position);
+                setBit(piecesBitboards[BLACK_KING], position);
                 positionHash ^= zobrist.zobristTable[BLACK_KING*64+position];
                 piecesArray[position]=BLACK_KING;
                 break;
@@ -139,17 +138,17 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
     {
         if (i < 6)
         {
-            bitboards[WHITE_PIECES] |= bitboards[i];
+            piecesBitboards[WHITE_PIECES] |= piecesBitboards[i];
         }
         else
         {
-            bitboards[BLACK_PIECES] |= bitboards[i];
+            piecesBitboards[BLACK_PIECES] |= piecesBitboards[i];
         }
-        bitboards[ALL_PIECES] |= bitboards[i];
+        piecesBitboards[ALL_PIECES] |= piecesBitboards[i];
     }
 
     //set bitboards[empty]
-    bitboards[NO_PIECE] = ~bitboards[ALL_PIECES];
+    piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
 
 
     //add game state to list
@@ -161,6 +160,107 @@ void Position::parseFEN(string fen, Bitboard (&bitboards)[16])
         return;
     }
     addState(nameToSquare(enPassant),castlingRights(castling),halfmove,fullmove,NO_PIECE);
+}
+
+
+std::string Position::getFEN() {
+    std::string fen = "";
+
+    // Encode the board position
+    for (int rank = 7; rank >= 0; rank--) {
+        int emptyCount = 0;
+
+        for (int file = 0; file < 8; file++)
+        {
+            int position = rank * 8 + file;
+            int piece = piecesArray[position];
+
+            if (piece == NO_PIECE) {
+                emptyCount++;
+            }
+            else
+            {
+                if (emptyCount > 0)
+                {
+                    fen += std::to_string(emptyCount);
+                    emptyCount = 0;
+                }
+
+                switch (piece)
+                {
+                    case WHITE_PAWN:   fen += 'P'; break;
+                    case WHITE_KNIGHT: fen += 'N'; break;
+                    case WHITE_BISHOP: fen += 'B'; break;
+                    case WHITE_ROOK:   fen += 'R'; break;
+                    case WHITE_QUEEN:  fen += 'Q'; break;
+                    case WHITE_KING:   fen += 'K'; break;
+                    case BLACK_PAWN:   fen += 'p'; break;
+                    case BLACK_KNIGHT: fen += 'n'; break;
+                    case BLACK_BISHOP: fen += 'b'; break;
+                    case BLACK_ROOK:   fen += 'r'; break;
+                    case BLACK_QUEEN:  fen += 'q'; break;
+                    case BLACK_KING:   fen += 'k'; break;
+                }
+            }
+        }
+
+        if (emptyCount > 0) {
+            fen += std::to_string(emptyCount);
+        }
+
+        if (rank > 0) {
+            fen += '/';
+        }
+    }
+
+    // Encode the active color (side to move)
+    fen += (STM == WHITE) ? " w " : " b ";
+
+    // Encode castling rights
+    // std::string castlingRights = "";
+
+    // if (piecesBitboards[WHITE_KING] & piecesBitboards[WHITE_ROOK] & 0x0000000000000081ULL) {
+    //     castlingRights += 'K';
+    // }
+    // if (piecesBitboards[WHITE_KING] & piecesBitboards[WHITE_ROOK] & 0x0000000000000010ULL) {
+    //     castlingRights += 'Q';
+    // }
+    // if (piecesBitboards[BLACK_KING] & piecesBitboards[BLACK_ROOK] & 0x8100000000000000ULL) {
+    //     castlingRights += 'k';
+    // }
+    // if (piecesBitboards[BLACK_KING] & piecesBitboards[BLACK_ROOK] & 0x1000000000000000ULL) {
+    //     castlingRights += 'q';
+    // }
+
+    // fen += (castlingRights.empty()) ? "-" : castlingRights;
+    std::string rights = castlingRightsText(stateInfoList[stateCounter].castlingRights);
+
+    if(rights != "")
+    {
+        fen += rights;
+    } else
+    {
+        fen += "- ";
+    }
+    fen += " ";
+
+    // Encode en passant target square
+    if(stateInfoList[stateCounter].enPassantSquare != 0)
+    {
+        fen += squareToName(stateInfoList[stateCounter].enPassantSquare);
+        fen += " ";
+    }else
+    {
+        fen += "- ";
+    }
+
+    // Encode halfmove clock
+    fen += std::to_string(stateInfoList[stateCounter].halfMove) + " ";
+
+    // Encode fullmove number
+    fen += std::to_string(stateInfoList[stateCounter].fullMove);
+
+    return fen;
 }
 
 
@@ -636,7 +736,7 @@ void Position::undoMove(Move move)
 
         if(!STM)
         {
-            //take piece hash update
+            //taken piece hash update
             positionHash ^= zobrist.zobristTable[BLACK_PAWN*64+targetSquare-8];
 
 
@@ -651,7 +751,7 @@ void Position::undoMove(Move move)
             piecesArray[targetSquare-8] = BLACK_PAWN;
         }else
         {
-            //take piece hash update
+            //taken piece hash update
             positionHash ^= zobrist.zobristTable[WHITE_PAWN*64+targetSquare+8];
 
 
