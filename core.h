@@ -38,7 +38,7 @@ public:
     // Simple perft from position that is currently set
     Bitboard perft(int depth);
 
-    
+
 
     // Uci simple commands
 
@@ -67,4 +67,7 @@ public:
 
     // Stops everything
     void quit();
+
+    //Sets time from uci
+    void setTime(int wTime, int bTime);
 };

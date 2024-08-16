@@ -178,6 +178,16 @@ void core::quit()
 void core::go()
 {
     // search.negamax(5, 0, -100000, 100000,pos.STM ? 1 : -1, moveGenerator, pos, eval);
-    search.search(pos,moveGenerator,eval);
+    search.search( pos, moveGenerator, eval);
 }
 
+void core::setTime(int wTime, int bTime)
+{
+    if(pos.STM)
+    {
+        search.timeLimit = wTime / (float)45;
+    }else
+    {
+        search.timeLimit = bTime / (float)45;
+    }
+}

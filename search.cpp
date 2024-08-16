@@ -99,6 +99,9 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     //Because its smaller than alpha
     int best = -NO_MOVE;
 
+    //We can store TT entry if we searched at least two moves and seached is being cancelled
+    int movesSearched = 0;
+
     //In case we stop search on first move from 1 ply
     //We take the first move straight away
     //It should be from TT from previous search
@@ -151,7 +154,8 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         //Undo move
         pos.undoMove(m);
 
-
+        if(ply == 0)
+            movesSearched++;
 
         //If we encounter hard time limit:
         //1. Set cancel flag so we don't store faulty entries to TT
@@ -218,7 +222,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     }
 
     //Store transposition with flag unless search is being cancelled
-    if ((depth > entry.depth) && !isCancelled)
+    if ((depth > entry.depth) && (!isCancelled || movesSearched >= 2))
     {
         pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
     }
@@ -259,7 +263,7 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
     auto start = chrono::steady_clock::now();
 
     //Currently hard limit
-    timeLimit = 5000;
+    // timeLimit = 5000;
 
     //Flag checking if search is cancelled used for
     //Not storing faulty transpositions in TT
@@ -342,7 +346,7 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
 
             //If depth was small we add time to consider more
             isCancelled = false;
-            timeLimit += 5000;
+            timeLimit += 3000;
         }
     }
 

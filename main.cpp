@@ -22,10 +22,6 @@ int main()
     string line;
     while (std::getline(std::cin, line)) {
         std::vector<string> tokens = split(line, ' ');
-        // for(string s : tokens)
-        // {
-        //     cout<<"'"<<s<<"'"<<endl;
-        // }
         if (tokens.empty()) continue;
 
         if (tokens[0] == "uci") {
@@ -55,12 +51,18 @@ int main()
                 {
                     engine.setPosition(moves);
                 }
-                // for(string s : moves)
-                // {
-                //     cout<<"'"<<s<<"'"<<endl;
-                // }
             }
         } else if (tokens[0] == "go") {
+            int wTime = 0;
+            int bTime = 0;
+            for (size_t i = 1; i < tokens.size(); ++i) {
+                if (tokens[i] == "wtime" && i + 1 < tokens.size()) {
+                    wTime = std::stoi(tokens[i + 1]);
+                } else if (tokens[i] == "btime" && i + 1 < tokens.size()) {
+                    bTime = std::stoi(tokens[i + 1]);
+                }
+            }
+            engine.setTime(wTime, bTime);
             engine.go();
         } else if (tokens[0] == "quit") {
             engine.quit();
