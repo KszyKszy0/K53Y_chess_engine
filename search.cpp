@@ -233,14 +233,14 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
             }
         }
 
-        if(ply == 0)
-        {
-            printMove(m);
-            std::cout<<" "<<value<<endl;
-            std::cout<<"BEST MOVE: ";
-            printMove(bestMove);
-            cout<<" "<<best<<endl;
-        }
+        // if(ply == 0)
+        // {
+        //     printMove(m);
+        //     std::cout<<" "<<value<<endl;
+        //     std::cout<<"BEST MOVE: ";
+        //     printMove(bestMove);
+        //     cout<<" "<<best<<endl;
+        // }
 
     }
 
@@ -386,7 +386,7 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
         if (chrono::duration_cast<chrono::milliseconds>(end - start).count() > timeLimit)
         {
             //Only if depth is not shallow
-            if (depth > 5)
+            // if (depth > 5)
                 break;
 
             //If depth was small we add time to consider more
