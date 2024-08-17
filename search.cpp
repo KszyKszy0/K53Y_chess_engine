@@ -307,6 +307,7 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
 
     if(pos.positionHash == pos.TT.transpositionTable[pos.positionHash % pos.TT.size].zorbistKey)
     {
+        //Start ID loop at depth from hash table
         startingDepth = pos.TT.transpositionTable[pos.positionHash % pos.TT.size].depth;
     }
 
