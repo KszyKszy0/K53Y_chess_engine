@@ -185,9 +185,41 @@ void core::setTime(int wTime, int bTime)
 {
     if(pos.STM)
     {
-        search.timeLimit = wTime / (float)45;
+        if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 28 )
+        {
+            search.timeLimit = wTime / (float)60;
+            return;
+        }
+        if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 16 )
+        {
+            search.timeLimit = wTime / (float)40;
+            return;
+        }
+        if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 4 )
+        {
+            search.timeLimit = wTime / (float)20;
+            return;
+        }
+        search.timeLimit = wTime / (float)15;
+        return;
     }else
     {
-        search.timeLimit = bTime / (float)45;
+        if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 28 )
+        {
+            search.timeLimit = bTime / (float)60;
+            return;
+        }
+        if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 16 )
+        {
+            search.timeLimit = bTime / (float)40;
+            return;
+        }
+        if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 4 )
+        {
+            search.timeLimit = bTime / (float)20;
+            return;
+        }
+        search.timeLimit = bTime / (float)15;
+        return;
     }
 }

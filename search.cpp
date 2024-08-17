@@ -123,6 +123,12 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
             //Cancel flag set
             isCancelled = true;
 
+            //Save newest best move if possible
+            if ((depth > entry.depth) && (!isCancelled || (movesSearched >= 2)))
+            {
+                pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
+            }
+
             //At any ply that isn't from root we just return really bad score
             if (ply >= 1)
             {
@@ -154,8 +160,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         //Undo move
         pos.undoMove(m);
 
-        if(ply == 0)
-            movesSearched++;
+
 
         //If we encounter hard time limit:
         //1. Set cancel flag so we don't store faulty entries to TT
@@ -165,6 +170,12 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         {
             //Cancel flag set
             isCancelled = true;
+
+            //Save newest best move if possible
+            if ((depth > entry.depth) && (!isCancelled || (movesSearched >= 2)))
+            {
+                pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
+            }
 
             //At any ply that isn't from root we just return really bad score
             if (ply >= 1)
@@ -187,6 +198,9 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
                 return bestMove;
             }
         }
+
+        //Moves searched without time cutoff
+        movesSearched++;
 
 
         //If alpha exceeds beta break
@@ -219,13 +233,29 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
             }
         }
 
+        if(ply == 0)
+        {
+            printMove(m);
+            std::cout<<" "<<value<<endl;
+            std::cout<<"BEST MOVE: ";
+            printMove(bestMove);
+            cout<<" "<<best<<endl;
+        }
+
     }
 
-    //Store transposition with flag unless search is being cancelled
-    if ((depth > entry.depth) && (!isCancelled || movesSearched >= 2))
+    //Store transposition with flag unless search is being cancelled or save it during cutoff if two or more moves were fully searched
+    if ((depth > entry.depth) && (!isCancelled || (movesSearched >= 2)))
     {
         pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
     }
+    // else
+    // {
+    //     if(ply == 0)
+    //     {
+    //         std::cout<<"Not replaced on ply 0!?!?"<<endl;
+    //     }
+    // }
 
 
     //At root ply
@@ -272,9 +302,16 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
     //Reset node count
     nodesCount = 0;
 
+    //Default starting depth
+    int startingDepth = 2;
+
+    if(pos.positionHash == pos.TT.transpositionTable[pos.positionHash % pos.TT.size].zorbistKey)
+    {
+        startingDepth = pos.TT.transpositionTable[pos.positionHash % pos.TT.size].depth;
+    }
 
     //Iterative deepening loop
-    for (int depth = 2; depth <= 40; depth++)
+    for (int depth = startingDepth; depth <= 100; depth++)
     {
         //Reset node count
         // nodesCount = 0;
@@ -292,18 +329,18 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
         auto end = chrono::steady_clock::now();
 
         long long time = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
-        cout << "info depth " << depth;
-        cout << " score cp " << oldEval;
-        cout << " nodes " << nodesCount;
-        cout << " nps " << (long long)(nodesCount / (time / (double)1000000000));
-        cout << " time " << (long long)(time/(double)1000000);
+        std::cout << "info depth " << depth;
+        std::cout << " score cp " << oldEval;
+        std::cout << " nodes " << nodesCount;
+        std::cout << " nps " << (long long)(nodesCount / (time / (double)1000000000));
+        std::cout << " time " << (long long)(time/(double)1000000);
         // cout << " quiescence nodes " << queiscenceNodes;
         // cout << " quiescenceTT " << quiescenceTT;
 
         //
         //          PV PRINTING SEGMENT
         //
-        cout << " pv ";
+        std::cout << " pv ";
 
         // Move pvl[100];
         // for(int i=1; i <= depth; i++)
@@ -324,8 +361,15 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
         //     }
         // }
 
-        printMove(pos.TT.transpositionTable[pos.positionHash % pos.TT.size].bestMove);
-        cout << endl;
+
+        if(pos.TT.transpositionTable[pos.positionHash % pos.TT.size].zorbistKey == pos.positionHash)
+        {
+            printMove(pos.TT.transpositionTable[pos.positionHash % pos.TT.size].bestMove);
+        }
+
+
+        // std::cout << moveToUci(bestMovePrevious);
+        std::cout << endl;
 
         //
         //          END OF PV SEGMENT
@@ -352,8 +396,8 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
 
     //After ID loop we print best move to uci
     pos.makeMove(bestMovePrevious);
-    cout << endl;
-    cout << "bestmove " << moveToUci(bestMovePrevious) << endl;
+    std::cout << endl;
+    std::cout << "bestmove " << moveToUci(bestMovePrevious) << endl;
     return bestMovePrevious;
 }
 
