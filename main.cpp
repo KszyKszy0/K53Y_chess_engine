@@ -1,6 +1,7 @@
 #include "core.h"
 #include <sstream>
 #include <chrono>
+#include <thread>
 
 using namespace std;
 
@@ -57,7 +58,11 @@ int main()
                 }
             }
             engine.setTime(wTime, bTime);
-            engine.go();
+
+            std::thread search(&core::go, &engine);
+            search.detach();
+
+            // engine.go();
         } else if (tokens[0] == "quit") {
             engine.quit();
         } else if (tokens[0] == "stop") {

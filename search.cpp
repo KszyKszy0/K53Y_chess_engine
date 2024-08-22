@@ -473,7 +473,7 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
         // }
 
         //Time cutoff
-        if (chrono::duration_cast<chrono::milliseconds>(end - start).count() > timeLimit)
+        if (chrono::duration_cast<chrono::milliseconds>(end - start).count() > timeLimit || isCancelled)
         {
             break;
         }
