@@ -43,4 +43,7 @@ class TranspositionTable
 
     //Default constructor
     TranspositionTable();
+
+    //Reset
+    void ResetTT();
 };

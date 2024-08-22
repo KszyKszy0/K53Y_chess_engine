@@ -23,3 +23,15 @@ TranspositionTable::TranspositionTable()
 {
     transpositionTable = new TTEntry[size];
 }
+
+void TranspositionTable::ResetTT()
+{
+    for(Bitboard i=0; i<size; i++)
+    {
+        transpositionTable[i].score = 0;
+        transpositionTable[i].depth = -100;
+        transpositionTable[i].bestMove = 0;
+        transpositionTable[i].type = 0;
+        transpositionTable[i].zorbistKey = 0;
+    }
+}

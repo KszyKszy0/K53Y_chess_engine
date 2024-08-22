@@ -62,11 +62,16 @@ public:
     // because of enemy move and our move
     void setPosition(vector<string> &moves);
 
+    void setPosition(vector<string>& moves, string FEN);
+
     // Starts search
     void go();
 
     // Stops everything
     void quit();
+
+    // Stops search
+    void stop();
 
     //Sets time from uci
     void setTime(int wTime, int bTime);

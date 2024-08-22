@@ -27,10 +27,46 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     // Increment node count
     nodesCount++;
 
+
+    // if(ply == 0)
+    // {
+    //     cout<<" size: "<<moveList.size;
+    //     cout<<endl;
+
+    //     // Index of king
+    //     int kingIndex = LSB(pos.piecesBitboards[pos.STM ? WHITE_KING : BLACK_KING]);
+
+    //     // Bitboard of all pieces that attack square
+    //     Bitboard checksAttacks = moveGenerator.howManyAttacks(pos, !pos.STM, kingIndex);
+
+    //     cout<<"KING: "<<kingIndex<<" ATTACKS: "<<checksAttacks<<" CHECKS: "<<popCount(checksAttacks)<<endl;
+
+    //     // cout<<"ALL PIECES: "<<pos.piecesBitboards[ALL_PIECES]<<endl;
+    // }
+
+
+
     // Checkmate check
     if (moveList.isCheckmate())
     {
         // Prefer faster checkmate
+        // if(ply == 0)
+        // {
+        //     cout<<"Mate 0 ply"<<endl<<"Checks: "<<moveList.checks<<endl;
+        //     cout<<"Size: "<<moveList.size<<endl;
+        //     cout<<"MAT: "<<pos.getFEN()<<endl;
+        //     cout<<"MOVE  "<<moveList.moveList[0]<<endl;
+
+        //     // Index of king
+        //     // int kingIndex = LSB(pos.piecesBitboards[pos.STM ? WHITE_KING : BLACK_KING]);
+
+        //     // Bitboard of all pieces that attack square
+        //     // Bitboard checksAttacks = moveGenerator.howManyAttacks(pos, !pos.STM, kingIndex);
+
+        //     // cout<<"King: "<<kingIndex<<" ATTACKS: "<<checksAttacks<<"Number of checks: "<<popCount(checksAttacks)<<endl;
+
+        //     // cout<<"ALL PIECES: "<<pos.piecesBitboards[ALL_PIECES]<<endl;
+        // }
         return -CHECKMATE + ply;
     }
 
@@ -43,7 +79,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     //Entering Quiescence at the end of search
     if (depth == 0)
     {
-        return quiescence(depth - 1, ply + 1, alpha, beta, color, moveGenerator, pos, eval, start);
+        return quiescence(depth, ply, alpha, beta, color, moveGenerator, pos, eval, start);
         // return eval.evaluate(pos) * color;
     }
 
@@ -106,6 +142,14 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     //We take the first move straight away
     //It should be from TT from previous search
     Move bestMove = moveList.moveList[0];
+    // if(ply == 0 && depth > 7)
+    // {
+    //     cout<<"First move: ";
+    //     printMove(bestMove);
+    //     cout<<"  "<<moveList.size;
+    //     cout<<endl;
+    // }
+
 
     //Loop through all moves
     for (Move m : moveList)
@@ -118,16 +162,16 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         //1. Set cancel flag so we don't store faulty entries to TT
         //2. Cancel search by a worst possible outcome so we pick it if its first move
         //BUT when we searched at least one other move, this one won't be picked
-        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit)
+        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit || isCancelled)
         {
             //Cancel flag set
             isCancelled = true;
 
             //Save newest best move if possible
-            if ((depth > entry.depth) && (!isCancelled || (movesSearched >= 2)))
-            {
-                pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
-            }
+            // if ((depth > entry.depth) && (!isCancelled || (movesSearched >= 2)))
+            // {
+            //     pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
+            // }
 
             //At any ply that isn't from root we just return really bad score
             if (ply >= 1)
@@ -151,6 +195,8 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
             }
         }
 
+        Bitboard hash = pos.positionHash;
+        string oldFen = pos.getFEN();
         //Make move
         pos.makeMove(m);
 
@@ -160,22 +206,59 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         //Undo move
         pos.undoMove(m);
 
-
+        if(hash != pos.positionHash)
+        {
+            cout<<"Bad position: "<<pos.getFEN()<<endl;
+            cout<<"Old fen: "<<oldFen<<endl;
+            cout<<"Move that lead to error: ";
+            printMove(m);
+            cout<<endl;
+            // cout<<"RUCH spowodował: ";
+            // printMove(m);
+            // cout<<endl;
+            // cout<<" Pozycja przed: ";
+            // cout<<pos.getFEN()<<endl;
+            // pos.makeMove(m);
+            // cout<<" Pozycja po: ";
+            // cout<<pos.getFEN()<<endl;
+            // pos.undoMove(m);
+            // bool isValid = false;
+            // bool isTransposition = false;
+            // for (size_t i = 0; i < moveList.size; ++i)
+            // {
+            //     if (moveList.moveList[i] == m)
+            //     {
+            //         isValid=true;
+            //     }
+            //     // if(Flags(moveList.moveList[i] == CAPTURE))
+            //     // {
+            //     //     std::swap(*move++,moveList.moveList[i]);
+            //     // }
+            // }
+            // if(m == transpositionMove)
+            // {
+            //     cout<<"Z transpozycji ";
+            // }
+            // if(!isValid)
+            // {
+            //     cout<<" a nielegalny";
+            // }
+        }
 
         //If we encounter hard time limit:
         //1. Set cancel flag so we don't store faulty entries to TT
         //2. Cancel search by a worst possible outcome so we pick it if its first move
         //BUT when we searched at least one other move, this one won't be picked
-        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit)
+        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit || isCancelled)
         {
             //Cancel flag set
             isCancelled = true;
 
             //Save newest best move if possible
-            if ((depth > entry.depth) && (!isCancelled || (movesSearched >= 2)))
-            {
-                pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
-            }
+            // if ((depth > entry.depth) && (!isCancelled || (movesSearched >= 2)))
+            // {
+            //     pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
+            // }
 
             //At any ply that isn't from root we just return really bad score
             if (ply >= 1)
@@ -221,6 +304,13 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 
             bestMove = m;
 
+            // if(ply == 0)
+            // {
+            //     cout<<"Fajny ruch -> ";
+            //     printMove(bestMove);
+            //     cout<<endl;
+            // }
+
             //If we beat alpha
             //Make it EXACT_SCORE
             //New possible pv found
@@ -245,7 +335,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     }
 
     //Store transposition with flag unless search is being cancelled or save it during cutoff if two or more moves were fully searched
-    if ((depth > entry.depth) && (!isCancelled || (movesSearched >= 2)))
+    if ((depth > entry.depth) && (!isCancelled))
     {
         pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
     }
@@ -303,16 +393,16 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
     nodesCount = 0;
 
     //Default starting depth
-    int startingDepth = 2;
+    // int startingDepth = 2;
 
-    if(pos.positionHash == pos.TT.transpositionTable[pos.positionHash % pos.TT.size].zorbistKey)
-    {
-        //Start ID loop at depth from hash table
-        startingDepth = pos.TT.transpositionTable[pos.positionHash % pos.TT.size].depth;
-    }
+    // if(pos.positionHash == pos.TT.transpositionTable[pos.positionHash % pos.TT.size].zorbistKey)
+    // {
+    //     //Start ID loop at depth from hash table
+    //     startingDepth = pos.TT.transpositionTable[pos.positionHash % pos.TT.size].depth;
+    // }
 
     //Iterative deepening loop
-    for (int depth = startingDepth; depth <= 100; depth++)
+    for (int depth = 1; depth <= 100; depth++)
     {
         //Reset node count
         // nodesCount = 0;
@@ -363,13 +453,13 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
         // }
 
 
-        if(pos.TT.transpositionTable[pos.positionHash % pos.TT.size].zorbistKey == pos.positionHash)
-        {
-            printMove(pos.TT.transpositionTable[pos.positionHash % pos.TT.size].bestMove);
-        }
+        // if(pos.TT.transpositionTable[pos.positionHash % pos.TT.size].zorbistKey == pos.positionHash)
+        // {
+        //     printMove(pos.TT.transpositionTable[pos.positionHash % pos.TT.size].bestMove);
+        // }
 
 
-        // std::cout << moveToUci(bestMovePrevious);
+        std::cout << moveToUci(bestMovePrevious);
         std::cout << endl;
 
         //
@@ -377,22 +467,17 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
         //
 
         //If we have checkmate near don't search any deeper
-        if ((oldEval >= CHECKMATE - 5) || (oldEval <= -CHECKMATE + 5))
-        {
-            break;
-        }
+        // if ((oldEval >= CHECKMATE - 5) || (oldEval <= -CHECKMATE + 5))
+        // {
+        //     break;
+        // }
 
         //Time cutoff
         if (chrono::duration_cast<chrono::milliseconds>(end - start).count() > timeLimit)
         {
-            //Only if depth is not shallow
-            // if (depth > 5)
-                break;
-
-            //If depth was small we add time to consider more
-            isCancelled = false;
-            timeLimit += 3000;
+            break;
         }
+        // cout<<"FEN: "<<pos.getFEN();
     }
 
     //After ID loop we print best move to uci
@@ -534,7 +619,7 @@ int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
             break;
 
         // Check if the time limit for the search has been reached
-        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit)
+        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit || isCancelled)
         {
             isCancelled = true; // Mark the search as canceled
             return CHECKMATE;   // Return a checkmate score
@@ -551,7 +636,7 @@ int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
         pos.undoMove(m);
 
         // Check if the time limit for the search has been reached again
-        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit)
+        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit || isCancelled)
         {
             isCancelled = true; // Mark the search as canceled
             return CHECKMATE;   // Return a checkmate score
@@ -585,6 +670,6 @@ int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
         pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
     }
 
-    // Return the best score found (alpha)
-    return alpha;
+    // Return the best score found
+    return best;
 }

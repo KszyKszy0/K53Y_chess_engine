@@ -44,13 +44,7 @@ int main()
                 if(tokens.size() > 8)
                     moves.assign(tokens.begin() + 9,tokens.end());
 
-                if( moves.size() == 0 )
-                {
-                    engine.newGame(FEN);
-                }else
-                {
-                    engine.setPosition(moves);
-                }
+                engine.setPosition(moves,FEN);
             }
         } else if (tokens[0] == "go") {
             int wTime = 0;
@@ -66,6 +60,8 @@ int main()
             engine.go();
         } else if (tokens[0] == "quit") {
             engine.quit();
+        } else if (tokens[0] == "stop") {
+            engine.stop();
         }
     }
 
@@ -73,8 +69,8 @@ int main()
     // cout << engine.pos.getFEN();
 
     // auto start = chrono::high_resolution_clock::now();
-    // engine.pos.parseFEN(engine.startingFen,engine.pos.piecesBitboards);
-    // cout<<engine.perft(7)<<endl;
+    // engine.pos.parseFEN("8/5K2/7P/4R3/6p1/7r/6k1/8 w - - 0 1");
+    // cout<<engine.perft(6)<<endl;
     // auto end = chrono::high_resolution_clock::now();
     // auto t = chrono::duration_cast<chrono::milliseconds>(end - start);
     // cout<<t.count();

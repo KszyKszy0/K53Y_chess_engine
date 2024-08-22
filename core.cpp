@@ -113,6 +113,7 @@ Bitboard core::perft(int depth)
         // printMove(m);
         Bitboard localCounter = 0;
 
+        bool side = pos.STM;
         Bitboard hash = pos.positionHash;
         pos.makeMove(m);
 
@@ -123,8 +124,12 @@ Bitboard core::perft(int depth)
         {
             cout<<"error";
         }
+        if(pos.STM != side)
+        {
+            cout<<"error";
+        }
 
-        if(depth==7)
+        if(depth==6)
         {
             printMove(m);
             cout<<": "<<localCounter<<endl;
@@ -144,35 +149,68 @@ void core::isReady() {
 }
 
 void core::newGame(){
+    pos.TT.ResetTT();
     pos.parseFEN(startingFen);
     positionCounter = 0;
 }
 
 void core::newGame(string FEN){
+    pos.TT.ResetTT();
     pos.parseFEN(FEN);
     positionCounter = 0;
 }
 
 void core::setPosition(vector<string>& moves)
 {
-    // pos.parseFEN(startingFen,pos.piecesBitboards);
-    // for(string s : moves)
-    // {
-    //     pos.makeMove(uciToMove(s));
-    // }
-    positionCounter = moves.size();
-    if(moves.size() > 0)
+    pos.parseFEN(startingFen);
+    for(string s : moves)
     {
-        string move = moves[positionCounter-1];
         MoveList moveList;
         moveGenerator.fullMovesList(pos, moveList);
-        pos.makeMove(uciToMove(move,pos,moveList.moveList));
+        pos.makeMove(uciToMove(s,pos,moveList.begin()));
     }
+    // positionCounter = moves.size();
+    // if(moves.size() > 0)
+    // {
+    //     string move = moves[positionCounter-1];
+    //     MoveList moveList;
+    //     moveGenerator.fullMovesList(pos, moveList);
+    //     pos.makeMove(uciToMove(move,pos,moveList.moveList));
+    // }
+    std::cout<<endl;
+    std::cout<<pos.getFEN()<<endl;
+}
+
+void core::setPosition(vector<string>& moves, string FEN)
+{
+    pos.parseFEN(FEN);
+    for(string s : moves)
+    {
+        MoveList moveList;
+        moveGenerator.fullMovesList(pos, moveList);
+        pos.makeMove(uciToMove(s,pos,moveList.begin()));
+    }
+    // positionCounter = moves.size();
+    // if(moves.size() > 0)
+    // {
+    //     string move = moves[positionCounter-1];
+    //     MoveList moveList;
+    //     moveGenerator.fullMovesList(pos, moveList);
+    //     pos.makeMove(uciToMove(move,pos,moveList.moveList));
+    // }
+    std::cout<<endl;
+    std::cout<<pos.getFEN()<<endl;
 }
 
 void core::quit()
 {
+    search.isCancelled = true;
     exit(0);
+}
+
+void core::stop()
+{
+    search.isCancelled = true;
 }
 
 void core::go()

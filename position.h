@@ -31,7 +31,7 @@ class Position
 
     TranspositionTable TT;
 
-    Bitboard positionHistory[300];
+    Bitboard positionHistory[500];
 
     bool STM;
 
