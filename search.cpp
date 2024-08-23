@@ -8,6 +8,8 @@
 
 int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGenerator &moveGenerator, Position &pos, Evaluator &eval, chrono::steady_clock::time_point start)
 {
+    pvLength[ply] = ply;
+
     // This gives info about checkmate and stalemate so it must be the first thing to consider
     MoveList moveList;
     moveGenerator.fullMovesList(pos, moveList);
@@ -51,9 +53,6 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     //Possible transposition lookup
     if (key == entry.zorbistKey)
     {
-        //Transposition count increment for dev and debug purposes
-        transpositionCount++;
-
         //We can always take entry move if we match in TT
         //Thats because there should be no fault entries
         //We don't add entries when cancelling search
@@ -65,8 +64,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
             //Check for node type (matching ab window) (cutoff) (fail low)
             if ((entry.type == EXACT_SCORE) || ((entry.type == LOWER_BOUND) && (entry.score >= beta)) || ((entry.type == UPPER_BOUND) && (entry.score < alpha)))
             {
-                //Matched transposition count increment for dev and debug purposes
-                matchedTranspositions++;
+                updatePV(transpositionMove, ply);
 
                 return entry.score;
             }
@@ -134,6 +132,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
                 if ((best != -CHECKMATE) && (best != -NO_MOVE))
                     oldEval = best;
 
+                updatePV(bestMove, ply);
 
                 // In case of first move cancel we return first move from list beacuse it is from TT
                 return bestMove;
@@ -174,6 +173,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
                 if ((best != -CHECKMATE) && (best != -NO_MOVE))
                     oldEval = best;
 
+                updatePV(bestMove, ply);
 
                 // In case of first move cancel we return first move from list beacuse it is from TT
                 return bestMove;
@@ -208,6 +208,9 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
                 newFlag = EXACT_SCORE;
 
                 alpha = best;
+
+
+                updatePV(bestMove, ply);
             }
         }
 
@@ -264,6 +267,7 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
     //Iterative deepening loop
     for (int depth = 1; depth <= 100; depth++)
     {
+        
         //Start negamax for current depth
         bestMove = negamax(depth, 0, -INF, INF, pos.STM ? 1 : -1, mg, pos, eval, start);
         if (bestMove != 0)
@@ -287,9 +291,14 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
         //
         std::cout << " pv ";
 
-        std::cout << moveToUci(bestMovePrevious);
-        std::cout << endl;
 
+        for(int pvl = 0; pvl < depth; pvl++)
+        {
+            printMove(pvTable[0][pvl]);
+            std::cout<<" ";
+        }
+
+        std::cout<<endl;
         //
         //          END OF PV SEGMENT
         //
@@ -483,4 +492,16 @@ int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
 
     // Return the best score found
     return best;
+}
+
+void Search::updatePV(Move m, int ply)
+{
+    pvTable[ply][ply] = m;
+
+    for(int nextPly = ply + 1; nextPly < pvLength[ply + 1]; nextPly++)
+    {
+        pvTable[ply][nextPly] = pvTable[ply + 1][nextPly];
+    }
+
+    pvLength[ply] = pvLength[ply + 1];
 }
