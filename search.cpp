@@ -267,7 +267,7 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
     //Iterative deepening loop
     for (int depth = 1; depth <= 100; depth++)
     {
-        
+
         //Start negamax for current depth
         bestMove = negamax(depth, 0, -INF, INF, pos.STM ? 1 : -1, mg, pos, eval, start);
         if (bestMove != 0)
@@ -292,7 +292,7 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
         std::cout << " pv ";
 
 
-        for(int pvl = 0; pvl < depth; pvl++)
+        for(int pvl = 0; pvl < pvLength[0]; pvl++)
         {
             printMove(pvTable[0][pvl]);
             std::cout<<" ";
