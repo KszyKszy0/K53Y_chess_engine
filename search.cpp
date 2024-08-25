@@ -116,6 +116,13 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
                                 [pos.piecesArray[TargetSqaure(moveList.moveList[i])]];
             MVVs[i] += MVV;
         }
+
+        //TT move
+        if (moveList.moveList[i] == killers[ply])
+        {
+            // std::swap(moveList.moveList[0], moveList.moveList[i]); // Move TT move to the front
+            MVVs[i] += 90;
+        }
     }
 
 
@@ -251,6 +258,10 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 
                 alpha = best;
 
+                if(Flags(m) < CAPTURE)
+                {
+                    killers[ply] = m;
+                }
 
                 updatePV(bestMove, ply);
             }
@@ -305,6 +316,11 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
 
     //Reset node count
     nodesCount = 0;
+
+    for(int i=0; i<=63; i++)
+    {
+        killers[i] = 0;
+    }
 
     //Iterative deepening loop
     for (int depth = 1; depth <= 100; depth++)

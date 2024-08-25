@@ -60,4 +60,6 @@ class Search
 
     void updatePV(Move m, int ply);
 
+    Move killers[64];
+
 };
