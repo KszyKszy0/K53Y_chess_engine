@@ -106,7 +106,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         if (moveList.moveList[i] == transpositionMove)
         {
             // std::swap(moveList.moveList[0], moveList.moveList[i]); // Move TT move to the front
-            MVVs[i] = 1000;
+            MVVs[i] = 1000000;
         }
 
         //MVVLVA
@@ -114,14 +114,17 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         {
             int MVV = MVVLVA[pos.piecesArray[StartSquare(moveList.moveList[i])]]
                                 [pos.piecesArray[TargetSqaure(moveList.moveList[i])]];
-            MVVs[i] += MVV;
+            MVVs[i] += MVV*1000;
+        }else
+        {
+            MVVs[i] += historyHeuristic[StartSquare(moveList.moveList[i])][TargetSqaure(moveList.moveList[i])];
         }
 
         //TT move
         if (moveList.moveList[i] == killers[ply])
         {
             // std::swap(moveList.moveList[0], moveList.moveList[i]); // Move TT move to the front
-            MVVs[i] += 90;
+            MVVs[i] += 90000;
         }
     }
 
@@ -261,6 +264,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
                 if(Flags(m) < CAPTURE)
                 {
                     killers[ply] = m;
+                    historyHeuristic[StartSquare(m)][TargetSqaure(m)] += depth * depth;
                 }
 
                 updatePV(bestMove, ply);
@@ -320,6 +324,11 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
     for(int i=0; i<=63; i++)
     {
         killers[i] = 0;
+
+        for(int j=0; j<=63; j++)
+        {
+            historyHeuristic[i][j] = 0;
+        }
     }
 
     //Iterative deepening loop

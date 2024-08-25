@@ -62,4 +62,6 @@ class Search
 
     Move killers[64];
 
+    Move historyHeuristic[64][64];
+
 };
