@@ -73,19 +73,61 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 
     //If we get move from TT but we couldn't use score
     //Move the TT move to the first place in moveList
-    if (transpositionMove != 0)
+    // if (transpositionMove != 0)
+    // {
+    //     // Move* move = &moveList.moveList[1];
+    //     for (size_t i = 0; i < moveList.size; ++i)
+    //     {
+    //         if (moveList.moveList[i] == transpositionMove)
+    //         {
+    //             std::swap(moveList.moveList[0], moveList.moveList[i]);
+    //         }
+    //         // if(Flags(moveList.moveList[i] == CAPTURE))
+    //         // {
+    //         //     std::swap(*move++,moveList.moveList[i]);
+    //         // }
+    //     }
+    // }
+
+
+
+    //MOVE ORDERING
+
+    // Array to store move value for sorting
+    int MVVs[218] = {0};
+
+
+    // If there's a move from the transposition table, place it at the top of the move list
+
+    // Sort the moves based on MVV (Most Valuable Victim) heuristic
+    for (int i = 0; i < moveList.size; ++i)
     {
-        // Move* move = &moveList.moveList[1];
-        for (size_t i = 0; i < moveList.size; ++i)
+        //TT move
+        if (moveList.moveList[i] == transpositionMove)
         {
-            if (moveList.moveList[i] == transpositionMove)
+            // std::swap(moveList.moveList[0], moveList.moveList[i]); // Move TT move to the front
+            MVVs[i] = 1000;
+        }
+
+        //MVVLVA
+        if (Flags(moveList.moveList[i]) == CAPTURE)
+        {
+            int MVV = MVVLVA[pos.piecesArray[StartSquare(moveList.moveList[i])]]
+                                [pos.piecesArray[TargetSqaure(moveList.moveList[i])]];
+            MVVs[i] += MVV;
+        }
+    }
+
+
+    for (int i = 0; i < moveList.size; ++i)
+    {
+        for (int j = i + 1; j < moveList.size; ++j)
+        {
+            if (MVVs[j] > MVVs[i])
             {
-                std::swap(moveList.moveList[0], moveList.moveList[i]);
+                std::swap(moveList.moveList[i], moveList.moveList[j]); // Sort by MVV
+                std::swap(MVVs[i], MVVs[j]);
             }
-            // if(Flags(moveList.moveList[i] == CAPTURE))
-            // {
-            //     std::swap(*move++,moveList.moveList[i]);
-            // }
         }
     }
 
@@ -217,7 +259,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     }
 
     //Store transposition with flag unless search is being cancelled or save it during cutoff if two or more moves were fully searched
-    if ((depth > entry.depth) && (!isCancelled))
+    if ((depth >= entry.depth) && (!isCancelled))
     {
         pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
     }
@@ -289,14 +331,14 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
         //
         //          PV PRINTING SEGMENT
         //
-        std::cout << " pv ";
+        // std::cout << " pv ";
 
 
-        for(int pvl = 0; pvl < pvLength[0]; pvl++)
-        {
-            printMove(pvTable[0][pvl]);
-            std::cout<<" ";
-        }
+        // for(int pvl = 0; pvl < pvLength[0]; pvl++)
+        // {
+        //     printMove(pvTable[0][pvl]);
+        //     std::cout<<" ";
+        // }
 
         std::cout<<endl;
         //
@@ -329,7 +371,7 @@ bool Search::isRepeated(Position &pos)
         if (pos.positionHash == pos.positionHistory[i])
         {
             counter++;
-            if (counter >= 2)
+            if (counter >= 3)
                 return true;
         }
     }
@@ -390,39 +432,40 @@ int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
     MoveList moveList;
     moveGenerator.fullCapturesList(pos, moveList);
 
-    // Array to store MVV (Most Valuable Victim) values for sorting
-    int MVVs[218];
+
+    //MOVE ORDERING
+
+    // Array to store move value for sorting
+    int MVVs[218] = {0};
+
 
     // If there's a move from the transposition table, place it at the top of the move list
-    if (transpositionMove != 0)
+
+    // Sort the moves based on MVV (Most Valuable Victim) heuristic
+    for (int i = 0; i < moveList.size; ++i)
     {
-        for (int i = 0; i < moveList.size; ++i)
+        //TT move
+        if (moveList.moveList[i] == transpositionMove)
         {
-            if (moveList.moveList[i] == transpositionMove)
-            {
-                std::swap(moveList.moveList[0], moveList.moveList[i]); // Move TT move to the front
-                break;
-            }
+            // std::swap(moveList.moveList[0], moveList.moveList[i]); // Move TT move to the front
+            MVVs[i] = 1000;
         }
+
+        //MVVLVA
+        int MVV = MVVLVA[pos.piecesArray[StartSquare(moveList.moveList[i])]]
+                            [pos.piecesArray[TargetSqaure(moveList.moveList[i])]];
+        MVVs[i] += MVV;
     }
-    else
+
+
+    for (int i = 0; i < moveList.size; ++i)
     {
-        // Sort the moves based on MVV (Most Valuable Victim) heuristic
-        for (int i = 0; i < moveList.size; ++i)
+        for (int j = i + 1; j < moveList.size; ++j)
         {
-            int MVV = MVVLVA[pos.piecesArray[StartSquare(moveList.moveList[i])]]
-                               [pos.piecesArray[TargetSqaure(moveList.moveList[i])]];
-            MVVs[i] = MVV;
-        }
-        for (int i = 0; i < moveList.size; ++i)
-        {
-            for (int j = i + 1; j < moveList.size; ++j)
+            if (MVVs[j] > MVVs[i])
             {
-                if (MVVs[j] > MVVs[i])
-                {
-                    std::swap(moveList.moveList[i], moveList.moveList[j]); // Sort by MVV
-                    std::swap(MVVs[i], MVVs[j]);
-                }
+                std::swap(moveList.moveList[i], moveList.moveList[j]); // Sort by MVV
+                std::swap(MVVs[i], MVVs[j]);
             }
         }
     }
@@ -485,7 +528,7 @@ int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
     }
 
     // Store the result in the transposition table if the search depth was sufficient and search wasn't canceled
-    if ((depth > entry.depth) && !isCancelled)
+    if ((depth >= entry.depth) && !isCancelled)
     {
         pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
     }
