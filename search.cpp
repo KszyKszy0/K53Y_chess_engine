@@ -152,6 +152,15 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     Move bestMove = moveList.moveList[0];
 
 
+    //Currently for pvs purpose
+    int movesSearched = 0;
+
+    //Check extensions
+    if(moveList.checks > 0)
+    {
+        depth++;
+    }
+
     //Loop through all moves
     for (Move m : moveList)
     {
@@ -194,11 +203,32 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         //Make move
         pos.makeMove(m);
 
-        //Go deeper with negamax
-        int value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
+
+        int value = 0;
+
+        // if(movesSearched == 0)
+        // {
+        //     //Standard alpha beta search with normal window
+        //     value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
+        // }else
+        // {
+        //     //If it is not first move we search with null window
+        //     value = -negamax(depth - 1, ply + 1, -alpha - 1, -alpha, -color, moveGenerator, pos, eval, start);
+
+        //     //If value is inside alpha beta bound we research with full window
+        //     if(value > alpha && value < beta)
+        //     {
+        //         value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
+        //     }
+        // }
+
+        value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
 
         //Undo move
         pos.undoMove(m);
+
+        //Update moves count
+        movesSearched++;
 
         //If we encounter hard time limit:
         //1. Set cancel flag so we don't store faulty entries to TT
@@ -261,9 +291,13 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 
                 alpha = best;
 
+                //If move was quiet
                 if(Flags(m) < CAPTURE)
                 {
+                    //Update killers
                     killers[ply] = m;
+
+                    //Update history heuristic
                     historyHeuristic[StartSquare(m)][TargetSqaure(m)] += depth * depth;
                 }
 
