@@ -177,8 +177,8 @@ void core::setPosition(vector<string>& moves)
     //     moveGenerator.fullMovesList(pos, moveList);
     //     pos.makeMove(uciToMove(move,pos,moveList.moveList));
     // }
-    std::cout<<endl;
-    std::cout<<pos.getFEN()<<endl;
+    // std::cout<<endl;
+    // std::cout<<pos.getFEN()<<endl;
 }
 
 void core::setPosition(vector<string>& moves, string FEN)
@@ -198,8 +198,8 @@ void core::setPosition(vector<string>& moves, string FEN)
     //     moveGenerator.fullMovesList(pos, moveList);
     //     pos.makeMove(uciToMove(move,pos,moveList.moveList));
     // }
-    std::cout<<endl;
-    std::cout<<pos.getFEN()<<endl;
+    // std::cout<<endl;
+    // std::cout<<pos.getFEN()<<endl;
 }
 
 void core::quit()

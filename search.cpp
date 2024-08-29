@@ -262,16 +262,6 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
             }
         }
 
-
-        //If alpha exceeds beta break
-        if (alpha >= beta)
-        {
-            // move causes cutoff
-            newFlag = LOWER_BOUND;
-
-            break; // Alpha-beta pruning
-        }
-
         //If we beat best
         //Set it current best
         //And bestmove
@@ -291,18 +281,27 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 
                 alpha = best;
 
-                //If move was quiet
-                if(Flags(m) < CAPTURE)
-                {
-                    //Update killers
-                    killers[ply] = m;
-
-                    //Update history heuristic
-                    historyHeuristic[StartSquare(m)][TargetSqaure(m)] += depth * depth;
-                }
-
                 updatePV(bestMove, ply);
             }
+        }
+
+        //If alpha exceeds beta break
+        if (alpha >= beta)
+        {
+            // move causes cutoff
+            newFlag = LOWER_BOUND;
+
+            //If move was quiet
+            if(Flags(m) < CAPTURE)
+            {
+                //Update killers
+                killers[ply] = m;
+
+                //Update history heuristic
+                historyHeuristic[StartSquare(m)][TargetSqaure(m)] += depth * depth;
+            }
+
+            break; // Alpha-beta pruning
         }
 
     }
@@ -413,7 +412,7 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
     }
 
     //After ID loop we print best move to uci
-    pos.makeMove(bestMovePrevious);
+    // pos.makeMove(bestMovePrevious);
     std::cout << "bestmove " << moveToUci(bestMovePrevious) << endl;
     return bestMovePrevious;
 }
@@ -430,7 +429,7 @@ bool Search::isRepeated(Position &pos)
         if (pos.positionHash == pos.positionHistory[i])
         {
             counter++;
-            if (counter >= 3)
+            if (counter >= 2)
                 return true;
         }
     }
@@ -564,13 +563,6 @@ int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
             return CHECKMATE;   // Return a checkmate score
         }
 
-        // Beta cutoff: if alpha exceeds or equals beta, cut off the search
-        if (alpha >= beta)
-        {
-            newFlag = LOWER_BOUND; // Set flag for a lower bound cutoff
-            break; // Exit the loop as further moves are irrelevant
-        }
-
         // If the move yields a better score than the current best score
         if (value > best)
         {
@@ -583,6 +575,13 @@ int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
                 alpha = best;
                 newFlag = EXACT_SCORE; // Update flag to exact score
             }
+        }
+
+        // Beta cutoff: if alpha exceeds or equals beta, cut off the search
+        if (alpha >= beta)
+        {
+            newFlag = LOWER_BOUND; // Set flag for a lower bound cutoff
+            break; // Exit the loop as further moves are irrelevant
         }
     }
 
