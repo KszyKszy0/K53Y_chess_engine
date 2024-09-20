@@ -6,11 +6,11 @@ int Evaluator::evaluate(Position& pos)
     int eval=0;
 
     //Material
-    int pawns = (popCount(pos.piecesBitboards[WHITE_PAWN]) - popCount(pos.piecesBitboards[BLACK_PAWN]))*110;
-    int knight = (popCount(pos.piecesBitboards[WHITE_KNIGHT]) - popCount(pos.piecesBitboards[BLACK_KNIGHT]))*300;
-    int bishop = (popCount(pos.piecesBitboards[WHITE_BISHOP]) - popCount(pos.piecesBitboards[BLACK_BISHOP]))*350;
-    int rook = (popCount(pos.piecesBitboards[WHITE_ROOK]) - popCount(pos.piecesBitboards[BLACK_ROOK]))*600;
-    int queens = (popCount(pos.piecesBitboards[WHITE_QUEEN]) - popCount(pos.piecesBitboards[BLACK_QUEEN]))*1150;
+    int pawns = (popCount(pos.piecesBitboards[WHITE_PAWN]) - popCount(pos.piecesBitboards[BLACK_PAWN]))*psqtArray[384];
+    int knight = (popCount(pos.piecesBitboards[WHITE_KNIGHT]) - popCount(pos.piecesBitboards[BLACK_KNIGHT]))*psqtArray[385];
+    int bishop = (popCount(pos.piecesBitboards[WHITE_BISHOP]) - popCount(pos.piecesBitboards[BLACK_BISHOP]))*psqtArray[386];
+    int rook = (popCount(pos.piecesBitboards[WHITE_ROOK]) - popCount(pos.piecesBitboards[BLACK_ROOK]))*psqtArray[387];
+    int queens = (popCount(pos.piecesBitboards[WHITE_QUEEN]) - popCount(pos.piecesBitboards[BLACK_QUEEN]))*psqtArray[388];
 
 
     //PSQT
@@ -21,13 +21,13 @@ int Evaluator::evaluate(Position& pos)
     while(white)
     {
         int index = popLSB(white);
-        eval += psqtArray[pos.piecesArray[index]][flipIndex(index)];
+        eval += psqtArray[pos.piecesArray[index]*64 + flipIndex(index)];
     }
 
     while(black)
     {
         int index = popLSB(black);
-        eval -= psqtArray[pos.piecesArray[index] - 6][index];
+        eval -= psqtArray[(pos.piecesArray[index] - 6)*64 + index];
     }
 
     return pawns + knight + bishop + rook + queens + eval;
