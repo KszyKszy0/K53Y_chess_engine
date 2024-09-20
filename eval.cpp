@@ -1,4 +1,5 @@
 #include "eval.h"
+#include <fstream>
 
 int Evaluator::evaluate(Position& pos)
 {
@@ -33,4 +34,20 @@ int Evaluator::evaluate(Position& pos)
     return pawns + knight + bishop + rook + queens + eval;
 }
 
+void Evaluator::readData()
+{
+    std::fstream file("weights.txt");
+    int value = 0;
+    for(int i=0; i < 389; i++)
+    {
+        file >> value;
+        psqtArray[i] = value;
+    }
 
+    file.close();
+
+    // for(int i=0; i < 389; i++)
+    // {
+    //     cout<<psqtArray[i]<<" ";
+    // }
+}

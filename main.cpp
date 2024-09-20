@@ -20,6 +20,9 @@ int main()
 {
     core engine = core();
 
+    //Read weights from file if necessary
+    // engine.eval.readData();
+
     string line;
     while (std::getline(std::cin, line)) {
         std::vector<string> tokens = split(line, ' ');

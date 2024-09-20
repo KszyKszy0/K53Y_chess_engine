@@ -89,4 +89,6 @@ class Evaluator
     {
         return index ^ 56;
     }
+
+    void readData();
 };
