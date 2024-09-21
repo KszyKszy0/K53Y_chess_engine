@@ -5,6 +5,7 @@
 #include <chrono>
 #include "moveList.h"
 #include "helperFunctions.h"
+#include <fstream>
 
 int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGenerator &moveGenerator, Position &pos, Evaluator &eval, chrono::steady_clock::time_point start)
 {
@@ -412,6 +413,10 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
 
     //After ID loop we print best move to uci
     // pos.makeMove(bestMovePrevious);
+
+    if(oldEval > -90000 && oldEval < 90000)
+        savePosition(pos, eval, oldEval);
+
     std::cout << "bestmove " << moveToUci(bestMovePrevious) << endl;
     return bestMovePrevious;
 }
@@ -604,4 +609,107 @@ void Search::updatePV(Move m, int ply)
     }
 
     pvLength[ply] = pvLength[ply + 1];
+}
+
+
+
+void Search::savePosition(Position &pos, Evaluator &eval, int negamaxScore)
+{
+    //TreeStrap
+
+
+    //Create State before making moves
+    //384 psqt + 5 material inputs
+    int state[389] = {0};
+
+
+    for(int i=0; i<=63; i++)
+    {
+        //If square is empty go to the next square
+        if(pos.piecesArray[i] == NO_PIECE)
+        {
+            continue;
+        }
+
+        //If the piece is white
+        if(pos.piecesArray[i] <= WHITE_KING)
+        {
+            //Add current position to state index
+            //Flip index to get correct psqt value
+            int startIndex = pos.piecesArray[i]*64;
+
+            int bonusIndex = flipIndex(i);
+            state[startIndex + bonusIndex] += 1;
+        }else //piece is black
+        {
+            //Add current position to state index but with negative sign
+            //Black pieces get -6 because of indexing enums
+            state[(pos.piecesArray[i]-6) * 64 + i] -= 1;
+        }
+    }
+
+    //Pawn count
+    state[384] = popCount(pos.piecesBitboards[WHITE_PAWN]) - popCount(pos.piecesBitboards[BLACK_PAWN]);
+
+    //Knight count
+    state[385] = popCount(pos.piecesBitboards[WHITE_KNIGHT]) - popCount(pos.piecesBitboards[BLACK_KNIGHT]);
+
+    //Bishop count
+    state[386] = popCount(pos.piecesBitboards[WHITE_BISHOP]) - popCount(pos.piecesBitboards[BLACK_BISHOP]);
+
+    //Rook count
+    state[387] = popCount(pos.piecesBitboards[WHITE_ROOK]) - popCount(pos.piecesBitboards[BLACK_ROOK]);
+
+    //Queen count
+    state[388] = popCount(pos.piecesBitboards[WHITE_QUEEN]) - popCount(pos.piecesBitboards[BLACK_QUEEN]);
+
+
+    //Get static evaluation
+    int evaluation = eval.evaluate(pos);
+
+    //Open file
+    std::fstream file("C:/programowanie/github/TreeStrap/test.txt", ios::app);
+
+    if (!file) {
+        std::cerr << "Nie można otworzyć pliku do zapisu: " << "test.txt" << std::endl;
+    }
+
+    //Write state to file
+    for (int i = 0; i < 389; ++i) {
+        file << state[i];
+        file << " ";
+    }
+
+    //Get target best if node doesn't fail low or high
+    //If we don't fail on either bound we take the error by difference with minimax value of node
+    int target = negamaxScore;
+
+    //If we are below alpha that means we underestimate position
+    // if(alpha > evaluation)
+    // {
+    //     target = alpha;
+    // }
+
+    // //If we are above beta that means we overestimate position
+    // if(beta < evaluation)
+    // {
+    //     target = beta;
+    // }
+
+    if(pos.STM)
+    {
+        // file << " " << evaluation << " " << target;
+        file << target;
+        // file << " " <<pos.getFEN();
+    }else
+    {
+        // file << " " << -evaluation << " " << -target;
+        file << -target;
+        // file << " " <<pos.getFEN();
+    }
+
+    file << endl;
+
+    // Close file
+    file.close();
 }

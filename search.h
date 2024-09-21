@@ -64,4 +64,6 @@ class Search
 
     Move historyHeuristic[64][64];
 
+    void savePosition(Position &pos, Evaluator &eval, int negamaxScore);
+
 };
