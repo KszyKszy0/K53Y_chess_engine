@@ -52,6 +52,11 @@ int popCount (Bitboard x)
     // return count;
 }
 
+int flipIndex(int index)
+{
+    return index ^ 56;
+}
+
 //Print bitboards in 8x8 format
 void printBitboard(Bitboard bb)
 {

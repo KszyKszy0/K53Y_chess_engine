@@ -85,10 +85,5 @@ class Evaluator
             110, 300, 350, 600, 1150
     };
 
-    int flipIndex(int index)
-    {
-        return index ^ 56;
-    }
-
     void readData();
 };

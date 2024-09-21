@@ -47,7 +47,6 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     if (depth == 0)
     {
         return quiescence(depth, ply, alpha, beta, color, moveGenerator, pos, eval, start);
-        // return eval.evaluate(pos) * color;
     }
 
     //Possible transposition lookup
@@ -473,7 +472,7 @@ int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
     }
 
     // Perform a static evaluation of the position
-    int evaluation = eval.evaluate(pos) * color;
+    int evaluation = eval.evaluate(pos);
 
     // Beta cutoff: if the evaluation is greater than or equal to beta, return the evaluation
     if (evaluation >= beta)

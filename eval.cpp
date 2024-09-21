@@ -31,7 +31,7 @@ int Evaluator::evaluate(Position& pos)
         eval -= psqtArray[(pos.piecesArray[index] - 6)*64 + index];
     }
 
-    return pawns + knight + bishop + rook + queens + eval;
+    return (pawns + knight + bishop + rook + queens + eval) * (pos.STM ? 1 : -1);
 }
 
 void Evaluator::readData()

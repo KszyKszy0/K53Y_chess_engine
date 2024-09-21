@@ -46,6 +46,9 @@ void printBitboard(Bitboard bb);
 //Print array in 8x8 format
 void printPieceArray(int array[64]);
 
+//Changes index to white perspective (^56)
+int flipIndex(int index);
+
 class BB_utils
 {
     public:
@@ -291,7 +294,7 @@ int bishopBits[64]=
     5, 5, 7, 7, 7, 7, 5, 5,
     5, 5, 5, 5, 5, 5, 5, 5,
     6, 5, 5, 5, 5, 5, 5, 6 };
-    
+
 //End of magics and bits shifts
 
 };
