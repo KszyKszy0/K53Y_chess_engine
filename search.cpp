@@ -414,8 +414,10 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
     //After ID loop we print best move to uci
     // pos.makeMove(bestMovePrevious);
 
+#ifdef DATAGEN
     if(oldEval > -90000 && oldEval < 90000)
         savePosition(pos, eval, oldEval);
+#endif
 
     std::cout << "bestmove " << moveToUci(bestMovePrevious) << endl;
     return bestMovePrevious;
@@ -668,7 +670,7 @@ void Search::savePosition(Position &pos, Evaluator &eval, int negamaxScore)
     int evaluation = eval.evaluate(pos);
 
     //Open file
-    std::fstream file("C:/programowanie/github/TreeStrap/test.txt", ios::app);
+    std::fstream file("test.txt", ios::app);
 
     if (!file) {
         std::cerr << "Nie można otworzyć pliku do zapisu: " << "test.txt" << std::endl;

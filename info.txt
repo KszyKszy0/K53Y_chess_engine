@@ -3,6 +3,8 @@ perft 6 movegen simple arrays 5,517s
 perft 6 movegen state arrays 3,864s
 perft 6 movegen without copying bbs and pins excluded 3,285s
 g++ *.cpp -o outputoptim.exe -O3 -march=native -flto -funroll-loops -ffast-math -DNDEBUG -D_UNICODE -DUNICODE -std=c++11
+g++ *.cpp -o engine.exe -O3 -march=native -flto -funroll-loops -ffast-math -std=c++11
+g++ *.cpp -o engine.exe -O3 -march=native -flto -funroll-loops -ffast-math -std=c++11 -DDATAGEN
 most optimalization i guess
 and compile all files
 perft 6 optimalization flags and pointers 0.73s
