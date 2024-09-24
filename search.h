@@ -9,11 +9,11 @@
 class Search
 {
     public:
-    int negamax(int depth, int ply, int alpha, int beta,int color, Position& pos, Evaluator& eval, chrono::steady_clock::time_point start);
+    int negamax(int depth, int ply, int alpha, int beta,int color, Position& pos, chrono::steady_clock::time_point start);
 
-    int quiescence(int depth, int ply, int alpha, int beta,int color, Position& pos, Evaluator& eval, chrono::steady_clock::time_point start);
+    int quiescence(int depth, int ply, int alpha, int beta,int color, Position& pos, chrono::steady_clock::time_point start);
 
-    Move search(Position& pos, Evaluator& eval);
+    Move search(Position& pos);
 
     Bitboard transpositionCount = 0;
 
@@ -64,6 +64,6 @@ class Search
 
     Move historyHeuristic[64][64];
 
-    void savePosition(Position &pos, Evaluator &eval, int negamaxScore);
+    void savePosition(Position &pos, int negamaxScore);
 
 };

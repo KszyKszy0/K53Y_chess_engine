@@ -15,9 +15,6 @@ public:
     // Performs search on a given position
     Search search;
 
-    // Has evaluation functions
-    Evaluator eval;
-
     // Starting fen of starting position in chess game
     string startingFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
