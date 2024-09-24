@@ -12,9 +12,6 @@ public:
     // it also works as game
     Position pos;
 
-    // Performs search on a given position
-    Search search;
-
     // Starting fen of starting position in chess game
     string startingFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 

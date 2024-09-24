@@ -204,19 +204,19 @@ void core::setPosition(vector<string>& moves, string FEN)
 
 void core::quit()
 {
-    search.isCancelled = true;
+    isCancelled = true;
     exit(0);
 }
 
 void core::stop()
 {
-    search.isCancelled = true;
+    isCancelled = true;
 }
 
 void core::go()
 {
-    // search.negamax(5, 0, -100000, 100000,pos.STM ? 1 : -1, moveGenerator, pos, eval);
-    search.search(pos);
+    // negamax(5, 0, -100000, 100000,pos.STM ? 1 : -1, moveGenerator, pos, eval);
+    search(pos);
 }
 
 void core::setTime(int wTime, int bTime)
@@ -225,39 +225,39 @@ void core::setTime(int wTime, int bTime)
     {
         if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 28 )
         {
-            search.timeLimit = wTime / (float)60;
+            timeLimit = wTime / (float)60;
             return;
         }
         if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 16 )
         {
-            search.timeLimit = wTime / (float)40;
+            timeLimit = wTime / (float)40;
             return;
         }
         if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 4 )
         {
-            search.timeLimit = wTime / (float)20;
+            timeLimit = wTime / (float)20;
             return;
         }
-        search.timeLimit = wTime / (float)15;
+        timeLimit = wTime / (float)15;
         return;
     }else
     {
         if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 28 )
         {
-            search.timeLimit = bTime / (float)60;
+            timeLimit = bTime / (float)60;
             return;
         }
         if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 16 )
         {
-            search.timeLimit = bTime / (float)40;
+            timeLimit = bTime / (float)40;
             return;
         }
         if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 4 )
         {
-            search.timeLimit = bTime / (float)20;
+            timeLimit = bTime / (float)20;
             return;
         }
-        search.timeLimit = bTime / (float)15;
+        timeLimit = bTime / (float)15;
         return;
     }
 }

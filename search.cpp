@@ -7,7 +7,28 @@
 #include "helperFunctions.h"
 #include <fstream>
 
-int Search::negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, chrono::steady_clock::time_point start)
+
+
+
+int timeLimit;
+bool isCancelled;
+Bitboard queiscenceNodes;
+Bitboard quiescenceTT;
+
+Bitboard transpositionCount;
+Bitboard nodesCount;
+Bitboard matchedTranspositions;
+Bitboard collisions;
+Move bestMovePrevious;
+int oldEval;
+
+Move killers[64];
+Move historyHeuristic[64][64];
+
+int pvLength[64];
+Move pvTable[64][64];
+
+int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, chrono::steady_clock::time_point start)
 {
     pvLength[ply] = ply;
 
@@ -335,7 +356,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, Position
     return best;
 }
 
-Move Search::search(Position &pos)
+Move search(Position &pos)
 {
     //Initializing starting values
 
@@ -438,7 +459,7 @@ Move Search::search(Position &pos)
 }
 
 //3 fold repetition check
-bool Search::isRepeated(Position &pos)
+bool isRepeated(Position &pos)
 {
     //How many times this position has encountered
     int counter = 0;
@@ -458,7 +479,7 @@ bool Search::isRepeated(Position &pos)
 
 
 
-int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
+int quiescence(int depth, int ply, int alpha, int beta, int color,
                      Position &pos, chrono::steady_clock::time_point start)
 {
     // Initialize a new flag for the type of bound (Upper Bound by default)
@@ -614,7 +635,7 @@ int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
     return best;
 }
 
-void Search::updatePV(Move m, int ply)
+void updatePV(Move m, int ply)
 {
     pvTable[ply][ply] = m;
 
@@ -628,7 +649,7 @@ void Search::updatePV(Move m, int ply)
 
 
 
-void Search::savePosition(Position &pos, int negamaxScore)
+void savePosition(Position &pos, int negamaxScore)
 {
     //TreeStrap
 
