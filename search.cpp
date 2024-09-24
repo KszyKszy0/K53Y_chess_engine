@@ -11,6 +11,9 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 {
     pvLength[ply] = ply;
 
+    //Checks if we are in null window search
+    bool PV = (alpha != beta - 1);
+
     // This gives info about checkmate and stalemate so it must be the first thing to consider
     MoveList moveList;
     moveGenerator.fullMovesList(pos, moveList);
@@ -59,7 +62,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         transpositionMove = entry.bestMove;
 
         //If depth from TT is at least same as current we can immediately take score
-        if ((entry.depth >= depth) && (ply > 0))
+        if ((entry.depth >= depth) && (ply > 0) && !PV)
         {
             //Check for node type (matching ab window) (cutoff) (fail low)
             if ((entry.type == EXACT_SCORE) || ((entry.type == LOWER_BOUND) && (entry.score >= beta)) || ((entry.type == UPPER_BOUND) && (entry.score < alpha)))
@@ -206,23 +209,23 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 
         int value = 0;
 
-        // if(movesSearched == 0)
-        // {
-        //     //Standard alpha beta search with normal window
-        //     value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
-        // }else
-        // {
-        //     //If it is not first move we search with null window
-        //     value = -negamax(depth - 1, ply + 1, -alpha - 1, -alpha, -color, moveGenerator, pos, eval, start);
+        if(movesSearched == 0)
+        {
+            //Standard alpha beta search with normal window
+            value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
+        }else
+        {
+            //If it is not first move we search with null window
+            value = -negamax(depth - 1, ply + 1, -alpha - 1, -alpha, -color, moveGenerator, pos, eval, start);
 
-        //     //If value is inside alpha beta bound we research with full window
-        //     if(value > alpha && value < beta)
-        //     {
-        //         value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
-        //     }
-        // }
+            //If value is inside alpha beta bound we research with full window
+            if(value > alpha && value < beta)
+            {
+                value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
+            }
+        }
 
-        value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
+        // value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
 
         //Undo move
         pos.undoMove(m);
@@ -354,6 +357,9 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
     //Reset node count
     nodesCount = 0;
 
+    //For printing during time cutoff
+    int oldPVLength = 0;
+
     for(int i=0; i<=63; i++)
     {
         killers[i] = 0;
@@ -389,14 +395,22 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
         //
         //          PV PRINTING SEGMENT
         //
-        // std::cout << " pv ";
+        std::cout << " pv ";
 
-
-        // for(int pvl = 0; pvl < pvLength[0]; pvl++)
-        // {
-        //     printMove(pvTable[0][pvl]);
-        //     std::cout<<" ";
-        // }
+        int limit = 0;
+        if(pvLength[0] > oldPVLength)
+        {
+            limit = pvLength[0];
+        }else
+        {
+            limit = oldPVLength;
+        }
+        for(int pvl = 0; pvl < limit; pvl++)
+        {
+            printMove(pvTable[0][pvl]);
+            std::cout<<" ";
+        }
+        oldPVLength = pvLength[0];
 
         std::cout<<endl;
         //
@@ -415,7 +429,7 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
     // pos.makeMove(bestMovePrevious);
 
 #ifdef DATAGEN
-    if(oldEval > -90000 && oldEval < 90000)
+    if(oldEval > -90000 && oldEval < 90000 && Flags(bestMovePrevious) != CAPTURE)
         savePosition(pos, eval, oldEval);
 #endif
 
