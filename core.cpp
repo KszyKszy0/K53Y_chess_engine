@@ -2,9 +2,9 @@
 #include "position.h"
 // #include "helperFunctions.h"
 
-core::core() : bbManager(BB_utils()), moveGenerator(bbManager)
+core::core()
 {
-
+    magicInit();
 }
 
 // Highly unoptimized function TODO!!!
@@ -71,7 +71,7 @@ Bitboard core::perft(int depth)
     }
 
     MoveList moves;
-    moveGenerator.fullMovesList(pos, moves);
+    fullMovesList(pos, moves);
 
     if(depth == 1)
     {
@@ -166,7 +166,7 @@ void core::setPosition(vector<string>& moves)
     for(string s : moves)
     {
         MoveList moveList;
-        moveGenerator.fullMovesList(pos, moveList);
+        fullMovesList(pos, moveList);
         pos.makeMove(uciToMove(s,pos,moveList.begin()));
     }
     // positionCounter = moves.size();
@@ -187,7 +187,7 @@ void core::setPosition(vector<string>& moves, string FEN)
     for(string s : moves)
     {
         MoveList moveList;
-        moveGenerator.fullMovesList(pos, moveList);
+        fullMovesList(pos, moveList);
         pos.makeMove(uciToMove(s,pos,moveList.begin()));
     }
     // positionCounter = moves.size();
@@ -216,7 +216,7 @@ void core::stop()
 void core::go()
 {
     // search.negamax(5, 0, -100000, 100000,pos.STM ? 1 : -1, moveGenerator, pos, eval);
-    search.search( pos, moveGenerator, eval);
+    search.search(pos, eval);
 }
 
 void core::setTime(int wTime, int bTime)

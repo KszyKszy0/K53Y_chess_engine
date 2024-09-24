@@ -6,7 +6,46 @@
 #include "moveList.h"
 #include <vector>
 
-void MoveGenerator::generatePawnMoves(Position &pos, Bitboard target, MoveList &moveList, int type, Bitboard pins)
+
+Bitboard rectangularLookup[64][64];
+
+//Array for king moves
+Bitboard kingMoves[64];
+
+//Array for knight moves
+Bitboard knightMoves[64];
+
+//Array for white pawn moves
+Bitboard whitePawnMoves[64];
+
+//Array for white pawn captures
+Bitboard whitePawnCaptures[64];
+
+//Array for black pawn moves
+Bitboard blackPawnMoves[64];
+
+//Array for black pawn captures
+Bitboard blackPawnCaptures[64];
+
+//Vector of legal bishop moves[square][magic]
+vector<vector<Bitboard>> bishopMoves;
+
+//Vector of legal rook moves[square][magic]
+vector<vector<Bitboard>> rookMoves;
+
+//Movement mask without edges
+Bitboard rookMasks[64];
+
+//Movement mask without edges
+Bitboard bishopMasks[64];
+
+//List of all blockers for all squares
+vector<vector<Bitboard>> bishopBlockers;
+
+//List of all blockers for all squares
+vector<vector<Bitboard>> rookBlockers;
+
+void generatePawnMoves(Position &pos, Bitboard target, MoveList &moveList, int type, Bitboard pins)
 {
     if (pos.STM == WHITE)
     {
@@ -59,7 +98,7 @@ void MoveGenerator::generatePawnMoves(Position &pos, Bitboard target, MoveList &
 }
 
 //Go through side bitboard and create moves for each piece
-void MoveGenerator::generateMoves(Position &pos, Bitboard target, MoveList &moveList, Bitboard whatCanMove)
+void generateMoves(Position &pos, Bitboard target, MoveList &moveList, Bitboard whatCanMove)
 {
     //What can move is bitboard without pinned pieces
     while (whatCanMove)
@@ -92,31 +131,31 @@ void MoveGenerator::generateMoves(Position &pos, Bitboard target, MoveList &move
 }
 
 // True white attacks on square, False black attacks on square POINTS on bb
-Bitboard MoveGenerator::howManyAttacks(Position &pos, bool white, int index)
+Bitboard howManyAttacks(Position &pos, bool white, int index)
 {
     Bitboard attacks = 0;
     // Combine all pieces with its attacks from lookup tables for all pieces that attack square
     //"superpiece" at selected index used for check detection
     if (white)
     {
-        attacks |= BBManager.blackPawnCaptures[index] & pos.piecesBitboards[WHITE_PAWN];
-        attacks |= BBManager.knightMoves[index] & pos.piecesBitboards[WHITE_KNIGHT];
-        attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index], BBManager.bishopsMagics[index], BBManager.bishopBits[index])] & (pos.piecesBitboards[WHITE_BISHOP] | pos.piecesBitboards[WHITE_QUEEN]);
-        attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index], BBManager.rooksMagics[index], BBManager.rookBits[index])] & (pos.piecesBitboards[WHITE_ROOK] | pos.piecesBitboards[WHITE_QUEEN]);
-        attacks |= BBManager.kingMoves[index] & pos.piecesBitboards[WHITE_KING];
+        attacks |= blackPawnCaptures[index] & pos.piecesBitboards[WHITE_PAWN];
+        attacks |= knightMoves[index] & pos.piecesBitboards[WHITE_KNIGHT];
+        attacks |= bishopMoves[index][getMagicIndex(pos.piecesBitboards[ALL_PIECES] & bishopMasks[index], bishopsMagics[index], bishopBits[index])] & (pos.piecesBitboards[WHITE_BISHOP] | pos.piecesBitboards[WHITE_QUEEN]);
+        attacks |= rookMoves[index][getMagicIndex(pos.piecesBitboards[ALL_PIECES] & rookMasks[index], rooksMagics[index], rookBits[index])] & (pos.piecesBitboards[WHITE_ROOK] | pos.piecesBitboards[WHITE_QUEEN]);
+        attacks |= kingMoves[index] & pos.piecesBitboards[WHITE_KING];
     }
     else
     {
-        attacks |= BBManager.whitePawnCaptures[index] & pos.piecesBitboards[BLACK_PAWN];
-        attacks |= BBManager.knightMoves[index] & pos.piecesBitboards[BLACK_KNIGHT];
-        attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[index], BBManager.bishopsMagics[index], BBManager.bishopBits[index])] & (pos.piecesBitboards[BLACK_BISHOP] | pos.piecesBitboards[BLACK_QUEEN]);
-        attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[index], BBManager.rooksMagics[index], BBManager.rookBits[index])] & (pos.piecesBitboards[BLACK_ROOK] | pos.piecesBitboards[BLACK_QUEEN]);
-        attacks |= BBManager.kingMoves[index] & pos.piecesBitboards[BLACK_KING];
+        attacks |= whitePawnCaptures[index] & pos.piecesBitboards[BLACK_PAWN];
+        attacks |= knightMoves[index] & pos.piecesBitboards[BLACK_KNIGHT];
+        attacks |= bishopMoves[index][getMagicIndex(pos.piecesBitboards[ALL_PIECES] & bishopMasks[index], bishopsMagics[index], bishopBits[index])] & (pos.piecesBitboards[BLACK_BISHOP] | pos.piecesBitboards[BLACK_QUEEN]);
+        attacks |= rookMoves[index][getMagicIndex(pos.piecesBitboards[ALL_PIECES] & rookMasks[index], rooksMagics[index], rookBits[index])] & (pos.piecesBitboards[BLACK_ROOK] | pos.piecesBitboards[BLACK_QUEEN]);
+        attacks |= kingMoves[index] & pos.piecesBitboards[BLACK_KING];
     }
     return attacks;
 }
 
-void MoveGenerator::fullMovesList(Position &pos, MoveList &moveList)
+void fullMovesList(Position &pos, MoveList &moveList)
 {
     // MoveList that will be used for all substeps
 
@@ -143,7 +182,7 @@ void MoveGenerator::fullMovesList(Position &pos, MoveList &moveList)
         singleCheckIndex = LSB(checksAttacks);
 
         // Update check target with rect lookup
-        checkTargets |= BBManager.rectangularLookup[kingIndex][singleCheckIndex];
+        checkTargets |= rectangularLookup[kingIndex][singleCheckIndex];
 
     }
 
@@ -245,7 +284,7 @@ void MoveGenerator::fullMovesList(Position &pos, MoveList &moveList)
     return;
 }
 
-void MoveGenerator::fullCapturesList(Position &pos, MoveList &moveList)
+void fullCapturesList(Position &pos, MoveList &moveList)
 {
     // MoveList that will be used for all substeps
 
@@ -272,7 +311,7 @@ void MoveGenerator::fullCapturesList(Position &pos, MoveList &moveList)
         singleCheckIndex = LSB(checksAttacks);
 
         // Update check target with rect lookup
-        checkTargets |= BBManager.rectangularLookup[kingIndex][singleCheckIndex];
+        checkTargets |= rectangularLookup[kingIndex][singleCheckIndex];
 
     }
 
@@ -374,7 +413,7 @@ void MoveGenerator::fullCapturesList(Position &pos, MoveList &moveList)
     return;
 }
 
-void MoveGenerator::addMoves(int startSquare, Bitboard targers, MoveList &moveList, Position &pos)
+void addMoves(int startSquare, Bitboard targers, MoveList &moveList, Position &pos)
 {
     while (targers)
     {
@@ -391,7 +430,7 @@ void MoveGenerator::addMoves(int startSquare, Bitboard targers, MoveList &moveLi
     }
 }
 
-void MoveGenerator::addMoves(int startSquare, int index, int flags, MoveList &moveList)
+void addMoves(int startSquare, int index, int flags, MoveList &moveList)
 {
     // go to move creator
     *moveList.cur++ = createMove(startSquare, index, flags); // add move to moves list
@@ -399,7 +438,7 @@ void MoveGenerator::addMoves(int startSquare, int index, int flags, MoveList &mo
     // moveList.moveList[moveList.size++]=temp;
 }
 
-void MoveGenerator::addMoves(int startSquare, Bitboard targers, MoveList &moveList, Position &pos, int flag)
+void addMoves(int startSquare, Bitboard targers, MoveList &moveList, Position &pos, int flag)
 {
     while (targers)
     {
@@ -410,14 +449,8 @@ void MoveGenerator::addMoves(int startSquare, Bitboard targers, MoveList &moveLi
     }
 }
 
-//Constructor
-MoveGenerator::MoveGenerator(BB_utils BBM)
-{
-    BBManager = BBM;
-}
-
 // Combine all pieces with its attacks from lookup tables for all attacks from side
-Bitboard MoveGenerator::getSideAttacks(Position &pos, bool white, bool forKingMoves)
+Bitboard getSideAttacks(Position &pos, bool white, bool forKingMoves)
 {
 
     Bitboard attacks = 0;
@@ -435,7 +468,7 @@ Bitboard MoveGenerator::getSideAttacks(Position &pos, bool white, bool forKingMo
         while (iterated)
         {
             int index = popLSB(iterated);
-            attacks |= BBManager.whitePawnCaptures[index];
+            attacks |= whitePawnCaptures[index];
         }
 
         // white knights
@@ -443,7 +476,7 @@ Bitboard MoveGenerator::getSideAttacks(Position &pos, bool white, bool forKingMo
         while (iterated)
         {
             int index = popLSB(iterated);
-            attacks |= BBManager.knightMoves[index];
+            attacks |= knightMoves[index];
         }
 
         // white bishops
@@ -451,7 +484,7 @@ Bitboard MoveGenerator::getSideAttacks(Position &pos, bool white, bool forKingMo
         while (iterated)
         {
             int index = popLSB(iterated);
-            attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(target & BBManager.bishopMasks[index], BBManager.bishopsMagics[index], BBManager.bishopBits[index])];
+            attacks |= bishopMoves[index][getMagicIndex(target & bishopMasks[index], bishopsMagics[index], bishopBits[index])];
         }
 
         // white rooks
@@ -459,7 +492,7 @@ Bitboard MoveGenerator::getSideAttacks(Position &pos, bool white, bool forKingMo
         while (iterated)
         {
             int index = popLSB(iterated);
-            attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(target & BBManager.rookMasks[index], BBManager.rooksMagics[index], BBManager.rookBits[index])];
+            attacks |= rookMoves[index][getMagicIndex(target & rookMasks[index], rooksMagics[index], rookBits[index])];
         }
 
         // white queens
@@ -467,8 +500,8 @@ Bitboard MoveGenerator::getSideAttacks(Position &pos, bool white, bool forKingMo
         while (iterated)
         {
             int index = popLSB(iterated);
-            attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(target & BBManager.rookMasks[index], BBManager.rooksMagics[index], BBManager.rookBits[index])];
-            attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(target & BBManager.bishopMasks[index], BBManager.bishopsMagics[index], BBManager.bishopBits[index])];
+            attacks |= rookMoves[index][getMagicIndex(target & rookMasks[index], rooksMagics[index], rookBits[index])];
+            attacks |= bishopMoves[index][getMagicIndex(target & bishopMasks[index], bishopsMagics[index], bishopBits[index])];
         }
 
         // white kings
@@ -476,7 +509,7 @@ Bitboard MoveGenerator::getSideAttacks(Position &pos, bool white, bool forKingMo
         while (iterated)
         {
             int index = popLSB(iterated);
-            attacks |= BBManager.kingMoves[index];
+            attacks |= kingMoves[index];
         }
     }
     else
@@ -493,7 +526,7 @@ Bitboard MoveGenerator::getSideAttacks(Position &pos, bool white, bool forKingMo
         while (iterated)
         {
             int index = popLSB(iterated);
-            attacks |= BBManager.blackPawnCaptures[index];
+            attacks |= blackPawnCaptures[index];
         }
 
         // black knights
@@ -501,7 +534,7 @@ Bitboard MoveGenerator::getSideAttacks(Position &pos, bool white, bool forKingMo
         while (iterated)
         {
             int index = popLSB(iterated);
-            attacks |= BBManager.knightMoves[index];
+            attacks |= knightMoves[index];
         }
 
         // black bishops
@@ -509,7 +542,7 @@ Bitboard MoveGenerator::getSideAttacks(Position &pos, bool white, bool forKingMo
         while (iterated)
         {
             int index = popLSB(iterated);
-            attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(target & BBManager.bishopMasks[index], BBManager.bishopsMagics[index], BBManager.bishopBits[index])];
+            attacks |= bishopMoves[index][getMagicIndex(target & bishopMasks[index], bishopsMagics[index], bishopBits[index])];
         }
 
         // black rooks
@@ -517,7 +550,7 @@ Bitboard MoveGenerator::getSideAttacks(Position &pos, bool white, bool forKingMo
         while (iterated)
         {
             int index = popLSB(iterated);
-            attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(target & BBManager.rookMasks[index], BBManager.rooksMagics[index], BBManager.rookBits[index])];
+            attacks |= rookMoves[index][getMagicIndex(target & rookMasks[index], rooksMagics[index], rookBits[index])];
         }
 
         // black queens
@@ -525,8 +558,8 @@ Bitboard MoveGenerator::getSideAttacks(Position &pos, bool white, bool forKingMo
         while (iterated)
         {
             int index = popLSB(iterated);
-            attacks |= BBManager.rookMoves[index][BBManager.getMagicIndex(target & BBManager.rookMasks[index], BBManager.rooksMagics[index], BBManager.rookBits[index])];
-            attacks |= BBManager.bishopMoves[index][BBManager.getMagicIndex(target & BBManager.bishopMasks[index], BBManager.bishopsMagics[index], BBManager.bishopBits[index])];
+            attacks |= rookMoves[index][getMagicIndex(target & rookMasks[index], rooksMagics[index], rookBits[index])];
+            attacks |= bishopMoves[index][getMagicIndex(target & bishopMasks[index], bishopsMagics[index], bishopBits[index])];
         }
 
         // black kings
@@ -534,13 +567,13 @@ Bitboard MoveGenerator::getSideAttacks(Position &pos, bool white, bool forKingMo
         while (iterated)
         {
             int index = popLSB(iterated);
-            attacks |= BBManager.kingMoves[index];
+            attacks |= kingMoves[index];
         }
     }
     return attacks;
 }
 
-Bitboard MoveGenerator::getPinners(Position &pos, bool white, MoveList &moveList, int checks)
+Bitboard getPinners(Position &pos, bool white, MoveList &moveList, int checks)
 {
     // Returned bb with all pinned pieces for side
     Bitboard allPinned = 0;
@@ -549,16 +582,16 @@ Bitboard MoveGenerator::getPinners(Position &pos, bool white, MoveList &moveList
     int kingIndex = LSB(pos.piecesBitboards[white ? WHITE_KING : BLACK_KING]);
 
     // Attacks from king rook shape intersect with allies
-    Bitboard kingRooksAttacks = BBManager.rookMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[kingIndex], BBManager.rooksMagics[kingIndex], BBManager.rookBits[kingIndex])] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
+    Bitboard kingRooksAttacks = rookMoves[kingIndex][getMagicIndex(pos.piecesBitboards[ALL_PIECES] & rookMasks[kingIndex], rooksMagics[kingIndex], rookBits[kingIndex])] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
 
     // New attacks omitting intersections
-    Bitboard pinners = BBManager.rookMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] ^ kingRooksAttacks) & BBManager.rookMasks[kingIndex], BBManager.rooksMagics[kingIndex], BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[white ? BLACK_ROOK : WHITE_ROOK] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN]);
+    Bitboard pinners = rookMoves[kingIndex][getMagicIndex((pos.piecesBitboards[ALL_PIECES] ^ kingRooksAttacks) & rookMasks[kingIndex], rooksMagics[kingIndex], rookBits[kingIndex])] & (pos.piecesBitboards[white ? BLACK_ROOK : WHITE_ROOK] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN]);
 
     // Attacks from king bishop shape intersect with allies
-    Bitboard kingsBishopAttacks = BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[kingIndex], BBManager.bishopsMagics[kingIndex], BBManager.bishopBits[kingIndex])] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
+    Bitboard kingsBishopAttacks = bishopMoves[kingIndex][getMagicIndex(pos.piecesBitboards[ALL_PIECES] & bishopMasks[kingIndex], bishopsMagics[kingIndex], bishopBits[kingIndex])] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
 
     // New attacks omitting intersections
-    pinners |= BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] ^ kingsBishopAttacks) & BBManager.bishopMasks[kingIndex], BBManager.bishopsMagics[kingIndex], BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[white ? BLACK_BISHOP : WHITE_BISHOP] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN]);
+    pinners |= bishopMoves[kingIndex][getMagicIndex((pos.piecesBitboards[ALL_PIECES] ^ kingsBishopAttacks) & bishopMasks[kingIndex], bishopsMagics[kingIndex], bishopBits[kingIndex])] & (pos.piecesBitboards[white ? BLACK_BISHOP : WHITE_BISHOP] | pos.piecesBitboards[white ? BLACK_QUEEN : WHITE_QUEEN]);
 
     // Loop through all PINNERS
     while (pinners)
@@ -567,7 +600,7 @@ Bitboard MoveGenerator::getPinners(Position &pos, bool white, MoveList &moveList
         int pinnerIndex = popLSB(pinners);
 
         // Get lane of pin thorugh rectangular lookup
-        Bitboard bbPinned = BBManager.rectangularLookup[pinnerIndex][kingIndex] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
+        Bitboard bbPinned = rectangularLookup[pinnerIndex][kingIndex] & pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];
 
         if (bbPinned == 0) // safety check for position where you check king but intersect with ally on other side
             continue;      // example rnbqkbnr/ppp1pppp/8/3p4/Q1P5/8/PP1PPPPP/RNB1KBNR b KQkq - 1 2 check from a4 but intersection on f7
@@ -585,7 +618,7 @@ Bitboard MoveGenerator::getPinners(Position &pos, bool white, MoveList &moveList
             continue;
 
         // Get target without pinner
-        Bitboard target = BBManager.rectangularLookup[pinnerIndex][kingIndex];
+        Bitboard target = rectangularLookup[pinnerIndex][kingIndex];
 
         // Add pinner to bitboard
         setBit(target, pinnerIndex);
@@ -632,10 +665,10 @@ Bitboard MoveGenerator::getPinners(Position &pos, bool white, MoveList &moveList
     return allPinned;
 }
 
-void MoveGenerator::addPawnWhiteQuiet(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
+void addPawnWhiteQuiet(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
 {
     // Default moves Targets are empty squares by default
-    Bitboard possibleMoves = BBManager.whitePawnMoves[startSquare] & target;
+    Bitboard possibleMoves = whitePawnMoves[startSquare] & target;
 
     // this is probably useless
     possibleMoves &= ~pos.piecesBitboards[ALL_PIECES];
@@ -677,10 +710,10 @@ void MoveGenerator::addPawnWhiteQuiet(int startSquare, MoveList &moveList, Posit
 }
 
 // only simple captures without enpassant
-void MoveGenerator::addPawnWhiteCaptures(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
+void addPawnWhiteCaptures(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
 {
     //Simple captures upright upleft
-    Bitboard possibleMoves = BBManager.whitePawnCaptures[startSquare] & target;
+    Bitboard possibleMoves = whitePawnCaptures[startSquare] & target;
 
     //If we are on promotion square add all possible promotions
     if (startSquare / 8 == 6)
@@ -707,7 +740,7 @@ void MoveGenerator::addPawnWhiteCaptures(int startSquare, MoveList &moveList, Po
 }
 
 // enpassant moves and pins
-void MoveGenerator::addPawnWhiteEnpassant(MoveList &moveList, Position &pos, Bitboard target, int enPassantSquare)
+void addPawnWhiteEnpassant(MoveList &moveList, Position &pos, Bitboard target, int enPassantSquare)
 {
     //Get pawns bitboard
     Bitboard iterated = pos.piecesBitboards[WHITE_PAWN];
@@ -719,7 +752,7 @@ void MoveGenerator::addPawnWhiteEnpassant(MoveList &moveList, Position &pos, Bit
         int startSquare = popLSB(iterated);
 
         //If enpassantSquare intersects with pawns attacks from square and target which is [NO_PIECE] or checkEvasions plus enpassantCapture
-        if (((1ULL << enPassantSquare) & BBManager.whitePawnCaptures[startSquare] & target) == (1ULL << enPassantSquare))
+        if (((1ULL << enPassantSquare) & whitePawnCaptures[startSquare] & target) == (1ULL << enPassantSquare))
         {
             //It holds attacks from king using queen movements so we can check if we are in check after removing pawns
             Bitboard enpassantAttacks = 0;
@@ -737,15 +770,15 @@ void MoveGenerator::addPawnWhiteEnpassant(MoveList &moveList, Position &pos, Bit
             // Target must include target square because rnbqkbnr/1pp2ppp/p7/3pP3/8/8/PPPKPPPP/RNBQ1BNR w kq d6 0 4 enpassant still blocks check
             //                                                                            //Normal blockers             WITH  enPassantSquare     INTERSECT   mask of piece       REMOVING moved pawns
             //                                                                                                        (target after made move)                                    (the one that took and the one that was taken)
-            enpassantAttacks |= BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare) & BBManager.bishopMasks[kingIndex] & ~removingPawns, BBManager.bishopsMagics[kingIndex], BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[BLACK_BISHOP] | pos.piecesBitboards[BLACK_QUEEN]);
-            enpassantAttacks |= BBManager.rookMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare) & BBManager.rookMasks[kingIndex] & ~removingPawns, BBManager.rooksMagics[kingIndex], BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[BLACK_ROOK] | pos.piecesBitboards[BLACK_QUEEN]);
+            enpassantAttacks |= bishopMoves[kingIndex][getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare) & bishopMasks[kingIndex] & ~removingPawns, bishopsMagics[kingIndex], bishopBits[kingIndex])] & (pos.piecesBitboards[BLACK_BISHOP] | pos.piecesBitboards[BLACK_QUEEN]);
+            enpassantAttacks |= rookMoves[kingIndex][getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare) & rookMasks[kingIndex] & ~removingPawns, rooksMagics[kingIndex], rookBits[kingIndex])] & (pos.piecesBitboards[BLACK_ROOK] | pos.piecesBitboards[BLACK_QUEEN]);
 
             // If we are not in check after removing pawns
             // we can generate moves
             if (enpassantAttacks == 0)
             {
                 //Bitboard with enpassantSquare
-                Bitboard possibleEnPassant = BBManager.whitePawnCaptures[startSquare] & (1ULL << enPassantSquare);
+                Bitboard possibleEnPassant = whitePawnCaptures[startSquare] & (1ULL << enPassantSquare);
 
                 //Adding moves to list
                 addMoves(startSquare, possibleEnPassant, moveList, pos, EN_PASSANT);
@@ -754,10 +787,10 @@ void MoveGenerator::addPawnWhiteEnpassant(MoveList &moveList, Position &pos, Bit
     }
 }
 
-void MoveGenerator::addPawnBlackQuiet(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
+void addPawnBlackQuiet(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
 {
     // Default moves Targets are empty squares by default
-    Bitboard possibleMoves = BBManager.blackPawnMoves[startSquare] & target;
+    Bitboard possibleMoves = blackPawnMoves[startSquare] & target;
 
     // this is probably useless
     possibleMoves &= ~pos.piecesBitboards[ALL_PIECES];
@@ -799,10 +832,10 @@ void MoveGenerator::addPawnBlackQuiet(int startSquare, MoveList &moveList, Posit
 }
 
 // only simple captures without enpassant
-void MoveGenerator::addPawnBlackCaptures(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
+void addPawnBlackCaptures(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
 {
     //Simple captures upright upleft
-    Bitboard possibleMoves = BBManager.blackPawnCaptures[startSquare] & target;
+    Bitboard possibleMoves = blackPawnCaptures[startSquare] & target;
 
     //If we are on promotion square add all possible promotions
     if (startSquare / 8 == 1)
@@ -829,7 +862,7 @@ void MoveGenerator::addPawnBlackCaptures(int startSquare, MoveList &moveList, Po
 }
 
 // enpassant moves and pins
-void MoveGenerator::addPawnBlackEnpassant(MoveList &moveList, Position &pos, Bitboard target, int enPassantSquare)
+void addPawnBlackEnpassant(MoveList &moveList, Position &pos, Bitboard target, int enPassantSquare)
 {
     //Get pawns bitboard
     Bitboard iterated = pos.piecesBitboards[BLACK_PAWN];
@@ -841,7 +874,7 @@ void MoveGenerator::addPawnBlackEnpassant(MoveList &moveList, Position &pos, Bit
         int startSquare = popLSB(iterated);
 
         //If enpassantSquare intersects with pawns attacks from square and target which is [NO_PIECE] or checkEvasions plus enpassantCapture
-        if (((1ULL << enPassantSquare) & BBManager.blackPawnCaptures[startSquare] & target) == (1ULL << enPassantSquare))
+        if (((1ULL << enPassantSquare) & blackPawnCaptures[startSquare] & target) == (1ULL << enPassantSquare))
         {
             //It holds attacks from king using queen movements so we can check if we are in check after removing pawns
             Bitboard enpassantAttacks = 0;
@@ -859,15 +892,15 @@ void MoveGenerator::addPawnBlackEnpassant(MoveList &moveList, Position &pos, Bit
             // Target must include target square because rnbqkbnr/1pp2ppp/p7/3pP3/8/8/PPPKPPPP/RNBQ1BNR w kq d6 0 4 enpassant still blocks check
             //                                                                            //Normal blockers             WITH  enPassantSquare     INTERSECT   mask of piece       REMOVING moved pawns
             //                                                                                                        (target after made move)                                    (the one that took and the one that was taken)
-            enpassantAttacks |= BBManager.bishopMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare) & BBManager.bishopMasks[kingIndex] & ~removingPawns, BBManager.bishopsMagics[kingIndex], BBManager.bishopBits[kingIndex])] & (pos.piecesBitboards[WHITE_BISHOP] | pos.piecesBitboards[WHITE_QUEEN]);
-            enpassantAttacks |= BBManager.rookMoves[kingIndex][BBManager.getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare) & BBManager.rookMasks[kingIndex] & ~removingPawns, BBManager.rooksMagics[kingIndex], BBManager.rookBits[kingIndex])] & (pos.piecesBitboards[WHITE_ROOK] | pos.piecesBitboards[WHITE_QUEEN]);
+            enpassantAttacks |= bishopMoves[kingIndex][getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare) & bishopMasks[kingIndex] & ~removingPawns, bishopsMagics[kingIndex], bishopBits[kingIndex])] & (pos.piecesBitboards[WHITE_BISHOP] | pos.piecesBitboards[WHITE_QUEEN]);
+            enpassantAttacks |= rookMoves[kingIndex][getMagicIndex((pos.piecesBitboards[ALL_PIECES] | 1ULL << enPassantSquare) & rookMasks[kingIndex] & ~removingPawns, rooksMagics[kingIndex], rookBits[kingIndex])] & (pos.piecesBitboards[WHITE_ROOK] | pos.piecesBitboards[WHITE_QUEEN]);
 
             // If we are not in check after removing pawns
             // we can generate moves
             if (enpassantAttacks == 0)
             {
                 //Bitboard with enpassantSquare
-                Bitboard possibleEnPassant = BBManager.blackPawnCaptures[startSquare] & (1ULL << enPassantSquare);
+                Bitboard possibleEnPassant = blackPawnCaptures[startSquare] & (1ULL << enPassantSquare);
 
                 //Adding moves to list
                 addMoves(startSquare, possibleEnPassant, moveList, pos, EN_PASSANT);
@@ -876,40 +909,40 @@ void MoveGenerator::addPawnBlackEnpassant(MoveList &moveList, Position &pos, Bit
     }
 }
 
-void MoveGenerator::addKnightsMoves(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
+void addKnightsMoves(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
 {
     // lookup
-    Bitboard possibleMoves = BBManager.knightMoves[startSquare] & target;
+    Bitboard possibleMoves = knightMoves[startSquare] & target;
 
     // go to move creator
     addMoves(startSquare, possibleMoves, moveList, pos);
 }
 
-void MoveGenerator::addBishopsMoves(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
+void addBishopsMoves(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
 {
     // lookup
-    Bitboard possibleMoves = BBManager.bishopMoves[startSquare][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.bishopMasks[startSquare], BBManager.bishopsMagics[startSquare], BBManager.bishopBits[startSquare])] & target;
+    Bitboard possibleMoves = bishopMoves[startSquare][getMagicIndex(pos.piecesBitboards[ALL_PIECES] & bishopMasks[startSquare], bishopsMagics[startSquare], bishopBits[startSquare])] & target;
 
     // go to move creator
     addMoves(startSquare, possibleMoves, moveList, pos);
 }
 
-void MoveGenerator::addRookMoves(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
+void addRookMoves(int startSquare, MoveList &moveList, Position &pos, Bitboard target)
 {
     // lookup
-    Bitboard possibleMoves = BBManager.rookMoves[startSquare][BBManager.getMagicIndex(pos.piecesBitboards[ALL_PIECES] & BBManager.rookMasks[startSquare], BBManager.rooksMagics[startSquare], BBManager.rookBits[startSquare])] & target;
+    Bitboard possibleMoves = rookMoves[startSquare][getMagicIndex(pos.piecesBitboards[ALL_PIECES] & rookMasks[startSquare], rooksMagics[startSquare], rookBits[startSquare])] & target;
 
     // go to move creator
     addMoves(startSquare, possibleMoves, moveList, pos);
 }
 
-void MoveGenerator::generateKingsMoves(Position &pos, MoveList &moveList, Bitboard target, bool white, int checks)
+void generateKingsMoves(Position &pos, MoveList &moveList, Bitboard target, bool white, int checks)
 {
     // Get king index
     int index = LSB(pos.piecesBitboards[white ? WHITE_KING : BLACK_KING]);
 
     // Get possible moves from lookup
-    Bitboard possibleMoves = BBManager.kingMoves[index] & target;
+    Bitboard possibleMoves = kingMoves[index] & target;
 
     // Subtract own pieces from lookup
     possibleMoves &= ~pos.piecesBitboards[white ? WHITE_PIECES : BLACK_PIECES];

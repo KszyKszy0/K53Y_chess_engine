@@ -7,12 +7,6 @@
 class core
 {
 public:
-    // Takes care of all Bitboard stuff
-    // initialization and so on
-    BB_utils bbManager;
-
-    // Has functions for movegen
-    MoveGenerator moveGenerator;
 
     // Class describes chess position
     // it also works as game

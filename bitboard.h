@@ -49,9 +49,6 @@ void printPieceArray(int array[64]);
 //Changes index to white perspective (^56)
 int flipIndex(int index);
 
-class BB_utils
-{
-    public:
 
 //Mask for square
 Bitboard generateRookMoves(int square);
@@ -62,17 +59,14 @@ Bitboard generateBishopMoves(int square);
 //Direct moves of knight from square BB
 Bitboard generateKnightMoves(int square);
 
-//Setup of all BB (magic, moves, pieces)
-BB_utils();
-
 //Blocker generation for mask
-vector<Bitboard> generateBlockers(Bitboard attackSet);
+extern vector<Bitboard> generateBlockers(Bitboard attackSet);
 
 //List of all blockers for all squares
-vector<vector<Bitboard>> bishopBlockers;
+extern vector<vector<Bitboard>> bishopBlockers;
 
 //List of all blockers for all squares
-vector<vector<Bitboard>> rookBlockers;
+extern vector<vector<Bitboard>> rookBlockers;
 
 //Squares between two squares (legality detection)
 Bitboard generateRectangularMask(int square1, int square2);
@@ -81,7 +75,7 @@ Bitboard generateRectangularMask(int square1, int square2);
 void generateRectangularLookup(Bitboard (&lookup)[64][64]);
 
 //Array for rectangular lookup
-Bitboard rectangularLookup[64][64];
+extern Bitboard rectangularLookup[64][64];
 
 //Direct moves of king from square BB
 Bitboard generateKingMoves(int square);
@@ -92,28 +86,28 @@ Bitboard generateKingMoves(int square);
 void generatePawnMoves(Bitboard (&pawnMove)[64], Bitboard (&pawnAttack)[64], bool isWhite);
 
 //Array for king moves
-Bitboard kingMoves[64];
+extern Bitboard kingMoves[64];
 
 //Array for knight moves
-Bitboard knightMoves[64];
+extern Bitboard knightMoves[64];
 
 //Array for white pawn moves
-Bitboard whitePawnMoves[64];
+extern Bitboard whitePawnMoves[64];
 
 //Array for white pawn captures
-Bitboard whitePawnCaptures[64];
+extern Bitboard whitePawnCaptures[64];
 
 //Array for black pawn moves
-Bitboard blackPawnMoves[64];
+extern Bitboard blackPawnMoves[64];
 
 //Array for black pawn captures
-Bitboard blackPawnCaptures[64];
+extern Bitboard blackPawnCaptures[64];
 
 //Vector of legal bishop moves[square][magic]
-vector<vector<Bitboard>> bishopMoves;
+extern vector<vector<Bitboard>> bishopMoves;
 
 //Vector of legal rook moves[square][magic]
-vector<vector<Bitboard>> rookMoves;
+extern vector<vector<Bitboard>> rookMoves;
 
 //Init magic rook vector
 void initRookAttacks();
@@ -131,15 +125,17 @@ Bitboard generateRookBitboardAttacksBlockers(int sq, Bitboard blockers);
 Bitboard generateBishopBitboardAttacksBlockers(int sq, Bitboard blockers);
 
 //Movement mask without edges
-Bitboard rookMasks[64];
+extern Bitboard rookMasks[64];
 
 //Movement mask without edges
-Bitboard bishopMasks[64];
+extern Bitboard bishopMasks[64];
 
+//Magic init
+void magicInit();
 
 //Magics and bits shift
 
-Bitboard rooksMagics[64]=
+const Bitboard rooksMagics[64]=
 {
   0x80004000976080,
   0x1040400010002000,
@@ -207,7 +203,7 @@ Bitboard rooksMagics[64]=
   0x1001040311802142,
 };
 
-Bitboard bishopsMagics[64]=
+const Bitboard bishopsMagics[64]=
 {
   0x1024b002420160,
   0x1008080140420021,
@@ -275,7 +271,7 @@ Bitboard bishopsMagics[64]=
   0x10140848044010,
 };
 
-int rookBits[64]=
+const int rookBits[64]=
 {   12, 11, 11, 11, 11, 11, 11, 12,
     11, 10, 10, 10, 10, 10, 10, 11,
     11, 10, 10, 10, 10, 10, 10, 11,
@@ -285,7 +281,7 @@ int rookBits[64]=
     11, 10, 10, 10, 10, 10, 10, 11,
     12, 11, 11, 11, 11, 11, 11, 12 };
 
-int bishopBits[64]=
+const int bishopBits[64]=
 {   6, 5, 5, 5, 5, 5, 5, 6,
     5, 5, 5, 5, 5, 5, 5, 5,
     5, 5, 7, 7, 7, 7, 5, 5,
@@ -297,5 +293,5 @@ int bishopBits[64]=
 
 //End of magics and bits shifts
 
-};
+
 

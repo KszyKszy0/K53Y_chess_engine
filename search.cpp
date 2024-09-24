@@ -7,7 +7,7 @@
 #include "helperFunctions.h"
 #include <fstream>
 
-int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGenerator &moveGenerator, Position &pos, Evaluator &eval, chrono::steady_clock::time_point start)
+int Search::negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, Evaluator &eval, chrono::steady_clock::time_point start)
 {
     pvLength[ply] = ply;
 
@@ -16,7 +16,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
 
     // This gives info about checkmate and stalemate so it must be the first thing to consider
     MoveList moveList;
-    moveGenerator.fullMovesList(pos, moveList);
+    fullMovesList(pos, moveList);
 
     // Hash of current position
     Bitboard key = pos.positionHash;
@@ -50,7 +50,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     //Entering Quiescence at the end of search
     if (depth == 0)
     {
-        return quiescence(depth, ply, alpha, beta, color, moveGenerator, pos, eval, start);
+        return quiescence(depth, ply, alpha, beta, color, pos, eval, start);
     }
 
     //Possible transposition lookup
@@ -212,20 +212,20 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
         if(movesSearched == 0)
         {
             //Standard alpha beta search with normal window
-            value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
+            value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, eval, start);
         }else
         {
             //If it is not first move we search with null window
-            value = -negamax(depth - 1, ply + 1, -alpha - 1, -alpha, -color, moveGenerator, pos, eval, start);
+            value = -negamax(depth - 1, ply + 1, -alpha - 1, -alpha, -color, pos, eval, start);
 
             //If value is inside alpha beta bound we research with full window
             if(value > alpha && value < beta)
             {
-                value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
+                value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, eval, start);
             }
         }
 
-        // value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
+        // value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, eval, start);
 
         //Undo move
         pos.undoMove(m);
@@ -335,7 +335,7 @@ int Search::negamax(int depth, int ply, int alpha, int beta, int color, MoveGene
     return best;
 }
 
-Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
+Move Search::search(Position &pos, Evaluator &eval)
 {
     //Initializing starting values
 
@@ -375,7 +375,7 @@ Move Search::search(Position &pos, MoveGenerator &mg, Evaluator &eval)
     {
 
         //Start negamax for current depth
-        bestMove = negamax(depth, 0, -INF, INF, pos.STM ? 1 : -1, mg, pos, eval, start);
+        bestMove = negamax(depth, 0, -INF, INF, pos.STM ? 1 : -1, pos, eval, start);
         if (bestMove != 0)
         {
             //We didn't get nullmove we can take that move
@@ -459,7 +459,7 @@ bool Search::isRepeated(Position &pos)
 
 
 int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
-                       MoveGenerator &moveGenerator, Position &pos,
+                     Position &pos,
                        Evaluator &eval, chrono::steady_clock::time_point start)
 {
     // Initialize a new flag for the type of bound (Upper Bound by default)
@@ -508,7 +508,7 @@ int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
 
     // Generate a list of capture moves (quiescence search considers only captures)
     MoveList moveList;
-    moveGenerator.fullCapturesList(pos, moveList);
+    fullCapturesList(pos, moveList);
 
 
     //MOVE ORDERING
@@ -571,7 +571,7 @@ int Search::quiescence(int depth, int ply, int alpha, int beta, int color,
         pos.makeMove(m);
 
         // Recursively call quiescence search with negated scores and swapped bounds
-        int value = -quiescence(depth - 1, ply + 1, -beta, -alpha, -color, moveGenerator, pos, eval, start);
+        int value = -quiescence(depth - 1, ply + 1, -beta, -alpha, -color, pos, eval, start);
 
         // Undo the move after evaluation
         pos.undoMove(m);

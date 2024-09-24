@@ -9,11 +9,11 @@
 class Search
 {
     public:
-    int negamax(int depth, int ply, int alpha, int beta,int color, MoveGenerator& moveGenerator, Position& pos, Evaluator& eval, chrono::steady_clock::time_point start);
+    int negamax(int depth, int ply, int alpha, int beta,int color, Position& pos, Evaluator& eval, chrono::steady_clock::time_point start);
 
-    int quiescence(int depth, int ply, int alpha, int beta,int color, MoveGenerator& moveGenerator, Position& pos, Evaluator& eval, chrono::steady_clock::time_point start);
+    int quiescence(int depth, int ply, int alpha, int beta,int color, Position& pos, Evaluator& eval, chrono::steady_clock::time_point start);
 
-    Move search(Position& pos, MoveGenerator& mg, Evaluator& eval);
+    Move search(Position& pos, Evaluator& eval);
 
     Bitboard transpositionCount = 0;
 

@@ -87,7 +87,7 @@ void printPieceArray(int array[64])
 
 //Rook moves for given square
 //Used for mask generation
-Bitboard BB_utils::generateRookMoves(int square)
+Bitboard generateRookMoves(int square)
 {
     //Bitboard of moves
     Bitboard moves = 0ULL;
@@ -114,7 +114,7 @@ Bitboard BB_utils::generateRookMoves(int square)
 
 //Bishop moves for given square
 //Used for mask generation
-Bitboard BB_utils::generateBishopMoves(int square)
+Bitboard generateBishopMoves(int square)
 {
     //Bitboard of moves
     Bitboard moves = 0ULL;
@@ -134,7 +134,7 @@ Bitboard BB_utils::generateBishopMoves(int square)
 
 //Knight moves
 //Used for lookup for knights
-Bitboard BB_utils::generateKnightMoves(int square)
+Bitboard generateKnightMoves(int square)
 {
     //Bitboard of moves
     Bitboard moves = 0ULL;
@@ -165,7 +165,7 @@ Bitboard BB_utils::generateKnightMoves(int square)
 }
 
 //Constructor
-BB_utils::BB_utils()
+void magicInit()
 {
     //Initialization of movegen features
     for (int square = 0; square < BOARD_SIZE; ++square) {
@@ -197,7 +197,7 @@ BB_utils::BB_utils()
 }
 
 //Get blockers combinations for given mask
-vector<Bitboard> BB_utils::generateBlockers(Bitboard attackSet)
+vector<Bitboard> generateBlockers(Bitboard attackSet)
 {
     //Vector of blockers
     vector<Bitboard> blockers;
@@ -255,7 +255,7 @@ vector<Bitboard> BB_utils::generateBlockers(Bitboard attackSet)
     return blockers;
 }
 
-Bitboard BB_utils::generateRectangularMask(int square1, int square2)
+Bitboard generateRectangularMask(int square1, int square2)
 {
     //Init mask and sqaures values
     Bitboard mask = 0ULL;
@@ -313,7 +313,7 @@ Bitboard BB_utils::generateRectangularMask(int square1, int square2)
 }
 
 //Generate rectangular lookup for all squares
-void BB_utils::generateRectangularLookup(Bitboard (&lookup)[64][64])
+void generateRectangularLookup(Bitboard (&lookup)[64][64])
 {
     for (int square1 = 0; square1 < 64; ++square1)
     {
@@ -325,7 +325,7 @@ void BB_utils::generateRectangularLookup(Bitboard (&lookup)[64][64])
 }
 
 //Generates king moves lookup
-Bitboard BB_utils::generateKingMoves(int square)
+Bitboard generateKingMoves(int square)
 {
     //Initialize square and moves
     Bitboard moves = 0ULL;
@@ -358,7 +358,7 @@ Bitboard BB_utils::generateKingMoves(int square)
 
 
 //Generate pawn lookup for white and black
-void BB_utils::generatePawnMoves(Bitboard (&pawnMove)[64], Bitboard (&pawnAttack)[64], bool isWhite)
+void generatePawnMoves(Bitboard (&pawnMove)[64], Bitboard (&pawnAttack)[64], bool isWhite)
 {
     //Foreach square
     for (int square = 0; square < 64; ++square)
@@ -428,7 +428,7 @@ void BB_utils::generatePawnMoves(Bitboard (&pawnMove)[64], Bitboard (&pawnAttack
 }
 
 //Magic lookup init
-void BB_utils::initRookAttacks()
+void initRookAttacks()
 {
     //For every square
     for (int square = 0; square < BOARD_SIZE; ++square) {
@@ -460,7 +460,7 @@ void BB_utils::initRookAttacks()
 }
 
 //Magic lookup init
-void BB_utils::initBishopAttacks()
+void initBishopAttacks()
 {
 
     //For every square
@@ -498,13 +498,13 @@ void BB_utils::initBishopAttacks()
 
 //Magic index is calculated for 64 bits magics
 //Bits are different for rook and bishop for each square
-int BB_utils::getMagicIndex(Bitboard blockers, Bitboard magic, int bits)
+int getMagicIndex(Bitboard blockers, Bitboard magic, int bits)
 {
     return (int)((blockers * magic) >> (64 - bits));
 }
 
 //Normal movegen like masks but for given blockers
-Bitboard BB_utils::generateRookBitboardAttacksBlockers(int sq, Bitboard blockers)
+Bitboard generateRookBitboardAttacksBlockers(int sq, Bitboard blockers)
 {
     //Moves and square initialization
     Bitboard moves = 0;
@@ -571,7 +571,7 @@ Bitboard BB_utils::generateRookBitboardAttacksBlockers(int sq, Bitboard blockers
 }
 
 //Normal movegen like masks but for given blockers
-Bitboard BB_utils::generateBishopBitboardAttacksBlockers(int sq, Bitboard blockers) {
+Bitboard generateBishopBitboardAttacksBlockers(int sq, Bitboard blockers) {
 
     //Moves and square initialization
     Bitboard moves = 0;
