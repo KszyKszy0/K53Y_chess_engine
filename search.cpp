@@ -207,21 +207,21 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
                 return CHECKMATE;
             }
 
-            //At root ply
-            if (ply == 0)
-            {
-                //If we detect that at least one move was searched at root
-                //We can change oldEval to best so we get true evaluation in logs
-                //If there was no time cutoff AND we at least searched one move
-                //There is one in million chance that time cutoff will appear at the start of first ply before first move
-                if ((best != -CHECKMATE) && (best != -NO_MOVE))
-                    oldEval = best;
+            // //At root ply
+            // if (ply == 0)
+            // {
+            //     //If we detect that at least one move was searched at root
+            //     //We can change oldEval to best so we get true evaluation in logs
+            //     //If there was no time cutoff AND we at least searched one move
+            //     //There is one in million chance that time cutoff will appear at the start of first ply before first move
+            //     if ((best != -CHECKMATE) && (best != -NO_MOVE))
+            //         oldEval = best;
 
-                updatePV(bestMove, ply);
+            //     updatePV(bestMove, ply);
 
-                // In case of first move cancel we return first move from list beacuse it is from TT
-                return bestMove;
-            }
+            //     // In case of first move cancel we return first move from list beacuse it is from TT
+            //     return bestMove;
+            // }
         }
 
         //Make move
@@ -269,21 +269,21 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
                 return CHECKMATE;
             }
 
-            //At root ply
-            if (ply == 0)
-            {
-                //If we detect that at least one move was searched at root
-                //We can change oldEval to best so we get true evaluation in logs
-                //If there was no time cutoff AND we at least searched one move
-                //There is one in million chance that time cutoff will appear at the start of first ply before first move
-                if ((best != -CHECKMATE) && (best != -NO_MOVE))
-                    oldEval = best;
+            // //At root ply
+            // if (ply == 0)
+            // {
+            //     //If we detect that at least one move was searched at root
+            //     //We can change oldEval to best so we get true evaluation in logs
+            //     //If there was no time cutoff AND we at least searched one move
+            //     //There is one in million chance that time cutoff will appear at the start of first ply before first move
+            //     if ((best != -CHECKMATE) && (best != -NO_MOVE))
+            //         oldEval = best;
 
-                updatePV(bestMove, ply);
+            //     updatePV(bestMove, ply);
 
-                // In case of first move cancel we return first move from list beacuse it is from TT
-                return bestMove;
-            }
+            //     // In case of first move cancel we return first move from list beacuse it is from TT
+            //     return bestMove;
+            // }
         }
 
         //If we beat best
@@ -335,6 +335,11 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
     {
         pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
     }
+
+#ifdef DATAGEN
+    if(best > -90000 && best < 90000 && Flags(bestMovePrevious) != CAPTURE && popCount(pos.piecesBitboards[ALL_PIECES]) >= 16 && depth >= 6 && !isCancelled)
+        savePosition(pos, best);
+#endif
 
 
     //At root ply
@@ -416,22 +421,27 @@ Move search(Position &pos)
         //
         //          PV PRINTING SEGMENT
         //
-        std::cout << " pv ";
+        // std::cout << " pv ";
 
-        int limit = 0;
-        if(pvLength[0] > oldPVLength)
-        {
-            limit = pvLength[0];
-        }else
-        {
-            limit = oldPVLength;
-        }
-        for(int pvl = 0; pvl < limit; pvl++)
-        {
-            printMove(pvTable[0][pvl]);
-            std::cout<<" ";
-        }
-        oldPVLength = pvLength[0];
+        // int limit = 0;
+        // if(pvLength[0] > oldPVLength)
+        // {
+        //     limit = pvLength[0];
+        // }else
+        // {
+        //     limit = oldPVLength;
+        // }
+        // for(int pvl = 0; pvl < limit; pvl++)
+        // {
+        //     printMove(pvTable[0][pvl]);
+        //     std::cout<<" ";
+        // }
+        // oldPVLength = pvLength[0];
+        // for(int pvl = 0; pvl < pvLength[0]; pvl++)
+        // {
+        //     printMove(pvTable[0][pvl]);
+        //     std::cout<<" ";
+        // }
 
         std::cout<<endl;
         //
@@ -450,7 +460,7 @@ Move search(Position &pos)
     // pos.makeMove(bestMovePrevious);
 
 #ifdef DATAGEN
-    if(oldEval > -90000 && oldEval < 90000 && Flags(bestMovePrevious) != CAPTURE)
+    if(oldEval > -90000 && oldEval < 90000 && Flags(bestMovePrevious) != CAPTURE && popCount(pos.piecesBitboards[ALL_PIECES]) >= 16)
         savePosition(pos, oldEval);
 #endif
 
@@ -656,48 +666,82 @@ void savePosition(Position &pos, int negamaxScore)
 
     //Create State before making moves
     //384 psqt + 5 material inputs
-    int state[389] = {0};
+    // int state[389] = {0};
 
 
-    for(int i=0; i<=63; i++)
+    // for(int i=0; i<=63; i++)
+    // {
+    //     //If square is empty go to the next square
+    //     if(pos.piecesArray[i] == NO_PIECE)
+    //     {
+    //         continue;
+    //     }
+
+    //     //If the piece is white
+    //     if(pos.piecesArray[i] <= WHITE_KING)
+    //     {
+    //         //Add current position to state index
+    //         //Flip index to get correct psqt value
+    //         int startIndex = pos.piecesArray[i]*64;
+
+    //         int bonusIndex = flipIndex(i);
+    //         state[startIndex + bonusIndex] += 1;
+    //     }else //piece is black
+    //     {
+    //         //Add current position to state index but with negative sign
+    //         //Black pieces get -6 because of indexing enums
+    //         state[(pos.piecesArray[i]-6) * 64 + i] -= 1;
+    //     }
+    // }
+
+    // //Pawn count
+    // state[384] = popCount(pos.piecesBitboards[WHITE_PAWN]) - popCount(pos.piecesBitboards[BLACK_PAWN]);
+
+    // //Knight count
+    // state[385] = popCount(pos.piecesBitboards[WHITE_KNIGHT]) - popCount(pos.piecesBitboards[BLACK_KNIGHT]);
+
+    // //Bishop count
+    // state[386] = popCount(pos.piecesBitboards[WHITE_BISHOP]) - popCount(pos.piecesBitboards[BLACK_BISHOP]);
+
+    // //Rook count
+    // state[387] = popCount(pos.piecesBitboards[WHITE_ROOK]) - popCount(pos.piecesBitboards[BLACK_ROOK]);
+
+    // //Queen count
+    // state[388] = popCount(pos.piecesBitboards[WHITE_QUEEN]) - popCount(pos.piecesBitboards[BLACK_QUEEN]);
+
+
+    int state[768] = {0};
+
+    if(pos.STM)
     {
-        //If square is empty go to the next square
-        if(pos.piecesArray[i] == NO_PIECE)
+        for(int i=0; i<=63; i++)
         {
-            continue;
+            int index = 0;
+            if(pos.piecesArray[i] <= BLACK_KING)
+            {
+                index = 64*pos.piecesArray[i]+i;
+                state[index] = 1;
+            }
         }
-
-        //If the piece is white
-        if(pos.piecesArray[i] <= WHITE_KING)
+    }else
+    {
+        for(int i=0; i<=63; i++)
         {
-            //Add current position to state index
-            //Flip index to get correct psqt value
-            int startIndex = pos.piecesArray[i]*64;
-
-            int bonusIndex = flipIndex(i);
-            state[startIndex + bonusIndex] += 1;
-        }else //piece is black
-        {
-            //Add current position to state index but with negative sign
-            //Black pieces get -6 because of indexing enums
-            state[(pos.piecesArray[i]-6) * 64 + i] -= 1;
+            int index = 0;
+            if(pos.piecesArray[i] <= BLACK_KING)
+            {
+                if(pos.piecesArray[i] <= WHITE_KING)
+                {
+                    index = 64*(pos.piecesArray[i]+6)+flipIndex(i);
+                }
+                else if(pos.piecesArray[i] <= BLACK_KING)
+                {
+                    index = 64*(pos.piecesArray[i]-6)+flipIndex(i);
+                }
+                state[index] = 1;
+            }
         }
     }
-
-    //Pawn count
-    state[384] = popCount(pos.piecesBitboards[WHITE_PAWN]) - popCount(pos.piecesBitboards[BLACK_PAWN]);
-
-    //Knight count
-    state[385] = popCount(pos.piecesBitboards[WHITE_KNIGHT]) - popCount(pos.piecesBitboards[BLACK_KNIGHT]);
-
-    //Bishop count
-    state[386] = popCount(pos.piecesBitboards[WHITE_BISHOP]) - popCount(pos.piecesBitboards[BLACK_BISHOP]);
-
-    //Rook count
-    state[387] = popCount(pos.piecesBitboards[WHITE_ROOK]) - popCount(pos.piecesBitboards[BLACK_ROOK]);
-
-    //Queen count
-    state[388] = popCount(pos.piecesBitboards[WHITE_QUEEN]) - popCount(pos.piecesBitboards[BLACK_QUEEN]);
 
 
     //Get static evaluation
@@ -711,7 +755,7 @@ void savePosition(Position &pos, int negamaxScore)
     }
 
     //Write state to file
-    for (int i = 0; i < 389; ++i) {
+    for (int i = 0; i < 768; ++i) {
         file << state[i];
         file << " ";
     }
