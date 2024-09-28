@@ -24,8 +24,8 @@ void Accumulator::removePiece(int ind, int type)
     //We only go to half because the second half is enemy accumulator
     for(int j=0; j < (l1_size/2); j++)
     {
-        values[WHITE][j] -= L1_weights[whiteAccumIndex][j];
-        values[BLACK][j] -= L1_weights[blackAccumIndex][j];
+        values[WHITE_ACC][j] -= L1_weights[whiteAccumIndex][j];
+        values[BLACK_ACC][j] -= L1_weights[blackAccumIndex][j];
     }
 
 
@@ -52,8 +52,8 @@ void Accumulator::addPiece(int ind, int type)
     //We only go to half because the second half is enemy accumulator
     for(int j=0; j < (l1_size/2); j++)
     {
-        values[WHITE][j] += L1_weights[whiteAccumIndex][j];
-        values[BLACK][j] += L1_weights[blackAccumIndex][j];
+        values[WHITE_ACC][j] += L1_weights[whiteAccumIndex][j];
+        values[BLACK_ACC][j] += L1_weights[blackAccumIndex][j];
     }
 }
 

@@ -27,6 +27,10 @@ enum colors{
     WHITE=true, BLACK=false
 };
 
+enum accumulatorColors{
+    WHITE_ACC=0, BLACK_ACC=1
+};
+
 //Node type for Transposition Table
 enum nodeType{
     //In AB window
