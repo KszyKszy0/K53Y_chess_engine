@@ -2,6 +2,7 @@
 #include "position.h"
 #include "search.h"
 #include "eval.h"
+#include "accumulator.h"
 // #include "TT.h"
 
 class core

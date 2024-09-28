@@ -12,4 +12,6 @@ class Accumulator
     void addPiece(int ind, int type);
 
     void initAccum(int (&arr)[64]);
+
+    void resetAccum();
 };

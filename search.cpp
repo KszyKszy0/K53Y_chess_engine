@@ -5,6 +5,7 @@
 #include <chrono>
 #include "moveList.h"
 #include "helperFunctions.h"
+#include "accumulator.h"
 #include <fstream>
 
 
@@ -28,7 +29,7 @@ Move historyHeuristic[64][64];
 int pvLength[64];
 Move pvTable[64][64];
 
-int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, chrono::steady_clock::time_point start)
+int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, chrono::steady_clock::time_point start, Accumulator& accum)
 {
     pvLength[ply] = ply;
 
@@ -71,7 +72,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
     //Entering Quiescence at the end of search
     if (depth == 0)
     {
-        return quiescence(depth, ply, alpha, beta, color, pos, start);
+        return quiescence(depth, ply, alpha, beta, color, pos, start, accum);
     }
 
     //Possible transposition lookup
@@ -233,16 +234,16 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
         if(movesSearched == 0)
         {
             //Standard alpha beta search with normal window
-            value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, start);
+            value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, start, accum);
         }else
         {
             //If it is not first move we search with null window
-            value = -negamax(depth - 1, ply + 1, -alpha - 1, -alpha, -color, pos, start);
+            value = -negamax(depth - 1, ply + 1, -alpha - 1, -alpha, -color, pos, start, accum);
 
             //If value is inside alpha beta bound we research with full window
             if(value > alpha && value < beta)
             {
-                value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, start);
+                value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, start, accum);
             }
         }
 
@@ -338,7 +339,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
 
 #ifdef DATAGEN
     if(best > -90000 && best < 90000 && Flags(bestMovePrevious) != CAPTURE && popCount(pos.piecesBitboards[ALL_PIECES]) >= 16 && depth >= 6 && !isCancelled)
-        savePosition(pos, best);
+        savePosition(pos, best, accum);
 #endif
 
 
@@ -361,7 +362,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
     return best;
 }
 
-Move search(Position &pos)
+Move search(Position &pos, Accumulator& accum)
 {
     //Initializing starting values
 
@@ -401,7 +402,7 @@ Move search(Position &pos)
     {
 
         //Start negamax for current depth
-        bestMove = negamax(depth, 0, -INF, INF, pos.STM ? 1 : -1, pos, start);
+        bestMove = negamax(depth, 0, -INF, INF, pos.STM ? 1 : -1, pos, start, accum);
         if (bestMove != 0)
         {
             //We didn't get nullmove we can take that move
@@ -461,7 +462,7 @@ Move search(Position &pos)
 
 #ifdef DATAGEN
     if(oldEval > -90000 && oldEval < 90000 && Flags(bestMovePrevious) != CAPTURE && popCount(pos.piecesBitboards[ALL_PIECES]) >= 16)
-        savePosition(pos, oldEval);
+        savePosition(pos, oldEval, accum);
 #endif
 
     std::cout << "bestmove " << moveToUci(bestMovePrevious) << endl;
@@ -490,7 +491,7 @@ bool isRepeated(Position &pos)
 
 
 int quiescence(int depth, int ply, int alpha, int beta, int color,
-                     Position &pos, chrono::steady_clock::time_point start)
+                     Position &pos, chrono::steady_clock::time_point start, Accumulator& accum)
 {
     // Initialize a new flag for the type of bound (Upper Bound by default)
     int newFlag = UPPER_BOUND;
@@ -523,7 +524,7 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
     }
 
     // Perform a static evaluation of the position
-    int evaluation = evaluate(pos);
+    int evaluation = evaluate(pos, accum);
 
     // Beta cutoff: if the evaluation is greater than or equal to beta, return the evaluation
     if (evaluation >= beta)
@@ -601,7 +602,7 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
         pos.makeMove(m);
 
         // Recursively call quiescence search with negated scores and swapped bounds
-        int value = -quiescence(depth - 1, ply + 1, -beta, -alpha, -color, pos, start);
+        int value = -quiescence(depth - 1, ply + 1, -beta, -alpha, -color, pos, start, accum);
 
         // Undo the move after evaluation
         pos.undoMove(m);
@@ -659,7 +660,7 @@ void updatePV(Move m, int ply)
 
 
 
-void savePosition(Position &pos, int negamaxScore)
+void savePosition(Position &pos, int negamaxScore, Accumulator& accum)
 {
     //TreeStrap
 
@@ -745,7 +746,7 @@ void savePosition(Position &pos, int negamaxScore)
 
 
     //Get static evaluation
-    int evaluation = evaluate(pos);
+    int evaluation = evaluate(pos, accum);
 
     //Open file
     std::fstream file("test.txt", ios::app);

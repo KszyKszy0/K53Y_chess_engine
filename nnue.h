@@ -12,4 +12,4 @@ extern int L2_weights[l1_size];
 
 extern int output_bias;
 
-int firstLayer(int (&acc)[2][16]);
+int firstLayer(int (&acc)[2][16], bool perspective);
