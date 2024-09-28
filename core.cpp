@@ -1,10 +1,18 @@
 #include "core.h"
 #include "position.h"
-// #include "helperFunctions.h"
+#include "accumulator.h"
+#include "nnue.h"
+
+
+int L1_weights[768][32];
+int L1_bias[32];
+int L2_weights[32][1];
+int output_bias;
 
 core::core()
 {
     magicInit();
+    newGame();
 }
 
 // Highly unoptimized function TODO!!!
@@ -152,12 +160,14 @@ void core::newGame(){
     pos.TT.ResetTT();
     pos.parseFEN(startingFen);
     positionCounter = 0;
+    accum.initAccum(pos.piecesArray);
 }
 
 void core::newGame(string FEN){
     pos.TT.ResetTT();
     pos.parseFEN(FEN);
     positionCounter = 0;
+    accum.initAccum(pos.piecesArray);
 }
 
 void core::setPosition(vector<string>& moves)
