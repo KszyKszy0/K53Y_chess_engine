@@ -72,7 +72,7 @@ void Accumulator::initAccum(int (&arr)[64])
 void Accumulator::resetAccum()
 {
     //Loop through array of all pieces
-    for(int i=0; i < l1_size; i++)
+    for(int i=0; i < (l1_size/2); i++)
     {
         values[0][i] = 0;
         values[1][i] = 0;

@@ -970,7 +970,7 @@ void generateKingsMoves(Position &pos, MoveList &moveList, Bitboard target, bool
             if ((castlingRights & 8) && ((96 & target) == 96) && ((96 & pos.piecesBitboards[ALL_PIECES]) == 0))
             {
                 //Add short castle
-                addMoves(index, 1ULL << 6, moveList, pos, 2);
+                addMoves(index, 1ULL << g1, moveList, pos, 2);
             }
 
 
@@ -978,7 +978,7 @@ void generateKingsMoves(Position &pos, MoveList &moveList, Bitboard target, bool
             if ((castlingRights & 4) && ((12 & target) == 12) && ((14 & pos.piecesBitboards[ALL_PIECES]) == 0))
             {
                 //Add long castle
-                addMoves(index, 1ULL << 2, moveList, pos, 3);
+                addMoves(index, 1ULL << c1, moveList, pos, 3);
             }
         }
         else //Black
@@ -988,14 +988,14 @@ void generateKingsMoves(Position &pos, MoveList &moveList, Bitboard target, bool
             if ((castlingRights & 2) && ((6917529027641081856 & target) == 6917529027641081856) && ((6917529027641081856 & pos.piecesBitboards[ALL_PIECES]) == 0))
             {
                 //Add short castle
-                addMoves(index, 1ULL << 62, moveList, pos, 2);
+                addMoves(index, 1ULL << g8, moveList, pos, 2);
             }
 
             //If we have castling rights for long AND emptySpaces aren't targeted AND there are no pieces on empty spaces
             if ((castlingRights & 1) && ((864691128455135232 & target) == 864691128455135232) && ((1008806316530991104 & pos.piecesBitboards[ALL_PIECES]) == 0))
             {
                 //Add long castle
-                addMoves(index, 1ULL << 58, moveList, pos, 3);
+                addMoves(index, 1ULL << c8, moveList, pos, 3);
             }
         }
     }

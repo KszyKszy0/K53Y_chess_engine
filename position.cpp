@@ -446,60 +446,37 @@ void Position::makeMove(Move move)
         piecesArray[startSquare] = NO_PIECE;
     }
 
-    if(flags == SHORT_CASTLE)
+    if(flags == SHORT_CASTLE || flags == LONG_CASTLE)
     {
-        //king hash update
-        positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
-        positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+targetSquare];
-
-
-        bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
-
-        bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
-
-        if(STM == WHITE)
+        int rookStartSquare = 0;
+        int rookTargetSquare = 0;
+        switch (targetSquare)
         {
-            //rook hash update
-            positionHash ^= zobrist.zobristTable[WHITE_ROOK*64+7];
-            positionHash ^= zobrist.zobristTable[WHITE_ROOK*64+5];
+        case c1:
+            rookStartSquare = a1;
+            rookTargetSquare = d1;
+            break;
+        case g1:
+            rookStartSquare = h1;
+            rookTargetSquare = f1;
+            break;
+        case c8:
+            rookStartSquare = a8;
+            rookTargetSquare = d8;
+            break;
+        case g8:
+            rookStartSquare = h8;
+            rookTargetSquare = f8;
+            break;
 
-            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-
-            bitSwap(piecesBitboards[WHITE_ROOK],7,5);
-
-            bitSwap(piecesBitboards[ALL_PIECES],7,5);
-
-            bitSwap(piecesBitboards[WHITE_PIECES],7,5);
-
-            piecesArray[5] = WHITE_ROOK;
-            piecesArray[7] = NO_PIECE;
-        }else
-        {
-            //rook hash update
-            positionHash ^= zobrist.zobristTable[BLACK_ROOK*64+63];
-            positionHash ^= zobrist.zobristTable[BLACK_ROOK*64+61];
-
-
-            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-
-            bitSwap(piecesBitboards[BLACK_ROOK],63,61);
-
-            bitSwap(piecesBitboards[ALL_PIECES],63,61);
-
-            bitSwap(piecesBitboards[BLACK_PIECES],63,61);
-
-            piecesArray[63] = NO_PIECE;
-            piecesArray[61] = BLACK_ROOK;
+        default:
+            break;
         }
-        piecesArray[targetSquare] = piecesArray[startSquare];
-        piecesArray[startSquare] = NO_PIECE;
-    }
 
-    if(flags == LONG_CASTLE)
-    {
         //king hash update
         positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
         positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+targetSquare];
+
 
         bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
 
@@ -508,35 +485,36 @@ void Position::makeMove(Move move)
         if(STM == WHITE)
         {
             //rook hash update
-            positionHash ^= zobrist.zobristTable[WHITE_ROOK*64+0];
-            positionHash ^= zobrist.zobristTable[WHITE_ROOK*64+3];
+            positionHash ^= zobrist.zobristTable[WHITE_ROOK*64+rookStartSquare];
+            positionHash ^= zobrist.zobristTable[WHITE_ROOK*64+rookTargetSquare];
 
             bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
 
-            bitSwap(piecesBitboards[WHITE_ROOK],0,3);
+            bitSwap(piecesBitboards[WHITE_ROOK],rookStartSquare,rookTargetSquare);
 
-            bitSwap(piecesBitboards[ALL_PIECES],0,3);
+            bitSwap(piecesBitboards[ALL_PIECES],rookStartSquare,rookTargetSquare);
 
-            bitSwap(piecesBitboards[WHITE_PIECES],0,3);
+            bitSwap(piecesBitboards[WHITE_PIECES],rookStartSquare,rookTargetSquare);
 
-            piecesArray[3] = WHITE_ROOK;
-            piecesArray[0] = NO_PIECE;
+            piecesArray[rookStartSquare] = WHITE_ROOK;
+            piecesArray[rookTargetSquare] = NO_PIECE;
         }else
         {
             //rook hash update
-            positionHash ^= zobrist.zobristTable[BLACK_ROOK*64+56];
-            positionHash ^= zobrist.zobristTable[BLACK_ROOK*64+59];
+            positionHash ^= zobrist.zobristTable[BLACK_ROOK*64+rookStartSquare];
+            positionHash ^= zobrist.zobristTable[BLACK_ROOK*64+rookTargetSquare];
+
 
             bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
 
-            bitSwap(piecesBitboards[BLACK_ROOK],56,59);
+            bitSwap(piecesBitboards[BLACK_ROOK],rookStartSquare,rookTargetSquare);
 
-            bitSwap(piecesBitboards[ALL_PIECES],56,59);
+            bitSwap(piecesBitboards[ALL_PIECES],rookStartSquare,rookTargetSquare);
 
-            bitSwap(piecesBitboards[BLACK_PIECES],56,59);
+            bitSwap(piecesBitboards[BLACK_PIECES],rookStartSquare,rookTargetSquare);
 
-            piecesArray[56] = NO_PIECE;
-            piecesArray[59] = BLACK_ROOK;
+            piecesArray[rookStartSquare] = NO_PIECE;
+            piecesArray[rookTargetSquare] = BLACK_ROOK;
         }
         piecesArray[targetSquare] = piecesArray[startSquare];
         piecesArray[startSquare] = NO_PIECE;
