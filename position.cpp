@@ -319,7 +319,6 @@ void Position::makeMove(Move move)
     tempState.enPassantSquare = 0;
 
 
-
     if(flags == PAWN_DOUBLE_MOVE)
     {
         tempState.halfMove = 0;
@@ -334,12 +333,17 @@ void Position::makeMove(Move move)
             //add enpassant hashes
             positionHash ^= zobrist.zobristTable[784 + (tempState.enPassantSquare % 8)];
         }
+    }
 
-        bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
+
+    if(flags == QUIET || flags == PAWN_DOUBLE_MOVE)
+    {
 
         //hash update
         positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
         positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+targetSquare];
+
+        bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
 
         bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
 
@@ -352,7 +356,42 @@ void Position::makeMove(Move move)
         }
         piecesArray[targetSquare] = piecesArray[startSquare];
         piecesArray[startSquare] = NO_PIECE;
+
     }
+
+    // if(flags == PAWN_DOUBLE_MOVE)
+    // {
+    //     tempState.halfMove = 0;
+    //     if(STM)
+    //     {
+    //         tempState.enPassantSquare = targetSquare-8;
+    //         //add enpassant hashes
+    //         positionHash ^= zobrist.zobristTable[784 + (tempState.enPassantSquare % 8)];
+    //     }else
+    //     {
+    //         tempState.enPassantSquare = targetSquare+8;
+    //         //add enpassant hashes
+    //         positionHash ^= zobrist.zobristTable[784 + (tempState.enPassantSquare % 8)];
+    //     }
+
+    //     bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
+
+    //     //hash update
+    //     positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
+    //     positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+targetSquare];
+
+    //     bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
+
+    //     if(STM == WHITE)
+    //     {
+    //         bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
+    //     }else
+    //     {
+    //         bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+    //     }
+    //     piecesArray[targetSquare] = piecesArray[startSquare];
+    //     piecesArray[startSquare] = NO_PIECE;
+    // }
 
 
     if(flags == EN_PASSANT)
@@ -425,26 +464,26 @@ void Position::makeMove(Move move)
 
 
 
-    if(flags == QUIET)
-    {
-        //hash update
-        positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
-        positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+targetSquare];
+    // if(flags == QUIET)
+    // {
+    //     //hash update
+    //     positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
+    //     positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+targetSquare];
 
-        bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
+    //     bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
 
-        bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
+    //     bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
 
-        if(STM == WHITE)
-        {
-            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-        }else
-        {
-            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-        }
-        piecesArray[targetSquare] = piecesArray[startSquare];
-        piecesArray[startSquare] = NO_PIECE;
-    }
+    //     if(STM == WHITE)
+    //     {
+    //         bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
+    //     }else
+    //     {
+    //         bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+    //     }
+    //     piecesArray[targetSquare] = piecesArray[startSquare];
+    //     piecesArray[startSquare] = NO_PIECE;
+    // }
 
     if(flags == SHORT_CASTLE || flags == LONG_CASTLE)
     {

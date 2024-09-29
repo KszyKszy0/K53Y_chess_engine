@@ -74,8 +74,9 @@ core::core()
             wholeCounter=0;
         }
     }
-    newGame("rnbqkbnr/pppp1ppp/8/4P3/8/8/PPP1PPPP/RNBQKBNR b KQkq - 0 2");
+    newGame();
     cout<<evaluate(pos, accum);
+    cout<<perft(7);
 }
 
 // Highly unoptimized function TODO!!!
@@ -200,7 +201,7 @@ Bitboard core::perft(int depth)
             cout<<"error";
         }
 
-        if(depth==6)
+        if(depth==7)
         {
             printMove(m);
             cout<<": "<<localCounter<<endl;
