@@ -343,9 +343,6 @@ void Position::makeMove(Move move)
         positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
         positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+targetSquare];
 
-
-
-
         if(flags == CAPTURE)
         {
             tempState.halfMove = 0;
@@ -353,10 +350,6 @@ void Position::makeMove(Move move)
 
             //update capture hash
             positionHash ^= zobrist.zobristTable[piecesArray[targetSquare]*64+targetSquare];
-
-            // clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
-            // bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
-            // clearBit(piecesBitboards[ALL_PIECES],startSquare);
         }
 
         clearBit(piecesBitboards[ALL_PIECES],startSquare);
@@ -378,40 +371,6 @@ void Position::makeMove(Move move)
         piecesArray[startSquare] = NO_PIECE;
 
     }
-
-    // if(flags == PAWN_DOUBLE_MOVE)
-    // {
-    //     tempState.halfMove = 0;
-    //     if(STM)
-    //     {
-    //         tempState.enPassantSquare = targetSquare-8;
-    //         //add enpassant hashes
-    //         positionHash ^= zobrist.zobristTable[784 + (tempState.enPassantSquare % 8)];
-    //     }else
-    //     {
-    //         tempState.enPassantSquare = targetSquare+8;
-    //         //add enpassant hashes
-    //         positionHash ^= zobrist.zobristTable[784 + (tempState.enPassantSquare % 8)];
-    //     }
-
-    //     bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
-
-    //     //hash update
-    //     positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
-    //     positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+targetSquare];
-
-    //     bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
-
-    //     if(STM == WHITE)
-    //     {
-    //         bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-    //     }else
-    //     {
-    //         bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-    //     }
-    //     piecesArray[targetSquare] = piecesArray[startSquare];
-    //     piecesArray[startSquare] = NO_PIECE;
-    // }
 
 
     if(flags == EN_PASSANT)
@@ -451,59 +410,6 @@ void Position::makeMove(Move move)
         piecesArray[targetSquare] = piecesArray[startSquare];
         piecesArray[startSquare] = NO_PIECE;
     }
-
-
-    // if(flags == CAPTURE)
-    // {
-    //     tempState.halfMove = 0;
-    //     tempState.capturedPieceType = piecesArray[targetSquare];
-
-    //     //hash update
-    //     positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
-    //     positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+targetSquare];
-
-    //     //update capture hash
-    //     positionHash ^= zobrist.zobristTable[piecesArray[targetSquare]*64+targetSquare];
-
-    //     clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
-    //     bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
-    //     clearBit(piecesBitboards[ALL_PIECES],startSquare);
-
-    //     if(STM == WHITE)
-    //     {
-    //         clearBit(piecesBitboards[BLACK_PIECES],targetSquare);
-    //         bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-    //     }else
-    //     {
-    //         clearBit(piecesBitboards[WHITE_PIECES],targetSquare);
-    //         bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-    //     }
-    //     piecesArray[targetSquare] = piecesArray[startSquare];
-    //     piecesArray[startSquare] = NO_PIECE;
-    // }
-
-
-
-    // if(flags == QUIET)
-    // {
-    //     //hash update
-    //     positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
-    //     positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+targetSquare];
-
-    //     bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
-
-    //     bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
-
-    //     if(STM == WHITE)
-    //     {
-    //         bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-    //     }else
-    //     {
-    //         bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-    //     }
-    //     piecesArray[targetSquare] = piecesArray[startSquare];
-    //     piecesArray[startSquare] = NO_PIECE;
-    // }
 
     if(flags == SHORT_CASTLE || flags == LONG_CASTLE)
     {
@@ -579,25 +485,41 @@ void Position::makeMove(Move move)
         piecesArray[startSquare] = NO_PIECE;
     }
 
-    //simple promotions
-    if((flags > 7) && (flags < 12))
+    if(flags > 7)
     {
         tempState.halfMove = 0;
-
         int promotionType = Flags(move);
-
 
         //pawn hash remove
         positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
 
 
+
+        if(flags > 11)
+        {
+            tempState.capturedPieceType = piecesArray[targetSquare];
+
+            //remove hash of taken piece
+            positionHash ^= zobrist.zobristTable[piecesArray[targetSquare]*64+targetSquare];
+        }
+
         clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
 
-        bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
+        clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
+
+        clearBit(piecesBitboards[ALL_PIECES],startSquare);
+
+        setBit(piecesBitboards[ALL_PIECES],targetSquare);
 
         if(STM == WHITE)
         {
-            promotionType -= 7;
+            if(flags > 11)
+            {
+                promotionType -= 11;
+            }else
+            {
+                promotionType -= 7;
+            }
 
             //udpate hash of made piece
             positionHash ^= zobrist.zobristTable[promotionType*64+targetSquare];
@@ -606,10 +528,16 @@ void Position::makeMove(Move move)
 
             setBit(piecesBitboards[promotionType],targetSquare);
 
-            piecesArray[targetSquare] = promotionType;
+            clearBit(piecesBitboards[BLACK_PIECES],targetSquare);
         }else
         {
-            promotionType -= 1;
+            if(flags > 11)
+            {
+                promotionType -= 5;
+            }else
+            {
+                promotionType -= 1;
+            }
 
             //udpate hash of made piece
             positionHash ^= zobrist.zobristTable[promotionType*64+targetSquare];
@@ -618,64 +546,110 @@ void Position::makeMove(Move move)
 
             setBit(piecesBitboards[promotionType],targetSquare);
 
-            piecesArray[targetSquare] = promotionType;
-        }
-
-        piecesArray[startSquare] = NO_PIECE;
-    }
-
-    //capture promotions
-    if(flags > 11)
-    {
-        tempState.halfMove = 0;
-        tempState.capturedPieceType = piecesArray[targetSquare];
-
-        int promotionType = Flags(move);
-
-        //pawn hash remove
-        positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
-
-        //remove hash of taken piece
-        positionHash ^= zobrist.zobristTable[piecesArray[targetSquare]*64+targetSquare];
-
-        clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
-
-        clearBit(piecesBitboards[ALL_PIECES], startSquare);
-
-        if(STM == WHITE)
-        {
-            promotionType -= 11;
-
-            //udpate hash of made piece
-            positionHash ^= zobrist.zobristTable[promotionType*64+targetSquare];
-
-            bitSwap(piecesBitboards[WHITE_PIECES], startSquare, targetSquare);
-
-            setBit(piecesBitboards[promotionType],targetSquare);
-
-            clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
-            clearBit(piecesBitboards[BLACK_PIECES],targetSquare);
-
-            piecesArray[targetSquare] = promotionType;
-        }else
-        {
-            promotionType -= 5;
-
-            //udpate hash of made piece
-            positionHash ^= zobrist.zobristTable[promotionType*64+targetSquare];
-
-            bitSwap(piecesBitboards[BLACK_PIECES], startSquare, targetSquare);
-
-            setBit(piecesBitboards[promotionType],targetSquare);
-
-            clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
             clearBit(piecesBitboards[WHITE_PIECES],targetSquare);
-
-            piecesArray[targetSquare] = promotionType;
         }
 
         piecesArray[startSquare] = NO_PIECE;
+        piecesArray[targetSquare] = promotionType;
     }
+
+    //simple promotions
+    // if((flags > 7) && (flags < 12))
+    // {
+    //     tempState.halfMove = 0;
+
+    //     int promotionType = Flags(move);
+
+
+    //     //pawn hash remove
+    //     positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
+
+
+    //     clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
+
+    //     bitSwap(piecesBitboards[ALL_PIECES],startSquare, targetSquare);
+
+    //     if(STM == WHITE)
+    //     {
+    //         promotionType -= 7;
+
+    //         //udpate hash of made piece
+    //         positionHash ^= zobrist.zobristTable[promotionType*64+targetSquare];
+
+    //         bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
+
+    //         setBit(piecesBitboards[promotionType],targetSquare);
+
+    //         piecesArray[targetSquare] = promotionType;
+    //     }else
+    //     {
+    //         promotionType -= 1;
+
+    //         //udpate hash of made piece
+    //         positionHash ^= zobrist.zobristTable[promotionType*64+targetSquare];
+
+    //         bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+
+    //         setBit(piecesBitboards[promotionType],targetSquare);
+
+    //         piecesArray[targetSquare] = promotionType;
+    //     }
+
+    //     piecesArray[startSquare] = NO_PIECE;
+    // }
+
+    // //capture promotions
+    // if(flags > 11)
+    // {
+    //     tempState.halfMove = 0;
+    //     tempState.capturedPieceType = piecesArray[targetSquare];
+
+    //     int promotionType = Flags(move);
+
+    //     //pawn hash remove
+    //     positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
+
+    //     //remove hash of taken piece
+    //     positionHash ^= zobrist.zobristTable[piecesArray[targetSquare]*64+targetSquare];
+
+    //     clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
+
+    //     clearBit(piecesBitboards[ALL_PIECES], startSquare);
+
+    //     if(STM == WHITE)
+    //     {
+    //         promotionType -= 11;
+
+    //         //udpate hash of made piece
+    //         positionHash ^= zobrist.zobristTable[promotionType*64+targetSquare];
+
+    //         bitSwap(piecesBitboards[WHITE_PIECES], startSquare, targetSquare);
+
+    //         setBit(piecesBitboards[promotionType],targetSquare);
+
+    //         clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
+    //         clearBit(piecesBitboards[BLACK_PIECES],targetSquare);
+
+    //         piecesArray[targetSquare] = promotionType;
+    //     }else
+    //     {
+    //         promotionType -= 5;
+
+    //         //udpate hash of made piece
+    //         positionHash ^= zobrist.zobristTable[promotionType*64+targetSquare];
+
+    //         bitSwap(piecesBitboards[BLACK_PIECES], startSquare, targetSquare);
+
+    //         setBit(piecesBitboards[promotionType],targetSquare);
+
+    //         clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
+    //         clearBit(piecesBitboards[WHITE_PIECES],targetSquare);
+
+    //         piecesArray[targetSquare] = promotionType;
+    //     }
+
+    //     piecesArray[startSquare] = NO_PIECE;
+    // }
 
     piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
 
