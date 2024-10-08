@@ -74,7 +74,7 @@ core::core()
             wholeCounter=0;
         }
     }
-    newGame();
+    newGame("r3k2r/1P6/8/8/8/8/6p1/R3K2R w - - 0 1");
     cout<<evaluate(pos, accum);
     cout<<perft(7);
 }

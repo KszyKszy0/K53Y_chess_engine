@@ -459,7 +459,7 @@ void Position::makeMove(Move move)
         piecesArray[rookStartSquare] = NO_PIECE; // Remove rook from its starting position
         piecesArray[rookTargetSquare] = playerOffset ? WHITE_ROOK : BLACK_ROOK; // Place the rook at its target position
 
-        
+
         piecesArray[targetSquare] = piecesArray[startSquare];
         piecesArray[startSquare] = NO_PIECE;
     }
@@ -467,12 +467,10 @@ void Position::makeMove(Move move)
     if(flags > 7)
     {
         tempState.halfMove = 0;
-        int promotionType = Flags(move);
+        int promotionType = flags;
 
         //pawn hash remove
         positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
-
-
 
         if(flags > 11)
         {
@@ -490,43 +488,24 @@ void Position::makeMove(Move move)
 
         setBit(piecesBitboards[ALL_PIECES],targetSquare);
 
-        if(STM == WHITE)
+        if(flags > 11)
         {
-            if(flags > 11)
-            {
-                promotionType -= 11;
-            }else
-            {
-                promotionType -= 7;
-            }
-
-            //udpate hash of made piece
-            positionHash ^= zobrist.zobristTable[promotionType*64+targetSquare];
-
-            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[promotionType],targetSquare);
-
-            clearBit(piecesBitboards[BLACK_PIECES],targetSquare);
+            promotionType -= 11 * STM + 5 * (1 - STM);
         }else
         {
-            if(flags > 11)
-            {
-                promotionType -= 5;
-            }else
-            {
-                promotionType -= 1;
-            }
-
-            //udpate hash of made piece
-            positionHash ^= zobrist.zobristTable[promotionType*64+targetSquare];
-
-            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[promotionType],targetSquare);
-
-            clearBit(piecesBitboards[WHITE_PIECES],targetSquare);
+            promotionType -= 7 * STM + 1 * (1 - STM);
         }
+
+
+        //udpate hash of made piece
+        positionHash ^= zobrist.zobristTable[promotionType*64+targetSquare];
+
+        bitSwap(piecesBitboards[12 + !STM],startSquare,targetSquare);
+
+        setBit(piecesBitboards[promotionType],targetSquare);
+
+        clearBit(piecesBitboards[13 - !STM],targetSquare);
+
 
         piecesArray[startSquare] = NO_PIECE;
         piecesArray[targetSquare] = promotionType;
