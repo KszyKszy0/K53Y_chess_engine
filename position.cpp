@@ -358,15 +358,18 @@ void Position::makeMove(Move move)
         clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
         bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
 
-        if(STM == WHITE)
-        {
-            clearBit(piecesBitboards[BLACK_PIECES],targetSquare);
-            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-        }else
-        {
-            clearBit(piecesBitboards[WHITE_PIECES],targetSquare);
-            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-        }
+        clearBit(piecesBitboards[13 - !STM],targetSquare);
+        bitSwap(piecesBitboards[12 + !STM],startSquare,targetSquare);
+
+        // if(STM == WHITE)
+        // {
+        //     clearBit(piecesBitboards[BLACK_PIECES],targetSquare);
+        //     bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
+        // }else
+        // {
+        //     clearBit(piecesBitboards[WHITE_PIECES],targetSquare);
+        //     bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+        // }
         piecesArray[targetSquare] = piecesArray[startSquare];
         piecesArray[startSquare] = NO_PIECE;
 
@@ -382,31 +385,54 @@ void Position::makeMove(Move move)
         positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+targetSquare];
 
 
-        if(STM)
-        {
-            clearBit(piecesBitboards[BLACK_PIECES],targetSquare-8);
-            clearBit(piecesBitboards[BLACK_PAWN],targetSquare-8);
-            clearBit(piecesBitboards[ALL_PIECES],targetSquare-8);
-            bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
-            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-            bitSwap(piecesBitboards[WHITE_PAWN],startSquare,targetSquare);
-            piecesArray[targetSquare-8] = NO_PIECE;
+        int direction = 16 * STM - 8; // -8 for black, +8 for white
+        int enemyPawn = STM * 6;     // 0 for white pawn, 6 for black pawn
+        int ourPawns = (1 - STM) * 6;  // 6 for black pawn, 0 for white pawn
+        int enemiesPieces = 12 + STM;  // 13 for white pieces, 12 for black pieces
+        int ourPieces = 13 - STM;  // 13 for black pieces, 12 for white pieces
 
-            //udpate capture hash
-            positionHash ^= zobrist.zobristTable[BLACK_PAWN*64+targetSquare-8];
-        }else
-        {
-            clearBit(piecesBitboards[WHITE_PIECES],targetSquare+8);
-            clearBit(piecesBitboards[WHITE_PAWN],targetSquare+8);
-            clearBit(piecesBitboards[ALL_PIECES],targetSquare+8);
-            bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
-            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-            bitSwap(piecesBitboards[BLACK_PAWN],startSquare,targetSquare);
-            piecesArray[targetSquare+8] = NO_PIECE;
+        // Clear opponent's pawn (white or black)
+        clearBit(piecesBitboards[enemiesPieces], targetSquare - direction);
+        clearBit(piecesBitboards[enemyPawn], targetSquare - direction);
+        clearBit(piecesBitboards[ALL_PIECES], targetSquare - direction);
 
-            //udpate capture hash
-            positionHash ^= zobrist.zobristTable[WHITE_PAWN*64+targetSquare+8];
-        }
+        // Move the pieces
+        bitSwap(piecesBitboards[ourPieces], startSquare, targetSquare);
+        bitSwap(piecesBitboards[ourPawns], startSquare, targetSquare);
+        bitSwap(piecesBitboards[ALL_PIECES], startSquare, targetSquare);
+
+
+        // Update the pieces array for captured piece
+        piecesArray[targetSquare - direction] = NO_PIECE;
+
+        // Update the capture hash (zobrist hashing)
+        positionHash ^= zobrist.zobristTable[(enemyPawn * 64) + (targetSquare - direction)];
+
+        // if(STM)
+        // {
+        //     clearBit(piecesBitboards[BLACK_PIECES],targetSquare-8);
+        //     clearBit(piecesBitboards[BLACK_PAWN],targetSquare-8);
+        //     clearBit(piecesBitboards[ALL_PIECES],targetSquare-8);
+        //     bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
+        //     bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
+        //     bitSwap(piecesBitboards[WHITE_PAWN],startSquare,targetSquare);
+        //     piecesArray[targetSquare-8] = NO_PIECE;
+
+        //     //udpate capture hash
+        //     positionHash ^= zobrist.zobristTable[BLACK_PAWN*64+targetSquare-8];
+        // }else
+        // {
+        //     clearBit(piecesBitboards[WHITE_PIECES],targetSquare+8);
+        //     clearBit(piecesBitboards[WHITE_PAWN],targetSquare+8);
+        //     clearBit(piecesBitboards[ALL_PIECES],targetSquare+8);
+        //     bitSwap(piecesBitboards[ALL_PIECES],startSquare,targetSquare);
+        //     bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+        //     bitSwap(piecesBitboards[BLACK_PAWN],startSquare,targetSquare);
+        //     piecesArray[targetSquare+8] = NO_PIECE;
+
+        //     //udpate capture hash
+        //     positionHash ^= zobrist.zobristTable[WHITE_PAWN*64+targetSquare+8];
+        // }
         piecesArray[targetSquare] = piecesArray[startSquare];
         piecesArray[startSquare] = NO_PIECE;
     }
