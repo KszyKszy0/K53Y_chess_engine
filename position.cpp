@@ -352,11 +352,10 @@ void Position::makeMove(Move move)
         }
 
         clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
-        bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
-
         clearBit(piecesBitboards[13 - !STM],targetSquare);
-        bitSwap(piecesBitboards[12 + !STM],startSquare,targetSquare);
 
+        bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
+        bitSwap(piecesBitboards[12 + !STM],startSquare,targetSquare);
 
         //First we take the piece
         tempState.capturedPieceType = piecesArray[targetSquare];
@@ -436,17 +435,17 @@ void Position::makeMove(Move move)
         //king hash update
         positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+startSquare];
         positionHash ^= zobrist.zobristTable[piecesArray[startSquare]*64+targetSquare];
-        // Rook hash update (branchless)
+        // Rook hash update
         positionHash ^= zobrist.zobristTable[rookOffset * 64 + rookStartSquare];
         positionHash ^= zobrist.zobristTable[rookOffset * 64 + rookTargetSquare];
 
-        // Swap pieces on the bitboards (branchless)
+        // Swap pieces on the bitboards
         bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
         bitSwap(piecesBitboards[piecesOffset], startSquare, targetSquare);     // White/Black pieces swap
         bitSwap(piecesBitboards[rookOffset], rookStartSquare, rookTargetSquare); // White/Black rook swap
         bitSwap(piecesBitboards[piecesOffset], rookStartSquare, rookTargetSquare); // White/Black pieces swap
 
-        // Update the pieces array (branchless)
+        // Update the pieces array
         piecesArray[rookStartSquare] = NO_PIECE; // Remove rook from its starting position
         piecesArray[rookTargetSquare] = playerOffset ? WHITE_ROOK : BLACK_ROOK; // Place the rook at its target position
         piecesArray[targetSquare] = piecesArray[startSquare];
@@ -471,10 +470,14 @@ void Position::makeMove(Move move)
             positionHash ^= zobrist.zobristTable[piecesArray[targetSquare]*64+targetSquare];
         }
 
+        //Clear pawn from pawns
         clearBit(piecesBitboards[piecesArray[startSquare]],startSquare);
+        //Clear possible enemy from enemies
         clearBit(piecesBitboards[piecesArray[targetSquare]],targetSquare);
         clearBit(piecesBitboards[13 - !STM],targetSquare);
+        //Move the pawn
         bitSwap(piecesBitboards[12 + !STM],startSquare,targetSquare);
+        //Update it to piece
         setBit(piecesBitboards[promotionType],targetSquare);
 
         tempState.capturedPieceType = piecesArray[targetSquare];
@@ -485,20 +488,24 @@ void Position::makeMove(Move move)
     piecesBitboards[ALL_PIECES] = piecesBitboards[WHITE_PIECES] | piecesBitboards[BLACK_PIECES];
     piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
 
+    //If pawn move reset halfmove
     if(piecesArray[targetSquare] == WHITE_PAWN || piecesArray[targetSquare] == BLACK_PAWN)
     {
         tempState.halfMove = 0;
     }
+    //After black move update fullmove
     if(!STM)
     {
         tempState.fullMove++;
     }
 
+    //Change side to move
     STM = !STM;
 
-    //change move side
+    //Change move side
     positionHash ^= zobrist.zobristTable[792];
 
+    //Number of states + starting one
     stateCounter++;
     positionHistory[stateCounter]=positionHash;
 
