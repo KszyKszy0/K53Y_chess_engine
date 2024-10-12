@@ -447,7 +447,7 @@ void Position::makeMove(Move move)
 
         // Update the pieces array
         piecesArray[rookStartSquare] = NO_PIECE; // Remove rook from its starting position
-        piecesArray[rookTargetSquare] = playerOffset ? WHITE_ROOK : BLACK_ROOK; // Place the rook at its target position
+        piecesArray[rookTargetSquare] = rookOffset; // Place the rook at its target position
         piecesArray[targetSquare] = piecesArray[startSquare];
         piecesArray[startSquare] = NO_PIECE;
     }
@@ -518,6 +518,14 @@ void Position::undoMove(Move move)
     int targetSquare = (move >> 6) & 0b111111;
     int flags = (move >> 12) & 0b1111;
 
+    STM = !STM;
+    int ourPieces = 13 - STM; // 12 for white, 13 for black
+    int enemyPieces = 12 + STM; // 13 for white, 12 for black
+    int direction = 16 * STM - 8; // -8 for black, +8 for white
+    int enemyPawn = STM * 6;     // 0 for white pawn, 6 for black pawn
+    int ourPawns = (1 - STM) * 6;  // 6 for black pawn, 0 for white pawn
+    int rookOffset = 9 - (STM * 6);  // 9 for black rook, 3 for white rook
+
     if(flags == QUIET || flags == PAWN_DOUBLE_MOVE || flags == CAPTURE)
     {
         int captureType = stateInfoList[stateCounter].capturedPieceType;
@@ -525,14 +533,11 @@ void Position::undoMove(Move move)
         if(flags == CAPTURE)
         {
             setBit(piecesBitboards[captureType],targetSquare);
+            setBit(piecesBitboards[enemyPieces],targetSquare);
         }
 
         bitSwap(piecesBitboards[piecesArray[targetSquare]],startSquare,targetSquare);
-
-        bitSwap(piecesBitboards[13 - !STM],startSquare,targetSquare);
-
-        if(flags == CAPTURE)
-            setBit(piecesBitboards[12 + !STM],targetSquare);
+        bitSwap(piecesBitboards[ourPieces],startSquare,targetSquare);
 
         piecesArray[startSquare] = piecesArray[targetSquare];
         piecesArray[targetSquare] = captureType;
@@ -541,10 +546,8 @@ void Position::undoMove(Move move)
     if(flags == EN_PASSANT)
     {
 
-        if(!STM)
+        if(STM)
         {
-
-
             setBit(piecesBitboards[BLACK_PIECES],targetSquare-8);
             setBit(piecesBitboards[BLACK_PAWN],targetSquare-8);
             setBit(piecesBitboards[ALL_PIECES],targetSquare-8);
@@ -568,69 +571,43 @@ void Position::undoMove(Move move)
         piecesArray[targetSquare] = NO_PIECE;
     }
 
-    if(flags == SHORT_CASTLE)
+    if(flags == SHORT_CASTLE || flags == LONG_CASTLE)
     {
-
-        bitSwap(piecesBitboards[piecesArray[targetSquare]],startSquare,targetSquare);
-
-        if(STM == BLACK)
+        int rookStartSquare = 0;
+        int rookTargetSquare = 0;
+        switch (targetSquare)
         {
+        case c1:
+            rookStartSquare = a1;
+            rookTargetSquare = d1;
+            break;
+        case g1:
+            rookStartSquare = h1;
+            rookTargetSquare = f1;
+            break;
+        case c8:
+            rookStartSquare = a8;
+            rookTargetSquare = d8;
+            break;
+        case g8:
+            rookStartSquare = h8;
+            rookTargetSquare = f8;
+            break;
 
-            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-
-            bitSwap(piecesBitboards[WHITE_ROOK],7,5);
-
-            bitSwap(piecesBitboards[WHITE_PIECES],7,5);
-
-            piecesArray[5] = NO_PIECE;
-            piecesArray[7] = WHITE_ROOK;
-        }else
-        {
-
-            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-
-            bitSwap(piecesBitboards[BLACK_ROOK],63,61);
-
-            bitSwap(piecesBitboards[BLACK_PIECES],63,61);
-
-            piecesArray[63] = BLACK_ROOK;
-            piecesArray[61] = NO_PIECE;
+        default:
+            break;
         }
-        piecesArray[startSquare] = piecesArray[targetSquare];
-        piecesArray[targetSquare] = NO_PIECE;
-    }
 
-    if(flags == LONG_CASTLE)
-    {
 
+        // Swap pieces on the bitboards
         bitSwap(piecesBitboards[piecesArray[targetSquare]],startSquare,targetSquare);
+        bitSwap(piecesBitboards[ourPieces], startSquare, targetSquare);     // White/Black pieces swap
+        bitSwap(piecesBitboards[rookOffset], rookStartSquare, rookTargetSquare); // White/Black rook swap
+        bitSwap(piecesBitboards[ourPieces], rookStartSquare, rookTargetSquare); // White/Black pieces swap
 
-        if(STM == BLACK)
-        {
-
-            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-
-            bitSwap(piecesBitboards[WHITE_ROOK],0,3);
-
-            bitSwap(piecesBitboards[WHITE_PIECES],0,3);
-
-            piecesArray[0] = WHITE_ROOK;
-            piecesArray[3] = NO_PIECE;
-        }else
-        {
-            //rook hash update
-            positionHash ^= zobrist.zobristTable[BLACK_ROOK*64+56];
-            positionHash ^= zobrist.zobristTable[BLACK_ROOK*64+59];
-
-            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-
-            bitSwap(piecesBitboards[BLACK_ROOK],56,59);
-
-            bitSwap(piecesBitboards[BLACK_PIECES],56,59);
-
-            piecesArray[59] = NO_PIECE;
-            piecesArray[56] = BLACK_ROOK;
-        }
+        // Update the pieces array
+        piecesArray[rookStartSquare] = rookOffset; // Remove rook from its starting position
+        piecesArray[rookTargetSquare] = NO_PIECE; // Place the rook at its target position
         piecesArray[startSquare] = piecesArray[targetSquare];
         piecesArray[targetSquare] = NO_PIECE;
     }
@@ -641,7 +618,7 @@ void Position::undoMove(Move move)
         int promotionType = Flags(move);
 
 
-        if(STM == BLACK)
+        if(STM)
         {
 
             promotionType -= 7;
@@ -685,7 +662,7 @@ void Position::undoMove(Move move)
 
         setBit(piecesBitboards[captureType], targetSquare);
 
-        if(STM == BLACK)
+        if(STM)
         {
 
             promotionType -= 11;
@@ -726,9 +703,6 @@ void Position::undoMove(Move move)
 
     piecesBitboards[ALL_PIECES] = piecesBitboards[WHITE_PIECES] | piecesBitboards[BLACK_PIECES];
     piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
-
-
-    STM = !STM;
 
 
     stateCounter--;
