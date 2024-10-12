@@ -612,94 +612,123 @@ void Position::undoMove(Move move)
         piecesArray[targetSquare] = NO_PIECE;
     }
 
-    //simple promotion
-    if((flags > 7) && (flags < 12))
+    if(flags > 7)
     {
-        int promotionType = Flags(move);
-
-
-        if(STM)
-        {
-
-            promotionType -= 7;
-
-
-            clearBit(piecesBitboards[promotionType],targetSquare);
-
-            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[WHITE_PAWN],startSquare);
-
-            piecesArray[startSquare] = WHITE_PAWN;
-            piecesArray[targetSquare] = NO_PIECE;
-
-        }else
-        {
-
-            promotionType -= 1;
-
-
-            clearBit(piecesBitboards[promotionType],targetSquare);
-
-            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-
-            setBit(piecesBitboards[BLACK_PAWN],startSquare);
-
-            piecesArray[startSquare] = BLACK_PAWN;
-            piecesArray[targetSquare] = NO_PIECE;
-
-        }
-
-    }
-
-    //promotions with captures
-    if(flags > 11)
-    {
+        int promotionType = flags;
+        promotionType -= (flags > 11) * (11 * STM + 5 * (1 - STM)) + (flags <= 11) * (7 * STM + 1 * (1 - STM));
         int captureType = stateInfoList[stateCounter].capturedPieceType;
 
+        //Set pawn in pawns
+        setBit(piecesBitboards[ourPawns],startSquare);
 
-        int promotionType = Flags(move);
+        //Place the captured piece
+        setBit(piecesBitboards[captureType],targetSquare);
 
-        setBit(piecesBitboards[captureType], targetSquare);
-
-        if(STM)
+        if(flags > 11)
         {
-
-            promotionType -= 11;
-;
-
-            clearBit(piecesBitboards[promotionType],targetSquare);
-
-            setBit(piecesBitboards[WHITE_PAWN],startSquare);
-
-            bitSwap(piecesBitboards[WHITE_PIECES], startSquare, targetSquare);
-
-
-
-            setBit(piecesBitboards[BLACK_PIECES], targetSquare);
-
-            piecesArray[targetSquare] = captureType;
-            piecesArray[startSquare] = WHITE_PAWN;
-        }else
-        {
-
-            promotionType -= 5;
-
-
-            clearBit(piecesBitboards[promotionType],targetSquare);
-
-            setBit(piecesBitboards[BLACK_PAWN],startSquare);
-
-            bitSwap(piecesBitboards[BLACK_PIECES], startSquare, targetSquare);
-
-
-
-            setBit(piecesBitboards[WHITE_PIECES], targetSquare);
-
-            piecesArray[targetSquare] = captureType;
-            piecesArray[startSquare] = BLACK_PAWN;
+            //Place the piece on the enemies
+            setBit(piecesBitboards[enemyPieces],targetSquare);
         }
+
+
+        //Move the pawn
+        bitSwap(piecesBitboards[ourPieces],startSquare,targetSquare);
+        //Update it to piece
+        clearBit(piecesBitboards[promotionType],targetSquare);
+
+        piecesArray[startSquare] = ourPawns;
+        piecesArray[targetSquare] = captureType;
     }
+
+
+//     //simple promotion
+//     if((flags > 7) && (flags < 12))
+//     {
+//         int promotionType = Flags(move);
+
+
+//         if(STM)
+//         {
+
+//             promotionType -= 7;
+
+
+//             clearBit(piecesBitboards[promotionType],targetSquare);
+
+//             bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
+
+//             setBit(piecesBitboards[WHITE_PAWN],startSquare);
+
+//             piecesArray[startSquare] = WHITE_PAWN;
+//             piecesArray[targetSquare] = NO_PIECE;
+
+//         }else
+//         {
+
+//             promotionType -= 1;
+
+
+//             clearBit(piecesBitboards[promotionType],targetSquare);
+
+//             bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+
+//             setBit(piecesBitboards[BLACK_PAWN],startSquare);
+
+//             piecesArray[startSquare] = BLACK_PAWN;
+//             piecesArray[targetSquare] = NO_PIECE;
+
+//         }
+
+//     }
+
+//     //promotions with captures
+//     if(flags > 11)
+//     {
+//         int captureType = stateInfoList[stateCounter].capturedPieceType;
+
+
+//         int promotionType = Flags(move);
+
+//         setBit(piecesBitboards[captureType], targetSquare);
+
+//         if(STM)
+//         {
+
+//             promotionType -= 11;
+// ;
+
+//             clearBit(piecesBitboards[promotionType],targetSquare);
+
+//             setBit(piecesBitboards[WHITE_PAWN],startSquare);
+
+//             bitSwap(piecesBitboards[WHITE_PIECES], startSquare, targetSquare);
+
+
+
+//             setBit(piecesBitboards[BLACK_PIECES], targetSquare);
+
+//             piecesArray[targetSquare] = captureType;
+//             piecesArray[startSquare] = WHITE_PAWN;
+//         }else
+//         {
+
+//             promotionType -= 5;
+
+
+//             clearBit(piecesBitboards[promotionType],targetSquare);
+
+//             setBit(piecesBitboards[BLACK_PAWN],startSquare);
+
+//             bitSwap(piecesBitboards[BLACK_PIECES], startSquare, targetSquare);
+
+
+
+//             setBit(piecesBitboards[WHITE_PIECES], targetSquare);
+
+//             piecesArray[targetSquare] = captureType;
+//             piecesArray[startSquare] = BLACK_PAWN;
+//         }
+//     }
 
     piecesBitboards[ALL_PIECES] = piecesBitboards[WHITE_PIECES] | piecesBitboards[BLACK_PIECES];
     piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
