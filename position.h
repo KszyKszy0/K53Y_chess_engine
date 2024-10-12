@@ -8,6 +8,7 @@
 #include "zobrist.h"
 #include "move.h"
 #include "helperFunctions.h"
+#include "accumulator.h"
 
 
 using namespace std;
@@ -54,4 +55,6 @@ class Position
     int piecesArray[64];
 
     int stateCounter = 0;
+
+    Accumulator accum;
 };

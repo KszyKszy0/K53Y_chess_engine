@@ -357,6 +357,7 @@ void Position::makeMove(Move move)
         bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
         bitSwap(piecesBitboards[12 + !STM],startSquare,targetSquare);
 
+
         //First we take the piece
         tempState.capturedPieceType = piecesArray[targetSquare];
         //Then we update it
@@ -364,7 +365,7 @@ void Position::makeMove(Move move)
         piecesArray[startSquare] = NO_PIECE;
 
     }
-
+    
 
     if(flags == EN_PASSANT)
     {
@@ -558,34 +559,6 @@ void Position::undoMove(Move move)
         piecesArray[startSquare] = piecesArray[targetSquare];
         piecesArray[targetSquare] = NO_PIECE;
     }
-
-    // if(flags == EN_PASSANT)
-    // {
-
-    //     if(STM)
-    //     {
-    //         setBit(piecesBitboards[BLACK_PIECES],targetSquare-8);
-    //         setBit(piecesBitboards[BLACK_PAWN],targetSquare-8);
-    //         setBit(piecesBitboards[ALL_PIECES],targetSquare-8);
-
-    //         bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-    //         bitSwap(piecesBitboards[WHITE_PAWN],startSquare,targetSquare);
-    //         piecesArray[targetSquare-8] = BLACK_PAWN;
-    //     }else
-    //     {
-
-
-    //         setBit(piecesBitboards[WHITE_PIECES],targetSquare+8);
-    //         setBit(piecesBitboards[WHITE_PAWN],targetSquare+8);
-    //         setBit(piecesBitboards[ALL_PIECES],targetSquare+8);
-
-    //         bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-    //         bitSwap(piecesBitboards[BLACK_PAWN],startSquare,targetSquare);
-    //         piecesArray[targetSquare+8] = WHITE_PAWN;
-    //     }
-    //     piecesArray[startSquare] = piecesArray[targetSquare];
-    //     piecesArray[targetSquare] = NO_PIECE;
-    // }
 
     if(flags == SHORT_CASTLE || flags == LONG_CASTLE)
     {

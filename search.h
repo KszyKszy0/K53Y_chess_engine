@@ -8,11 +8,11 @@
 #include "accumulator.h"
 
 
-int negamax(int depth, int ply, int alpha, int beta,int color, Position& pos, chrono::steady_clock::time_point start, Accumulator& accum);
+int negamax(int depth, int ply, int alpha, int beta,int color, Position& pos, chrono::steady_clock::time_point start);
 
-int quiescence(int depth, int ply, int alpha, int beta,int color, Position& pos, chrono::steady_clock::time_point start, Accumulator& accum);
+int quiescence(int depth, int ply, int alpha, int beta,int color, Position& pos, chrono::steady_clock::time_point start);
 
-Move search(Position& pos, Accumulator& accum);
+Move search(Position& pos);
 
 extern Bitboard transpositionCount;
 

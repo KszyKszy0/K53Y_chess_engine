@@ -74,9 +74,8 @@ core::core()
             wholeCounter=0;
         }
     }
-    newGame("8/2k5/8/3pPK2/8/8/8/8 w - d6 0 1");
-    cout<<evaluate(pos, accum);
-    cout<<perft(7);
+    newGame();
+    cout<<evaluate(pos);
 }
 
 // Highly unoptimized function TODO!!!
@@ -224,16 +223,16 @@ void core::newGame(){
     pos.TT.ResetTT();
     pos.parseFEN(startingFen);
     positionCounter = 0;
-    accum.resetAccum();
-    accum.initAccum(pos.piecesArray);
+    pos.accum.resetAccum();
+    pos.accum.initAccum(pos.piecesArray);
 }
 
 void core::newGame(string FEN){
     pos.TT.ResetTT();
     pos.parseFEN(FEN);
     positionCounter = 0;
-    accum.resetAccum();
-    accum.initAccum(pos.piecesArray);
+    pos.accum.resetAccum();
+    pos.accum.initAccum(pos.piecesArray);
 }
 
 void core::setPosition(vector<string>& moves)
@@ -292,7 +291,7 @@ void core::stop()
 void core::go()
 {
     // negamax(5, 0, -100000, 100000,pos.STM ? 1 : -1, moveGenerator, pos, eval);
-    search(pos, accum);
+    search(pos);
 }
 
 void core::setTime(int wTime, int bTime)

@@ -29,7 +29,7 @@ Move historyHeuristic[64][64];
 int pvLength[64];
 Move pvTable[64][64];
 
-int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, chrono::steady_clock::time_point start, Accumulator& accum)
+int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, chrono::steady_clock::time_point start)
 {
     pvLength[ply] = ply;
 
@@ -72,7 +72,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
     //Entering Quiescence at the end of search
     if (depth == 0)
     {
-        return quiescence(depth, ply, alpha, beta, color, pos, start, accum);
+        return quiescence(depth, ply, alpha, beta, color, pos, start);
     }
 
     //Possible transposition lookup
@@ -234,16 +234,16 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
         if(movesSearched == 0)
         {
             //Standard alpha beta search with normal window
-            value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, start, accum);
+            value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, start);
         }else
         {
             //If it is not first move we search with null window
-            value = -negamax(depth - 1, ply + 1, -alpha - 1, -alpha, -color, pos, start, accum);
+            value = -negamax(depth - 1, ply + 1, -alpha - 1, -alpha, -color, pos, start);
 
             //If value is inside alpha beta bound we research with full window
             if(value > alpha && value < beta)
             {
-                value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, start, accum);
+                value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, start);
             }
         }
 
@@ -362,7 +362,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
     return best;
 }
 
-Move search(Position &pos, Accumulator& accum)
+Move search(Position &pos)
 {
     //Initializing starting values
 
@@ -402,7 +402,7 @@ Move search(Position &pos, Accumulator& accum)
     {
 
         //Start negamax for current depth
-        bestMove = negamax(depth, 0, -INF, INF, pos.STM ? 1 : -1, pos, start, accum);
+        bestMove = negamax(depth, 0, -INF, INF, pos.STM ? 1 : -1, pos, start);
         if (bestMove != 0)
         {
             //We didn't get nullmove we can take that move
@@ -491,7 +491,7 @@ bool isRepeated(Position &pos)
 
 
 int quiescence(int depth, int ply, int alpha, int beta, int color,
-                     Position &pos, chrono::steady_clock::time_point start, Accumulator& accum)
+                     Position &pos, chrono::steady_clock::time_point start)
 {
     // Initialize a new flag for the type of bound (Upper Bound by default)
     int newFlag = UPPER_BOUND;
@@ -524,7 +524,7 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
     }
 
     // Perform a static evaluation of the position
-    int evaluation = evaluate(pos, accum);
+    int evaluation = evaluate(pos);
 
     // Beta cutoff: if the evaluation is greater than or equal to beta, return the evaluation
     if (evaluation >= beta)
@@ -602,7 +602,7 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
         pos.makeMove(m);
 
         // Recursively call quiescence search with negated scores and swapped bounds
-        int value = -quiescence(depth - 1, ply + 1, -beta, -alpha, -color, pos, start, accum);
+        int value = -quiescence(depth - 1, ply + 1, -beta, -alpha, -color, pos, start);
 
         // Undo the move after evaluation
         pos.undoMove(m);
@@ -660,7 +660,7 @@ void updatePV(Move m, int ply)
 
 
 
-void savePosition(Position &pos, int negamaxScore, Accumulator& accum)
+void savePosition(Position &pos, int negamaxScore)
 {
     //TreeStrap
 
@@ -746,7 +746,7 @@ void savePosition(Position &pos, int negamaxScore, Accumulator& accum)
 
 
     //Get static evaluation
-    int evaluation = evaluate(pos, accum);
+    int evaluation = evaluate(pos);
 
     //Open file
     std::fstream file("test.txt", ios::app);

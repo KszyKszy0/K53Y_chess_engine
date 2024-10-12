@@ -66,5 +66,5 @@ public:
     void setTime(int wTime, int bTime);
 
     //main accumulator
-    Accumulator accum;
+    // Accumulator accum;
 };
