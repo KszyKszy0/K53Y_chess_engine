@@ -43,7 +43,7 @@ class Position
     void undoMove(Move move);
 
     //Creates and add state of game to list
-    void addState(int pas, int cast, int half, int full, int captureType);
+    void addState(int pas, int cast, int half, int full, int captureType, Accumulator& acc);
 
     //Creates and add state of game to list
     void addState(StateInfo state);

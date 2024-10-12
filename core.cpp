@@ -223,16 +223,16 @@ void core::newGame(){
     pos.TT.ResetTT();
     pos.parseFEN(startingFen);
     positionCounter = 0;
-    pos.accum.resetAccum();
-    pos.accum.initAccum(pos.piecesArray);
+    // pos.accum.resetAccum();
+    // pos.accum.initAccum(pos.piecesArray);
 }
 
 void core::newGame(string FEN){
     pos.TT.ResetTT();
     pos.parseFEN(FEN);
     positionCounter = 0;
-    pos.accum.resetAccum();
-    pos.accum.initAccum(pos.piecesArray);
+    // pos.accum.resetAccum();
+    // pos.accum.initAccum(pos.piecesArray);
 }
 
 void core::setPosition(vector<string>& moves)

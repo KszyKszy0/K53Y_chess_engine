@@ -154,12 +154,14 @@ void Position::parseFEN(string fen)
     //add game state to list
     stateCounter = 0;
     positionHistory[stateCounter] = positionHash;
+
+    accum.initAccum(piecesArray);
     if(enPassant[0] == '-')
     {
-        addState(0,castlingRights(castling),halfmove,fullmove,NO_PIECE);
+        addState(0,castlingRights(castling),halfmove,fullmove,NO_PIECE,accum);
         return;
     }
-    addState(nameToSquare(enPassant),castlingRights(castling),halfmove,fullmove,NO_PIECE);
+    addState(nameToSquare(enPassant),castlingRights(castling),halfmove,fullmove,NO_PIECE,accum);
 }
 
 
@@ -347,6 +349,8 @@ void Position::makeMove(Move move)
         {
             tempState.halfMove = 0;
 
+            accum.removePiece(piecesArray[targetSquare], targetSquare);
+
             //update capture hash
             positionHash ^= zobrist.zobristTable[piecesArray[targetSquare]*64+targetSquare];
         }
@@ -357,6 +361,8 @@ void Position::makeMove(Move move)
         bitSwap(piecesBitboards[piecesArray[startSquare]],startSquare,targetSquare);
         bitSwap(piecesBitboards[12 + !STM],startSquare,targetSquare);
 
+        accum.removePiece(piecesArray[startSquare], startSquare);
+        accum.addPiece(piecesArray[startSquare], targetSquare);
 
         //First we take the piece
         tempState.capturedPieceType = piecesArray[targetSquare];
@@ -365,7 +371,7 @@ void Position::makeMove(Move move)
         piecesArray[startSquare] = NO_PIECE;
 
     }
-    
+
 
     if(flags == EN_PASSANT)
     {
@@ -394,6 +400,10 @@ void Position::makeMove(Move move)
         bitSwap(piecesBitboards[ourPieces], startSquare, targetSquare);
         bitSwap(piecesBitboards[ourPawns], startSquare, targetSquare);
 
+
+        accum.removePiece(piecesArray[startSquare], startSquare);
+        accum.addPiece(piecesArray[startSquare], targetSquare);
+        accum.removePiece(enemyPawn, targetSquare - direction);
 
         // Update the pieces array for captured piece
         piecesArray[targetSquare - direction] = NO_PIECE;
@@ -446,6 +456,12 @@ void Position::makeMove(Move move)
         bitSwap(piecesBitboards[rookOffset], rookStartSquare, rookTargetSquare); // White/Black rook swap
         bitSwap(piecesBitboards[piecesOffset], rookStartSquare, rookTargetSquare); // White/Black pieces swap
 
+        accum.removePiece(piecesArray[startSquare], startSquare);
+        accum.addPiece(piecesArray[startSquare], targetSquare);
+        accum.removePiece(rookOffset, rookStartSquare);
+        accum.addPiece(rookOffset, rookTargetSquare);
+
+
         // Update the pieces array
         piecesArray[rookStartSquare] = NO_PIECE; // Remove rook from its starting position
         piecesArray[rookTargetSquare] = rookOffset; // Place the rook at its target position
@@ -469,6 +485,8 @@ void Position::makeMove(Move move)
         {
             //remove hash of taken piece
             positionHash ^= zobrist.zobristTable[piecesArray[targetSquare]*64+targetSquare];
+
+            accum.removePiece(piecesArray[targetSquare], targetSquare);
         }
 
         //Clear pawn from pawns
@@ -480,6 +498,10 @@ void Position::makeMove(Move move)
         bitSwap(piecesBitboards[12 + !STM],startSquare,targetSquare);
         //Update it to piece
         setBit(piecesBitboards[promotionType],targetSquare);
+
+
+        accum.removePiece(piecesArray[startSquare], startSquare);
+        accum.addPiece(promotionType, targetSquare);
 
         tempState.capturedPieceType = piecesArray[targetSquare];
         piecesArray[startSquare] = NO_PIECE;
@@ -510,6 +532,13 @@ void Position::makeMove(Move move)
     stateCounter++;
     positionHistory[stateCounter]=positionHash;
 
+    for(int i=0; i<=1; i++)
+    {
+        for(int j=0; j <= 15; j++)
+        {
+            tempState.accumulator[i][j] = accum.values[i][j];
+        }
+    }
     addState(tempState);
 }
 
@@ -633,16 +662,38 @@ void Position::undoMove(Move move)
 
     stateCounter--;
     positionHash = positionHistory[stateCounter];
+    for(int i=0; i<=1; i++)
+    {
+        for(int j=0; j <= 15; j++)
+        {
+            accum.values[i][j] = stateInfoList[stateCounter].accumulator[i][j];
+        }
+    }
 }
 
 
-void Position::addState(int pas, int cast, int half, int full, int captureType)
+void Position::addState(int pas, int cast, int half, int full, int captureType, Accumulator& acc)
 {
     StateInfo newState(pas,cast,half,full,captureType);
+
+    for(int i=0; i<=1; i++)
+    {
+        for(int j=0; j <= 15; j++)
+        {
+            newState.accumulator[i][j] = acc.values[i][j];
+        }
+    }
     stateInfoList[stateCounter] = newState;
 }
 void Position::addState(StateInfo state)
 {
     StateInfo newState(state.enPassantSquare,state.castlingRights,state.halfMove,state.fullMove,state.capturedPieceType);
+    for(int i=0; i<=1; i++)
+    {
+        for(int j=0; j <= 15; j++)
+        {
+            newState.accumulator[i][j] = state.accumulator[i][j];
+        }
+    }
     stateInfoList[stateCounter] = newState;
 }

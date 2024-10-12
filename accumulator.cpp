@@ -3,7 +3,7 @@
 #include "enums.h"
 #include "bitboard.h"
 
-void Accumulator::removePiece(int ind, int type)
+void Accumulator::removePiece(int type, int ind)
 {
     //White index calculation
     int whiteAccumIndex = 64*type+ind;
@@ -31,7 +31,7 @@ void Accumulator::removePiece(int ind, int type)
 
 }
 
-void Accumulator::addPiece(int ind, int type)
+void Accumulator::addPiece(int type, int ind)
 {
     //White index calculation
     int whiteAccumIndex = 64*type+ind;
@@ -59,12 +59,13 @@ void Accumulator::addPiece(int ind, int type)
 
 void Accumulator::initAccum(int (&arr)[64])
 {
+    resetAccum();
     //Loop through array of all pieces
     for(int i=0; i < 64; i++)
     {
         if(arr[i] <= BLACK_KING)
         {
-            addPiece(i,arr[i]);
+            addPiece(arr[i],i);
         }
     }
 }
