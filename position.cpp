@@ -545,31 +545,47 @@ void Position::undoMove(Move move)
 
     if(flags == EN_PASSANT)
     {
+        // Clear opponent's pawn (white or black)
+        setBit(piecesBitboards[enemyPieces], targetSquare - direction);
+        setBit(piecesBitboards[enemyPawn], targetSquare - direction);
 
-        if(STM)
-        {
-            setBit(piecesBitboards[BLACK_PIECES],targetSquare-8);
-            setBit(piecesBitboards[BLACK_PAWN],targetSquare-8);
-            setBit(piecesBitboards[ALL_PIECES],targetSquare-8);
+        // Move the pieces
+        bitSwap(piecesBitboards[ourPieces], startSquare, targetSquare);
+        bitSwap(piecesBitboards[ourPawns], startSquare, targetSquare);
 
-            bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-            bitSwap(piecesBitboards[WHITE_PAWN],startSquare,targetSquare);
-            piecesArray[targetSquare-8] = BLACK_PAWN;
-        }else
-        {
-
-
-            setBit(piecesBitboards[WHITE_PIECES],targetSquare+8);
-            setBit(piecesBitboards[WHITE_PAWN],targetSquare+8);
-            setBit(piecesBitboards[ALL_PIECES],targetSquare+8);
-
-            bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-            bitSwap(piecesBitboards[BLACK_PAWN],startSquare,targetSquare);
-            piecesArray[targetSquare+8] = WHITE_PAWN;
-        }
+        // Update the pieces array for captured piece
+        piecesArray[targetSquare - direction] = enemyPawn;
         piecesArray[startSquare] = piecesArray[targetSquare];
         piecesArray[targetSquare] = NO_PIECE;
     }
+
+    // if(flags == EN_PASSANT)
+    // {
+
+    //     if(STM)
+    //     {
+    //         setBit(piecesBitboards[BLACK_PIECES],targetSquare-8);
+    //         setBit(piecesBitboards[BLACK_PAWN],targetSquare-8);
+    //         setBit(piecesBitboards[ALL_PIECES],targetSquare-8);
+
+    //         bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
+    //         bitSwap(piecesBitboards[WHITE_PAWN],startSquare,targetSquare);
+    //         piecesArray[targetSquare-8] = BLACK_PAWN;
+    //     }else
+    //     {
+
+
+    //         setBit(piecesBitboards[WHITE_PIECES],targetSquare+8);
+    //         setBit(piecesBitboards[WHITE_PAWN],targetSquare+8);
+    //         setBit(piecesBitboards[ALL_PIECES],targetSquare+8);
+
+    //         bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
+    //         bitSwap(piecesBitboards[BLACK_PAWN],startSquare,targetSquare);
+    //         piecesArray[targetSquare+8] = WHITE_PAWN;
+    //     }
+    //     piecesArray[startSquare] = piecesArray[targetSquare];
+    //     piecesArray[targetSquare] = NO_PIECE;
+    // }
 
     if(flags == SHORT_CASTLE || flags == LONG_CASTLE)
     {
@@ -618,19 +634,17 @@ void Position::undoMove(Move move)
         promotionType -= (flags > 11) * (11 * STM + 5 * (1 - STM)) + (flags <= 11) * (7 * STM + 1 * (1 - STM));
         int captureType = stateInfoList[stateCounter].capturedPieceType;
 
-        //Set pawn in pawns
-        setBit(piecesBitboards[ourPawns],startSquare);
-
-        //Place the captured piece
-        setBit(piecesBitboards[captureType],targetSquare);
-
         if(flags > 11)
         {
+            //Place the captured piece
+            setBit(piecesBitboards[captureType],targetSquare);
+
             //Place the piece on the enemies
             setBit(piecesBitboards[enemyPieces],targetSquare);
         }
 
-
+        //Set pawn in pawns
+        setBit(piecesBitboards[ourPawns],startSquare);
         //Move the pawn
         bitSwap(piecesBitboards[ourPieces],startSquare,targetSquare);
         //Update it to piece
@@ -639,96 +653,6 @@ void Position::undoMove(Move move)
         piecesArray[startSquare] = ourPawns;
         piecesArray[targetSquare] = captureType;
     }
-
-
-//     //simple promotion
-//     if((flags > 7) && (flags < 12))
-//     {
-//         int promotionType = Flags(move);
-
-
-//         if(STM)
-//         {
-
-//             promotionType -= 7;
-
-
-//             clearBit(piecesBitboards[promotionType],targetSquare);
-
-//             bitSwap(piecesBitboards[WHITE_PIECES],startSquare,targetSquare);
-
-//             setBit(piecesBitboards[WHITE_PAWN],startSquare);
-
-//             piecesArray[startSquare] = WHITE_PAWN;
-//             piecesArray[targetSquare] = NO_PIECE;
-
-//         }else
-//         {
-
-//             promotionType -= 1;
-
-
-//             clearBit(piecesBitboards[promotionType],targetSquare);
-
-//             bitSwap(piecesBitboards[BLACK_PIECES],startSquare,targetSquare);
-
-//             setBit(piecesBitboards[BLACK_PAWN],startSquare);
-
-//             piecesArray[startSquare] = BLACK_PAWN;
-//             piecesArray[targetSquare] = NO_PIECE;
-
-//         }
-
-//     }
-
-//     //promotions with captures
-//     if(flags > 11)
-//     {
-//         int captureType = stateInfoList[stateCounter].capturedPieceType;
-
-
-//         int promotionType = Flags(move);
-
-//         setBit(piecesBitboards[captureType], targetSquare);
-
-//         if(STM)
-//         {
-
-//             promotionType -= 11;
-// ;
-
-//             clearBit(piecesBitboards[promotionType],targetSquare);
-
-//             setBit(piecesBitboards[WHITE_PAWN],startSquare);
-
-//             bitSwap(piecesBitboards[WHITE_PIECES], startSquare, targetSquare);
-
-
-
-//             setBit(piecesBitboards[BLACK_PIECES], targetSquare);
-
-//             piecesArray[targetSquare] = captureType;
-//             piecesArray[startSquare] = WHITE_PAWN;
-//         }else
-//         {
-
-//             promotionType -= 5;
-
-
-//             clearBit(piecesBitboards[promotionType],targetSquare);
-
-//             setBit(piecesBitboards[BLACK_PAWN],startSquare);
-
-//             bitSwap(piecesBitboards[BLACK_PIECES], startSquare, targetSquare);
-
-
-
-//             setBit(piecesBitboards[WHITE_PIECES], targetSquare);
-
-//             piecesArray[targetSquare] = captureType;
-//             piecesArray[startSquare] = BLACK_PAWN;
-//         }
-//     }
 
     piecesBitboards[ALL_PIECES] = piecesBitboards[WHITE_PIECES] | piecesBitboards[BLACK_PIECES];
     piecesBitboards[NO_PIECE] = ~piecesBitboards[ALL_PIECES];
