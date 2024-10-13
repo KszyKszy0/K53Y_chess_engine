@@ -2,79 +2,56 @@
 #include "position.h"
 #include "accumulator.h"
 #include "nnue.h"
+#include "fstream"
 
 
-int L1_weights[inputSize][l1_size];
-int L1_bias[l1_size] = {0};
-int L2_weights[l1_size];
-int output_bias = 0;
+double L1_weights[inputSize][l1_size];
+double L1_bias[l1_size] = {0};
+double L2_weights[l1_size];
+double output_bias = 0;
 
 core::core()
 {
     magicInit();
-
-    for(int i=0; i < 768; i++)
-    {
-        for(int j=0; j < 32; j++)
-        {
-            int value = i / 64;
-            int points;
-            if(value == 0)
-                points = 1;
-            if(value == 1)
-                points = 3;
-            if(value == 2)
-                points = 3;
-            if(value == 3)
-                points = 5;
-            if(value == 4)
-                points = 9;
-            if(value == 5)
-                points = 0;
-
-            if(value == 6)
-                points = -1;
-            if(value == 7)
-                points = -3;
-            if(value == 8)
-                points = -3;
-            if(value == 9)
-                points = -5;
-            if(value == 10)
-                points = -9;
-            if(value == 11)
-                points = 0;
-
-            L1_weights[i][j] = points;
-            L2_weights[j] = 1;
-        }
-    }
-
-    int lineCounter = 0;
-    int wholeCounter = 0;
-    for(int i=0; i < 768; i++)
-    {
-        int sum = 0;
-        for(int j=0; j < 32; j++)
-        {
-            sum += L1_weights[i][j];
-        }
-        sum /= 32;
-        cout<<sum<<" ";
-        lineCounter++;
-        if(lineCounter >= 8)
-        {
-            cout<<endl;
-            lineCounter=0;
-        }
-        wholeCounter++;
-        if(wholeCounter >= 64)
-        {
-            cout<<endl;
-            wholeCounter=0;
-        }
-    }
+    readNNUE();
     newGame();
+    // int state[768] = {0};
+
+    // if(pos.STM)
+    // {
+    //     for(int i=0; i<=63; i++)
+    //     {
+    //         int index = 0;
+    //         if(pos.piecesArray[i] <= BLACK_KING)
+    //         {
+    //             index = 64*pos.piecesArray[i]+i;
+    //             state[index] = 1;
+    //         }
+    //     }
+    // }else
+    // {
+    //     for(int i=0; i<=63; i++)
+    //     {
+    //         int index = 0;
+    //         if(pos.piecesArray[i] <= BLACK_KING)
+    //         {
+    //             if(pos.piecesArray[i] <= WHITE_KING)
+    //             {
+    //                 index = 64*(pos.piecesArray[i]+6)+flipIndex(i);
+    //             }
+    //             else if(pos.piecesArray[i] <= BLACK_KING)
+    //             {
+    //                 index = 64*(pos.piecesArray[i]-6)+flipIndex(i);
+    //             }
+    //             state[index] = 1;
+    //         }
+    //     }
+    // }
+    // for(int i=0; i < 768; i++)
+    // {
+    //     cout<<state[i]<<", ";
+    // }
+
     cout<<evaluate(pos);
 }
 
@@ -335,4 +312,52 @@ void core::setTime(int wTime, int bTime)
         timeLimit = bTime / (float)15;
         return;
     }
+}
+
+void core::readNNUE()
+{
+    std::fstream file("NNUE.txt");
+    double value;
+    for(int i=0; i < 32; i++)
+    {
+        for(int j=0; j < 768; j++)
+        {
+            file >> value;
+            L1_weights[j][i] = value;
+        }
+    }
+    for(int i=0; i < 32; i++)
+    {
+        file >> value;
+        L1_bias[i] = value;
+    }
+    for(int i=0; i < 32; i++)
+    {
+        file >> value;
+        L2_weights[i] = value;
+    }
+    file >> value;
+    output_bias = value;
+    file.close();
+
+    // for(int i=0; i < 32; i++)
+    // {
+    //     for(int j=0; j < 768; j++)
+    //     {
+    //         cout<<L1_weights[j][i]<<" ";
+    //     }
+    //     cout<<endl;
+    // }
+    // for(int i=0; i < 32; i++)
+    // {
+    //     cout<<L1_bias[i]<<" ";
+    // }
+    // cout<<endl;
+    // for(int i=0; i < 32; i++)
+    // {
+    //     cout<<L2_weights[i]<<" ";
+    // }
+    // cout<<endl;
+    // cout<<output_bias;
+    // cout<<endl;
 }

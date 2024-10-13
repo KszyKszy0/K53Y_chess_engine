@@ -1,24 +1,33 @@
 #include "nnue.h"
 #include "enums.h"
 
-
-int firstLayer(int (&acc)[2][16], bool perspective)
+double relu(double value)
 {
-    int result = 0;
+    if(value < 0)
+    {
+        return 0;
+    }
+    return value;
+}
+
+double firstLayer(double (&acc)[2][16], bool perspective)
+{
+    double result = 0;
     if(perspective == WHITE)
     {
         for(int i=0; i < 16; i++)
         {
-            result += acc[0][i] * L2_weights[i];
-            result += acc[1][i] * L2_weights[i+16];
+            result += relu(acc[0][i] + L1_bias[i]) * L2_weights[i];
+            result += relu(acc[1][i] + L1_bias[i+16]) * L2_weights[i+16];
         }
     }else
     {
         for(int i=0; i < 16; i++)
         {
-            result += acc[1][i] * L2_weights[i];
-            result += acc[0][i] * L2_weights[i+16];
+            result += relu(acc[1][i] + L1_bias[i]) * L2_weights[i];
+            result += relu(acc[0][i] + L1_bias[i+16]) * L2_weights[i+16];
         }
     }
-    return result;
+    return result + output_bias;
 }
+

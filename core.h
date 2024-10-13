@@ -67,4 +67,6 @@ public:
 
     //main accumulator
     // Accumulator accum;
+
+    void readNNUE();
 };
