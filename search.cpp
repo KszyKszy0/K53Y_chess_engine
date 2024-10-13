@@ -23,11 +23,11 @@ Bitboard collisions;
 Move bestMovePrevious;
 int oldEval;
 
-Move killers[64];
-Move historyHeuristic[64][64];
+Move killers[MAX_DEPTH];
+Move historyHeuristic[MAX_DEPTH][MAX_DEPTH];
 
-int pvLength[64];
-Move pvTable[64][64];
+int pvLength[MAX_DEPTH];
+Move pvTable[MAX_DEPTH][MAX_DEPTH];
 
 int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, chrono::steady_clock::time_point start)
 {
@@ -89,31 +89,10 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
             //Check for node type (matching ab window) (cutoff) (fail low)
             if ((entry.type == EXACT_SCORE) || ((entry.type == LOWER_BOUND) && (entry.score >= beta)) || ((entry.type == UPPER_BOUND) && (entry.score < alpha)))
             {
-                updatePV(transpositionMove, ply);
-
                 return entry.score;
             }
         }
     }
-
-    //If we get move from TT but we couldn't use score
-    //Move the TT move to the first place in moveList
-    // if (transpositionMove != 0)
-    // {
-    //     // Move* move = &moveList.moveList[1];
-    //     for (size_t i = 0; i < moveList.size; ++i)
-    //     {
-    //         if (moveList.moveList[i] == transpositionMove)
-    //         {
-    //             std::swap(moveList.moveList[0], moveList.moveList[i]);
-    //         }
-    //         // if(Flags(moveList.moveList[i] == CAPTURE))
-    //         // {
-    //         //     std::swap(*move++,moveList.moveList[i]);
-    //         // }
-    //     }
-    // }
-
 
 
     //MOVE ORDERING
@@ -207,22 +186,6 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
             {
                 return CHECKMATE;
             }
-
-            // //At root ply
-            // if (ply == 0)
-            // {
-            //     //If we detect that at least one move was searched at root
-            //     //We can change oldEval to best so we get true evaluation in logs
-            //     //If there was no time cutoff AND we at least searched one move
-            //     //There is one in million chance that time cutoff will appear at the start of first ply before first move
-            //     if ((best != -CHECKMATE) && (best != -NO_MOVE))
-            //         oldEval = best;
-
-            //     updatePV(bestMove, ply);
-
-            //     // In case of first move cancel we return first move from list beacuse it is from TT
-            //     return bestMove;
-            // }
         }
 
         //Make move
@@ -247,8 +210,6 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
             }
         }
 
-        // value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, start);
-
         //Undo move
         pos.undoMove(m);
 
@@ -269,22 +230,6 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
             {
                 return CHECKMATE;
             }
-
-            // //At root ply
-            // if (ply == 0)
-            // {
-            //     //If we detect that at least one move was searched at root
-            //     //We can change oldEval to best so we get true evaluation in logs
-            //     //If there was no time cutoff AND we at least searched one move
-            //     //There is one in million chance that time cutoff will appear at the start of first ply before first move
-            //     if ((best != -CHECKMATE) && (best != -NO_MOVE))
-            //         oldEval = best;
-
-            //     updatePV(bestMove, ply);
-
-            //     // In case of first move cancel we return first move from list beacuse it is from TT
-            //     return bestMove;
-            // }
         }
 
         //If we beat best
@@ -346,13 +291,9 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
     //At root ply
     if (ply == 0)
     {
-        //If we detect that at least one move was searched at root
-        //We can change oldEval to best so we get true evaluation in logs
-        //If there was no time cutoff AND we at least searched one move
-        //There is one in million chance that time cutoff will appear at the start of first ply before first move
+        //Update move eval
         if ((best != -CHECKMATE) && (best != -NO_MOVE))
             oldEval = best;
-
 
         // In case of first move cancel we return first move from list beacuse it is from TT
         return bestMove;
@@ -384,8 +325,6 @@ Move search(Position &pos)
     //Reset node count
     nodesCount = 0;
 
-    //For printing during time cutoff
-    int oldPVLength = 0;
 
     for(int i=0; i<=63; i++)
     {
@@ -398,7 +337,7 @@ Move search(Position &pos)
     }
 
     //Iterative deepening loop
-    for (int depth = 1; depth <= 100; depth++)
+    for (int depth = 1; depth < MAX_DEPTH; depth++)
     {
 
         //Start negamax for current depth
@@ -412,43 +351,33 @@ Move search(Position &pos)
         //Time check and uci info
         auto end = chrono::steady_clock::now();
 
-        long long time = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
-        std::cout << "info depth " << depth;
-        std::cout << " score cp " << oldEval;
-        std::cout << " nodes " << nodesCount;
-        std::cout << " nps " << (long long)(nodesCount / (time / (double)1000000000));
-        std::cout << " time " << (long long)(time/(double)1000000);
 
-        //
-        //          PV PRINTING SEGMENT
-        //
-        // std::cout << " pv ";
+        //Print only info from full depths
+        if(chrono::duration_cast<chrono::milliseconds>(end - start).count() < timeLimit && !isCancelled)
+        {
+            int mili = chrono::duration_cast<chrono::milliseconds>(end - start).count();
+            std::cout << "info depth " << depth;
+            std::cout << " score cp " << oldEval;
+            std::cout << " nodes " << nodesCount;
+            std::cout << " nps " << (int)(1000 * (nodesCount / (1 + mili)));
+            std::cout << " time " << mili;
 
-        // int limit = 0;
-        // if(pvLength[0] > oldPVLength)
-        // {
-        //     limit = pvLength[0];
-        // }else
-        // {
-        //     limit = oldPVLength;
-        // }
-        // for(int pvl = 0; pvl < limit; pvl++)
-        // {
-        //     printMove(pvTable[0][pvl]);
-        //     std::cout<<" ";
-        // }
-        // oldPVLength = pvLength[0];
-        // for(int pvl = 0; pvl < pvLength[0]; pvl++)
-        // {
-        //     printMove(pvTable[0][pvl]);
-        //     std::cout<<" ";
-        // }
+            //
+            //          PV PRINTING SEGMENT
+            //
+            std::cout << " pv ";
 
-        std::cout<<endl;
-        //
-        //          END OF PV SEGMENT
-        //
+            for(int pvl = 0; pvl < depth; pvl++)
+            {
+                printMove(pvTable[0][pvl]);
+                std::cout<<" ";
+            }
 
+            std::cout<<endl;
+            //
+            //          END OF PV SEGMENT
+            //
+        }
 
         //Time cutoff
         if (chrono::duration_cast<chrono::milliseconds>(end - start).count() > timeLimit || isCancelled)
@@ -457,14 +386,14 @@ Move search(Position &pos)
         }
     }
 
-    //After ID loop we print best move to uci
-    // pos.makeMove(bestMovePrevious);
+
 
 #ifdef DATAGEN
     if(oldEval > -90000 && oldEval < 90000 && Flags(bestMovePrevious) != CAPTURE && popCount(pos.piecesBitboards[ALL_PIECES]) >= 16)
         savePosition(pos, oldEval, accum);
 #endif
 
+    //After ID loop we print best move to uci
     std::cout << "bestmove " << moveToUci(bestMovePrevious) << endl;
     return bestMovePrevious;
 }

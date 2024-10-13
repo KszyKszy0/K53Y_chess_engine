@@ -35,8 +35,8 @@ class TranspositionTable
 {
     public:
 
-    //Size of the Transposition table currently: 16777216
-    Bitboard size = 1ULL << 24;
+    //Size of the Transposition table currently: 10MB
+    Bitboard size = int(10000000 / sizeof(TTEntry));
 
     //Pointer to transposition table
     TTEntry *transpositionTable;

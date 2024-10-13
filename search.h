@@ -7,6 +7,9 @@
 #include "moveList.h"
 #include "accumulator.h"
 
+const int MAX_DEPTH = 64;
+
+
 
 int negamax(int depth, int ply, int alpha, int beta,int color, Position& pos, chrono::steady_clock::time_point start);
 
@@ -53,15 +56,15 @@ const int MVVLVA[12][12]=
     100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600
 };
 
-extern int pvLength[64];
+extern int pvLength[MAX_DEPTH];
 
-extern Move pvTable[64][64];
+extern Move pvTable[MAX_DEPTH][MAX_DEPTH];
 
 void updatePV(Move m, int ply);
 
-extern Move killers[64];
+extern Move killers[MAX_DEPTH];
 
-extern Move historyHeuristic[64][64];
+extern Move historyHeuristic[MAX_DEPTH][MAX_DEPTH];
 
 void savePosition(Position &pos, int negamaxScore);
 

@@ -17,6 +17,8 @@ class Position
 {
     public:
 
+    const static int MAX_GAME_LENGTH = 2000;
+
     //All pieces BB look enums.h
     Bitboard piecesBitboards[16];
 
@@ -32,7 +34,7 @@ class Position
 
     TranspositionTable TT;
 
-    Bitboard positionHistory[500];
+    Bitboard positionHistory[MAX_GAME_LENGTH];
 
     bool STM;
 
@@ -49,7 +51,7 @@ class Position
     void addState(StateInfo state);
 
     //List of game states
-    StateInfo stateInfoList[1000];
+    StateInfo stateInfoList[MAX_GAME_LENGTH];
 
     //Array of all pieces types on chessboard
     int piecesArray[64];
