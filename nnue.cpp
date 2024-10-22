@@ -28,6 +28,6 @@ double firstLayer(double (&acc)[2][16], bool perspective)
             result += relu(acc[0][i] + L1_bias[i+16]) * L2_weights[i+16];
         }
     }
-    return result + output_bias;
+    return (result + output_bias)*100;
 }
 

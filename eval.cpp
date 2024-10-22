@@ -145,10 +145,10 @@ int psqtArray[389] =
 
 double evaluate(Position& pos)
 {
-    //Static eval
+    // Static eval
     int eval=0;
 
-    //Material
+    // Material
     int pawns = (popCount(pos.piecesBitboards[WHITE_PAWN]) - popCount(pos.piecesBitboards[BLACK_PAWN]))*psqtArray[384];
     int knight = (popCount(pos.piecesBitboards[WHITE_KNIGHT]) - popCount(pos.piecesBitboards[BLACK_KNIGHT]))*psqtArray[385];
     int bishop = (popCount(pos.piecesBitboards[WHITE_BISHOP]) - popCount(pos.piecesBitboards[BLACK_BISHOP]))*psqtArray[386];
@@ -175,7 +175,7 @@ double evaluate(Position& pos)
 
     return (pawns + knight + bishop + rook + queens + eval) * (pos.STM ? 1 : -1) / 70;
 
-    // return firstLayer(pos.accum.values, pos.STM) * (pos.STM ? 1 : -1);
+    // return firstLayer(pos.accum.values, pos.STM);
 }
 
 void readData()

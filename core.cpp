@@ -52,7 +52,7 @@ core::core()
     //     cout<<state[i]<<", ";
     // }
 
-    cout<<evaluate(pos);
+    // cout<<evaluate(pos);
 }
 
 // Highly unoptimized function TODO!!!

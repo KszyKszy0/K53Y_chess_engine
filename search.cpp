@@ -283,8 +283,8 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
     }
 
 #ifdef DATAGEN
-    if(best > -90000 && best < 90000 && Flags(bestMovePrevious) != CAPTURE && popCount(pos.piecesBitboards[ALL_PIECES]) >= 16 && depth >= 6 && !isCancelled)
-        savePosition(pos, best, accum);
+    if(best > -90000 && best < 90000 && Flags(bestMovePrevious) != CAPTURE && popCount(pos.piecesBitboards[ALL_PIECES]) >= 6 && depth >= 4 && !isCancelled && moveList.checks == 0)
+        savePosition(pos, best);
 #endif
 
 
@@ -389,8 +389,8 @@ Move search(Position &pos)
 
 
 #ifdef DATAGEN
-    if(oldEval > -90000 && oldEval < 90000 && Flags(bestMovePrevious) != CAPTURE && popCount(pos.piecesBitboards[ALL_PIECES]) >= 16)
-        savePosition(pos, oldEval, accum);
+    if(oldEval > -90000 && oldEval < 90000 && Flags(bestMovePrevious) != CAPTURE && popCount(pos.piecesBitboards[ALL_PIECES]) >= 6)
+        savePosition(pos, oldEval);
 #endif
 
     //After ID loop we print best move to uci
@@ -589,56 +589,138 @@ void updatePV(Move m, int ply)
 
 
 
-void savePosition(Position &pos, int negamaxScore)
-{
-    //TreeStrap
+// void savePosition(Position &pos, int negamaxScore)
+// {
+//     //TreeStrap
 
 
-    //Create State before making moves
-    //384 psqt + 5 material inputs
-    // int state[389] = {0};
+//     //Create State before making moves
+//     //384 psqt + 5 material inputs
+//     // int state[389] = {0};
 
 
-    // for(int i=0; i<=63; i++)
-    // {
-    //     //If square is empty go to the next square
-    //     if(pos.piecesArray[i] == NO_PIECE)
-    //     {
-    //         continue;
-    //     }
+//     // for(int i=0; i<=63; i++)
+//     // {
+//     //     //If square is empty go to the next square
+//     //     if(pos.piecesArray[i] == NO_PIECE)
+//     //     {
+//     //         continue;
+//     //     }
 
-    //     //If the piece is white
-    //     if(pos.piecesArray[i] <= WHITE_KING)
-    //     {
-    //         //Add current position to state index
-    //         //Flip index to get correct psqt value
-    //         int startIndex = pos.piecesArray[i]*64;
+//     //     //If the piece is white
+//     //     if(pos.piecesArray[i] <= WHITE_KING)
+//     //     {
+//     //         //Add current position to state index
+//     //         //Flip index to get correct psqt value
+//     //         int startIndex = pos.piecesArray[i]*64;
 
-    //         int bonusIndex = flipIndex(i);
-    //         state[startIndex + bonusIndex] += 1;
-    //     }else //piece is black
-    //     {
-    //         //Add current position to state index but with negative sign
-    //         //Black pieces get -6 because of indexing enums
-    //         state[(pos.piecesArray[i]-6) * 64 + i] -= 1;
-    //     }
-    // }
+//     //         int bonusIndex = flipIndex(i);
+//     //         state[startIndex + bonusIndex] += 1;
+//     //     }else //piece is black
+//     //     {
+//     //         //Add current position to state index but with negative sign
+//     //         //Black pieces get -6 because of indexing enums
+//     //         state[(pos.piecesArray[i]-6) * 64 + i] -= 1;
+//     //     }
+//     // }
 
-    // //Pawn count
-    // state[384] = popCount(pos.piecesBitboards[WHITE_PAWN]) - popCount(pos.piecesBitboards[BLACK_PAWN]);
+//     // //Pawn count
+//     // state[384] = popCount(pos.piecesBitboards[WHITE_PAWN]) - popCount(pos.piecesBitboards[BLACK_PAWN]);
 
-    // //Knight count
-    // state[385] = popCount(pos.piecesBitboards[WHITE_KNIGHT]) - popCount(pos.piecesBitboards[BLACK_KNIGHT]);
+//     // //Knight count
+//     // state[385] = popCount(pos.piecesBitboards[WHITE_KNIGHT]) - popCount(pos.piecesBitboards[BLACK_KNIGHT]);
 
-    // //Bishop count
-    // state[386] = popCount(pos.piecesBitboards[WHITE_BISHOP]) - popCount(pos.piecesBitboards[BLACK_BISHOP]);
+//     // //Bishop count
+//     // state[386] = popCount(pos.piecesBitboards[WHITE_BISHOP]) - popCount(pos.piecesBitboards[BLACK_BISHOP]);
 
-    // //Rook count
-    // state[387] = popCount(pos.piecesBitboards[WHITE_ROOK]) - popCount(pos.piecesBitboards[BLACK_ROOK]);
+//     // //Rook count
+//     // state[387] = popCount(pos.piecesBitboards[WHITE_ROOK]) - popCount(pos.piecesBitboards[BLACK_ROOK]);
 
-    // //Queen count
-    // state[388] = popCount(pos.piecesBitboards[WHITE_QUEEN]) - popCount(pos.piecesBitboards[BLACK_QUEEN]);
+//     // //Queen count
+//     // state[388] = popCount(pos.piecesBitboards[WHITE_QUEEN]) - popCount(pos.piecesBitboards[BLACK_QUEEN]);
 
+
+//     int state[768] = {0};
+
+//     if(pos.STM)
+//     {
+//         for(int i=0; i<=63; i++)
+//         {
+//             int index = 0;
+//             if(pos.piecesArray[i] <= BLACK_KING)
+//             {
+//                 index = 64*pos.piecesArray[i]+i;
+//                 state[index] = 1;
+//             }
+//         }
+//     }else
+//     {
+//         for(int i=0; i<=63; i++)
+//         {
+//             int index = 0;
+//             if(pos.piecesArray[i] <= BLACK_KING)
+//             {
+//                 if(pos.piecesArray[i] <= WHITE_KING)
+//                 {
+//                     index = 64*(pos.piecesArray[i]+6)+flipIndex(i);
+//                 }
+//                 else if(pos.piecesArray[i] <= BLACK_KING)
+//                 {
+//                     index = 64*(pos.piecesArray[i]-6)+flipIndex(i);
+//                 }
+//                 state[index] = 1;
+//             }
+//         }
+//     }
+
+
+//     //Get static evaluation
+//     int evaluation = evaluate(pos);
+
+//     //Open file
+//     std::fstream file("test.txt", ios::app);
+
+//     if (!file) {
+//         std::cerr << "Nie można otworzyć pliku do zapisu: " << "test.txt" << std::endl;
+//     }
+
+//     //Write state to file
+//     for (int i = 0; i < 768; ++i) {
+//         file << state[i];
+//         file << " ";
+//     }
+
+//     //Get target best if node doesn't fail low or high
+//     //If we don't fail on either bound we take the error by difference with minimax value of node
+//     int target = negamaxScore;
+
+//     //If we are below alpha that means we underestimate position
+//     // if(alpha > evaluation)
+//     // {
+//     //     target = alpha;
+//     // }
+
+//     // //If we are above beta that means we overestimate position
+//     // if(beta < evaluation)
+//     // {
+//     //     target = beta;
+//     // }
+
+//     // file << " " << evaluation << " " << target;
+//     file << target / float(100);
+//     // file << " " <<pos.getFEN();
+
+
+//     file << endl;
+
+//     // Close file
+//     file.close();
+// }
+
+
+
+
+void savePosition(Position &pos, int target) {
 
     int state[768] = {0};
 
@@ -674,52 +756,42 @@ void savePosition(Position &pos, int negamaxScore)
     }
 
 
-    //Get static evaluation
-    int evaluation = evaluate(pos);
-
-    //Open file
-    std::fstream file("test.txt", ios::app);
+    // Open file in binary mode
+    std::ofstream file("binary_data.bin", std::ios::binary | std::ios::app);
 
     if (!file) {
-        std::cerr << "Nie można otworzyć pliku do zapisu: " << "test.txt" << std::endl;
+        std::cerr << "Nie można otworzyć pliku do zapisu: " << "binary_data.bin" << std::endl;
+        return;
     }
 
-    //Write state to file
+    // Create a buffer to store packed bits
+    uint8_t buffer = 0;
+    int bitCount = 0;
+
+    // Pack 0/1 values from state[] into bytes
     for (int i = 0; i < 768; ++i) {
-        file << state[i];
-        file << " ";
+        buffer <<= 1;  // Shift bits left by 1
+        buffer |= state[i];  // Add the current state bit (0 or 1)
+        bitCount++;
+
+        // If buffer is full (8 bits), write it to the file
+        if (bitCount == 8) {
+            file.write(reinterpret_cast<const char*>(&buffer), sizeof(buffer));
+            buffer = 0;
+            bitCount = 0;
+        }
     }
 
-    //Get target best if node doesn't fail low or high
-    //If we don't fail on either bound we take the error by difference with minimax value of node
-    int target = negamaxScore;
-
-    //If we are below alpha that means we underestimate position
-    // if(alpha > evaluation)
-    // {
-    //     target = alpha;
-    // }
-
-    // //If we are above beta that means we overestimate position
-    // if(beta < evaluation)
-    // {
-    //     target = beta;
-    // }
-
-    if(pos.STM)
-    {
-        // file << " " << evaluation << " " << target;
-        file << target;
-        // file << " " <<pos.getFEN();
-    }else
-    {
-        // file << " " << -evaluation << " " << -target;
-        file << -target;
-        // file << " " <<pos.getFEN();
+    // Write remaining bits (if any)
+    if (bitCount > 0) {
+        buffer <<= (8 - bitCount);  // Align bits to the left
+        file.write(reinterpret_cast<const char*>(&buffer), sizeof(buffer));
     }
 
-    file << endl;
+    // Write the target as a 32-bit float (multiplied by 100, assuming it's an int divided by 100)
+    float target_f = target / 100.0f;
+    file.write(reinterpret_cast<const char*>(&target_f), sizeof(target_f));
 
-    // Close file
+    // Close the file
     file.close();
 }
