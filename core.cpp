@@ -6,54 +6,11 @@
 
 
 double L1_weights[inputSize][l1_size];
-double L1_bias[l1_size] = {0};
-double L2_weights[l1_size];
-double output_bias = 0;
-
-core::core()
-{
-    magicInit();
-    readNNUE();
-    newGame();
-    // int state[768] = {0};
-
-    // if(pos.STM)
-    // {
-    //     for(int i=0; i<=63; i++)
-    //     {
-    //         int index = 0;
-    //         if(pos.piecesArray[i] <= BLACK_KING)
-    //         {
-    //             index = 64*pos.piecesArray[i]+i;
-    //             state[index] = 1;
-    //         }
-    //     }
-    // }else
-    // {
-    //     for(int i=0; i<=63; i++)
-    //     {
-    //         int index = 0;
-    //         if(pos.piecesArray[i] <= BLACK_KING)
-    //         {
-    //             if(pos.piecesArray[i] <= WHITE_KING)
-    //             {
-    //                 index = 64*(pos.piecesArray[i]+6)+flipIndex(i);
-    //             }
-    //             else if(pos.piecesArray[i] <= BLACK_KING)
-    //             {
-    //                 index = 64*(pos.piecesArray[i]-6)+flipIndex(i);
-    //             }
-    //             state[index] = 1;
-    //         }
-    //     }
-    // }
-    // for(int i=0; i < 768; i++)
-    // {
-    //     cout<<state[i]<<", ";
-    // }
-
-    // cout<<evaluate(pos);
-}
+double L1_bias[l1_size];
+double L2_weights[l1_size][l2_size];
+double L2_bias[l2_size];
+double output_weights[l2_size];
+double output_bias;
 
 // Highly unoptimized function TODO!!!
 inline Move uciToMove(const std::string &uci, Position &pos, Move *moveList)
@@ -109,6 +66,58 @@ inline Move uciToMove(const std::string &uci, Position &pos, Move *moveList)
     // Return move using start, target and flags
     return createMove(startSquare, targetSquare, flags);
 }
+
+core::core()
+{
+    magicInit();
+    readNNUE();
+    newGame("r2qkbnr/pbp1pppp/2np4/8/2NPP3/8/PPP2PPP/R1BQKB1R w KQkq - 0 1");
+    int state[768] = {0};
+
+    MoveList moveList;
+    fullMovesList(pos, moveList);
+    Move t = uciToMove("d4d5",pos,moveList.begin());
+    pos.makeMove(t);
+    pos.undoMove(t);
+    // if(pos.STM)
+    // {
+    //     for(int i=0; i<=63; i++)
+    //     {
+    //         int index = 0;
+    //         if(pos.piecesArray[i] <= BLACK_KING)
+    //         {
+    //             index = 64*pos.piecesArray[i]+i;
+    //             state[index] = 1;
+    //         }
+    //     }
+    // }else
+    // {
+    //     for(int i=0; i<=63; i++)
+    //     {
+    //         int index = 0;
+    //         if(pos.piecesArray[i] <= BLACK_KING)
+    //         {
+    //             if(pos.piecesArray[i] <= WHITE_KING)
+    //             {
+    //                 index = 64*(pos.piecesArray[i]+6)+flipIndex(i);
+    //             }
+    //             else if(pos.piecesArray[i] <= BLACK_KING)
+    //             {
+    //                 index = 64*(pos.piecesArray[i]-6)+flipIndex(i);
+    //             }
+    //             state[index] = 1;
+    //         }
+    //     }
+    // }
+    // for(int i=0; i < 768; i++)
+    // {
+    //     cout<<state[i]<<", ";
+    // }
+
+    cout<<evaluate(pos);
+}
+
+
 
 Bitboard core::perft(int depth)
 {
@@ -318,24 +327,41 @@ void core::readNNUE()
 {
     std::fstream file("NNUE.txt");
     double value;
-    for(int i=0; i < 32; i++)
+    for(int i=0; i < (l1_size / 2); i++)
     {
-        for(int j=0; j < 768; j++)
+        for(int j=0; j < inputSize; j++)
         {
             file >> value;
             L1_weights[j][i] = value;
         }
     }
-    for(int i=0; i < 32; i++)
+    for(int i=0; i < l1_size; i++)
     {
         file >> value;
         L1_bias[i] = value;
     }
-    for(int i=0; i < 32; i++)
+
+    for(int i=0; i < 16; i++)
+    {
+        for(int j=0; j < 32; j++)
+        {
+            file >> value;
+            L2_weights[j][i] = value;
+        }
+    }
+    for(int i=0; i < l2_size; i++)
     {
         file >> value;
-        L2_weights[i] = value;
+        L2_bias[i] = value;
     }
+
+    for(int i=0; i < l2_size; i++)
+    {
+        file >> value;
+        output_weights[i] = value;
+    }
+
+
     file >> value;
     output_bias = value;
     file.close();

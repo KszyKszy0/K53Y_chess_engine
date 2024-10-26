@@ -83,6 +83,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
         //We don't add entries when cancelling search
         transpositionMove = entry.bestMove;
 
+        #ifndef DATAGEN
         //If depth from TT is at least same as current we can immediately take score
         if ((entry.depth >= depth) && (ply > 0) && !PV)
         {
@@ -92,6 +93,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
                 return entry.score;
             }
         }
+        #endif
     }
 
 
@@ -283,7 +285,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
     }
 
 #ifdef DATAGEN
-    if(best > -90000 && best < 90000 && Flags(bestMovePrevious) != CAPTURE && popCount(pos.piecesBitboards[ALL_PIECES]) >= 6 && depth >= 4 && !isCancelled && moveList.checks == 0)
+    if(best > -90000 && best < 90000 && Flags(bestMovePrevious) != CAPTURE && popCount(pos.piecesBitboards[ALL_PIECES]) >= 6 && depth == 1 && !isCancelled && moveList.checks == 0)
         savePosition(pos, best);
 #endif
 
@@ -389,8 +391,8 @@ Move search(Position &pos)
 
 
 #ifdef DATAGEN
-    if(oldEval > -90000 && oldEval < 90000 && Flags(bestMovePrevious) != CAPTURE && popCount(pos.piecesBitboards[ALL_PIECES]) >= 6)
-        savePosition(pos, oldEval);
+    // if(oldEval > -90000 && oldEval < 90000 && Flags(bestMovePrevious) != CAPTURE && popCount(pos.piecesBitboards[ALL_PIECES]) >= 6)
+    //     savePosition(pos, oldEval);
 #endif
 
     //After ID loop we print best move to uci

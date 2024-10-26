@@ -25,7 +25,7 @@ void Accumulator::removePiece(int type, int ind)
     for(int j=0; j < (l1_size/2); j++)
     {
         values[WHITE_ACC][j] -= L1_weights[whiteAccumIndex][j];
-        values[BLACK_ACC][j] -= L1_weights[blackAccumIndex][j + 16];
+        values[BLACK_ACC][j] -= L1_weights[blackAccumIndex][j];
     }
 
 
@@ -53,7 +53,7 @@ void Accumulator::addPiece(int type, int ind)
     for(int j=0; j < (l1_size/2); j++)
     {
         values[WHITE_ACC][j] += L1_weights[whiteAccumIndex][j];
-        values[BLACK_ACC][j] += L1_weights[blackAccumIndex][j + 16];
+        values[BLACK_ACC][j] += L1_weights[blackAccumIndex][j];
     }
 }
 
