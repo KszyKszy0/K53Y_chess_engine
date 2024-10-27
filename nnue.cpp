@@ -5,7 +5,7 @@ double relu(double value)
 {
     if(value < 0)
     {
-        return 0;
+        return (value / 10.f);
     }
     return value;
 }

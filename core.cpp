@@ -71,14 +71,16 @@ core::core()
 {
     magicInit();
     readNNUE();
-    newGame("r2qkbnr/pbp1pppp/2np4/8/2NPP3/8/PPP2PPP/R1BQKB1R w KQkq - 0 1");
-    int state[768] = {0};
+    newGame();
+    // int state[768] = {0};
 
-    MoveList moveList;
-    fullMovesList(pos, moveList);
-    Move t = uciToMove("d4d5",pos,moveList.begin());
-    pos.makeMove(t);
-    pos.undoMove(t);
+    // MoveList moveList;
+    // fullMovesList(pos, moveList);
+    // Move t = uciToMove("d4d5",pos,moveList.begin());
+    // pos.makeMove(t);
+    // pos.undoMove(t);
+    // pos.makeMove(t);
+    // pos.undoMove(t);
     // if(pos.STM)
     // {
     //     for(int i=0; i<=63; i++)
@@ -112,6 +114,20 @@ core::core()
     // for(int i=0; i < 768; i++)
     // {
     //     cout<<state[i]<<", ";
+    // }
+    // int counter = 0;
+    // for(int i=0; i < 768; i++)
+    // {
+    //     cout<<state[i]<<", ";
+    //     counter++;
+    //     if(counter % 8 == 0)
+    //     {
+    //         cout<<endl;
+    //     }
+    //     if(counter % 64 == 0)
+    //     {
+    //         cout<<endl;
+    //     }
     // }
 
     cout<<evaluate(pos);

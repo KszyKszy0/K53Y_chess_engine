@@ -18,7 +18,7 @@ class StateInfo
     //Info about piece that was captured this move, NOPIECE if move didnt capture
     int capturedPieceType;
 
-    int accumulator[2][16];
+    double accumulator[2][16];
 
     StateInfo(int pas, int cast, int half, int full, int captureType);
 
