@@ -5,12 +5,12 @@
 #include "fstream"
 
 
-double L1_weights[inputSize][l1_size];
-double L1_bias[l1_size];
-double L2_weights[l1_size][l2_size];
-double L2_bias[l2_size];
-double output_weights[l2_size];
-double output_bias;
+float L1_weights[l1_size][inputSize];
+float L1_bias[l1_size];
+float L2_weights[l2_size][l1_size];
+float L2_bias[l2_size];
+float output_weights[l2_size];
+float output_bias;
 
 // Highly unoptimized function TODO!!!
 inline Move uciToMove(const std::string &uci, Position &pos, Move *moveList)
@@ -348,7 +348,7 @@ void core::readNNUE()
         for(int j=0; j < inputSize; j++)
         {
             file >> value;
-            L1_weights[j][i] = value;
+            L1_weights[i][j] = value;
         }
     }
     for(int i=0; i < l1_size; i++)
@@ -362,7 +362,7 @@ void core::readNNUE()
         for(int j=0; j < 32; j++)
         {
             file >> value;
-            L2_weights[j][i] = value;
+            L2_weights[i][j] = value;
         }
     }
     for(int i=0; i < l2_size; i++)

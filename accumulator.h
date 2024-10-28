@@ -5,7 +5,7 @@ class Accumulator
     public:
 
     //Two for colors and 16 for each
-    double values[2][16];
+    float values[2][16];
 
     void removePiece(int type, int ind);
 

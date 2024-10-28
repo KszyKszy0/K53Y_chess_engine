@@ -6,7 +6,7 @@
 
 //Simple evaluation taking in consideration
 //Psqt table and plain material
-double evaluate(Position& pos);
+float evaluate(Position& pos);
 
 //Simple psqt table for psqt eval
 //Indexed [pieceType][square]

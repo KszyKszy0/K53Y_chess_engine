@@ -143,7 +143,7 @@ int psqtArray[389] =
 6358, 19489, 21175, 36024, 69350,
 };
 
-double evaluate(Position& pos)
+float evaluate(Position& pos)
 {
     // Static eval
     // int eval=0;

@@ -4,18 +4,18 @@ const int l1_size = 32;
 
 const int l2_size = 16;
 
-extern double L1_weights[inputSize][l1_size];
+extern float L1_weights[l1_size][inputSize];
 
-extern double L1_bias[l1_size];
+extern float L1_bias[l1_size];
 
-extern double L2_weights[l1_size][l2_size];
+extern float L2_weights[l2_size][l1_size];
 
-extern double L2_bias[l2_size];
+extern float L2_bias[l2_size];
 
-extern double output_weights[l2_size];
+extern float output_weights[l2_size];
 
-extern double output_bias;
+extern float output_bias;
 
-double relu(double value);
+float relu(float value);
 
-double firstLayer(double (&acc)[2][16], bool perspective);
+float firstLayer(float (&acc)[2][16], bool perspective);
