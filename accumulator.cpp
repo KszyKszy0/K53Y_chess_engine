@@ -2,31 +2,43 @@
 #include "nnue.h"
 #include "enums.h"
 #include "bitboard.h"
+#include <immintrin.h>
+
 
 void Accumulator::removePiece(int type, int ind)
 {
 #ifdef NNUE
-    //White index calculation
-    int whiteAccumIndex = 64*type+ind;
-
+    int whiteAccumIndex = 64 * type + ind;
     int blackAccumIndex = 0;
 
-    //For black we need to "swap" piece types so white king is treated as black and so on...
+    // Dla czarnych elementów przekształcamy indeks typu
     if(type <= WHITE_KING)
     {
-        blackAccumIndex = 64*(type+6)+flipIndex(ind);
+        blackAccumIndex = 64 * (type + 6) + flipIndex(ind);
     }
     else if(type <= BLACK_KING)
     {
-        blackAccumIndex = 64*(type-6)+flipIndex(ind);
+        blackAccumIndex = 64 * (type - 6) + flipIndex(ind);
     }
 
-
-    //We only go to half because the second half is enemy accumulator
-    for(int j=0; j < (l1_size/2); j++)
+    // SIMD dla l1_size / 2 elementów, gdzie l1_size = 32
+    for(int j = 0; j < l1_size / 2; j += 8) // 8 floatów na jedną operację SIMD
     {
-        values[WHITE_ACC][j] -= L1_weights[whiteAccumIndex][j];
-        values[BLACK_ACC][j] -= L1_weights[blackAccumIndex][j];
+        // Załaduj wartości L1_weights dla białych i czarnych elementów
+        __m256 whiteWeights = _mm256_loadu_ps(&L1_weights[whiteAccumIndex][j]);
+        __m256 blackWeights = _mm256_loadu_ps(&L1_weights[blackAccumIndex][j]);
+
+        // Załaduj aktualne wartości akumulatora
+        __m256 whiteAccum = _mm256_loadu_ps(&values[WHITE_ACC][j]);
+        __m256 blackAccum = _mm256_loadu_ps(&values[BLACK_ACC][j]);
+
+        // Odejmij wartości wag od akumulatorów
+        whiteAccum = _mm256_sub_ps(whiteAccum, whiteWeights);
+        blackAccum = _mm256_sub_ps(blackAccum, blackWeights);
+
+        // Zapisz zaktualizowane wartości akumulatorów
+        _mm256_storeu_ps(&values[WHITE_ACC][j], whiteAccum);
+        _mm256_storeu_ps(&values[BLACK_ACC][j], blackAccum);
     }
 #endif
 }
@@ -50,11 +62,24 @@ void Accumulator::addPiece(int type, int ind)
     }
 
 
-    //We only go to half because the second half is enemy accumulator
-    for(int j=0; j < (l1_size/2); j++)
+    // Przetwarzanie SIMD dla l1_size / 2 elementów, gdzie l1_size = 32
+    for(int j = 0; j < l1_size / 2; j += 8) // 8 floatów na jedną operację SIMD
     {
-        values[WHITE_ACC][j] += L1_weights[whiteAccumIndex][j];
-        values[BLACK_ACC][j] += L1_weights[blackAccumIndex][j];
+        // Załaduj wartości L1_weights dla białych i czarnych elementów
+        __m256 whiteWeights = _mm256_loadu_ps(&L1_weights[whiteAccumIndex][j]);
+        __m256 blackWeights = _mm256_loadu_ps(&L1_weights[blackAccumIndex][j]);
+
+        // Załaduj aktualne wartości akumulatora
+        __m256 whiteAccum = _mm256_loadu_ps(&values[WHITE_ACC][j]);
+        __m256 blackAccum = _mm256_loadu_ps(&values[BLACK_ACC][j]);
+
+        // Dodaj wartości wag do akumulatorów
+        whiteAccum = _mm256_add_ps(whiteAccum, whiteWeights);
+        blackAccum = _mm256_add_ps(blackAccum, blackWeights);
+
+        // Zapisz zaktualizowane wartości akumulatorów
+        _mm256_storeu_ps(&values[WHITE_ACC][j], whiteAccum);
+        _mm256_storeu_ps(&values[BLACK_ACC][j], blackAccum);
     }
 #endif
 }
