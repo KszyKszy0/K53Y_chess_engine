@@ -5,7 +5,7 @@
 #include "fstream"
 
 
-float L1_weights[l1_size][inputSize];
+float L1_weights[inputSize][l1_size];
 float L1_bias[l1_size];
 float L2_weights[l2_size][l1_size];
 float L2_bias[l2_size];
@@ -351,7 +351,7 @@ void core::readNNUE()
         for(int j=0; j < inputSize; j++)
         {
             file >> value;
-            L1_weights[i][j] = value;
+            L1_weights[j][i] = value;
         }
     }
     for(int i=0; i < l1_size; i++)
