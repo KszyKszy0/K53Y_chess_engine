@@ -4,7 +4,7 @@
 #include "stateInfo.h"
 #include "move.h"
 #include <string>
-// #include "TT.h"
+
 
 using namespace std;
 
@@ -662,6 +662,7 @@ void Position::undoMove(Move move)
 
     stateCounter--;
     positionHash = positionHistory[stateCounter];
+#ifdef NNUE
     for(int i=0; i<=1; i++)
     {
         for(int j=0; j <= 15; j++)
@@ -669,13 +670,14 @@ void Position::undoMove(Move move)
             accum.values[i][j] = stateInfoList[stateCounter].accumulator[i][j];
         }
     }
+#endif
 }
 
 
 void Position::addState(int pas, int cast, int half, int full, int captureType, Accumulator& acc)
 {
     StateInfo newState(pas,cast,half,full,captureType);
-
+#ifdef NNUE
     for(int i=0; i<=1; i++)
     {
         for(int j=0; j <= 15; j++)
@@ -683,11 +685,15 @@ void Position::addState(int pas, int cast, int half, int full, int captureType, 
             newState.accumulator[i][j] = acc.values[i][j];
         }
     }
+#endif
+
+
     stateInfoList[stateCounter] = newState;
 }
 void Position::addState(StateInfo state)
 {
     StateInfo newState(state.enPassantSquare,state.castlingRights,state.halfMove,state.fullMove,state.capturedPieceType);
+#ifdef NNUE
     for(int i=0; i<=1; i++)
     {
         for(int j=0; j <= 15; j++)
@@ -695,5 +701,6 @@ void Position::addState(StateInfo state)
             newState.accumulator[i][j] = state.accumulator[i][j];
         }
     }
+#endif
     stateInfoList[stateCounter] = newState;
 }

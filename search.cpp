@@ -412,7 +412,7 @@ bool isRepeated(Position &pos)
         if (pos.positionHash == pos.positionHistory[i])
         {
             counter++;
-            if (counter >= 2)
+            if (counter >= 3)
                 return true;
         }
     }

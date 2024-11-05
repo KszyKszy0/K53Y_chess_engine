@@ -72,6 +72,8 @@ core::core()
     magicInit();
     readNNUE();
     newGame();
+    // setTime(10000,10000);
+    // go();
     // int state[768] = {0};
 
     // MoveList moveList;
@@ -115,6 +117,7 @@ core::core()
     // {
     //     cout<<state[i]<<", ";
     // }
+    // cout<<endl;
     // int counter = 0;
     // for(int i=0; i < 768; i++)
     // {

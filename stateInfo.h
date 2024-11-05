@@ -1,4 +1,5 @@
 #pragma once
+#include "enums.h"
 
 class StateInfo
 {
