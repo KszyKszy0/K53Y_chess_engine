@@ -176,8 +176,13 @@ void core::go()
     search(pos);
 }
 
-void core::setTime(int wTime, int bTime)
+void core::setTime(int wTime, int bTime, int wInc, int bInc, int moveTime)
 {
+    if(moveTime != 0)
+    {
+        timeLimit = moveTime;
+        return;
+    }
     if(pos.STM)
     {
         if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 28 )
@@ -195,6 +200,7 @@ void core::setTime(int wTime, int bTime)
             timeLimit = wTime / (float)20;
             return;
         }
+        increment = wInc;
         timeLimit = wTime / (float)15;
         return;
     }else
@@ -214,9 +220,16 @@ void core::setTime(int wTime, int bTime)
             timeLimit = bTime / (float)20;
             return;
         }
+        increment = bInc;
         timeLimit = bTime / (float)15;
         return;
     }
+}
+
+void core::setLimits(int depth, int nodes)
+{
+    depthLimit = depth;
+    nodesLimit = nodes;
 }
 
 void core::readNNUE()

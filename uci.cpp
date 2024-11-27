@@ -85,6 +85,13 @@ void uciLoop(core& engine)
             //Set white and black timers
             int wTime = 0;
             int bTime = 0;
+            int wInc = 0;
+            int bInc = 0;
+
+            int moveTime = 0;
+
+            int nodes = 0;
+            int depth = 0;
 
             //Loop through tokens
             for (size_t i = 1; i < tokens.size(); ++i)
@@ -99,9 +106,31 @@ void uciLoop(core& engine)
                 {
                     bTime = std::stoi(tokens[i + 1]);
                 }
+                //If wee see wtime set i+1 to wtime
+                if (tokens[i] == "wInc" && i + 1 < tokens.size())
+                {
+                    wInc = std::stoi(tokens[i + 1]);
+                }
+                //If wee see btime set i+1 to wtime
+                if (tokens[i] == "bInc" && i + 1 < tokens.size())
+                {
+                    bInc = std::stoi(tokens[i + 1]);
+                }
+                if (tokens[i] == "movetime" && i + 1 < tokens.size())
+                {
+                    moveTime = std::stoi(tokens[i + 1]);
+                }
+                if (tokens[i] == "depth" && i + 1 < tokens.size())
+                {
+                    depth = std::stoi(tokens[i + 1]);
+                }
+                if (tokens[i] == "nodes" && i + 1 < tokens.size())
+                {
+                    nodes = std::stoi(tokens[i + 1]);
+                }
             }
             //Set time based on uci
-            engine.setTime(wTime, bTime);
+            engine.setTime(wTime, bTime, wInc, bInc, moveTime);
 
             //Start search
             std::thread search(&core::go, &engine);
@@ -126,6 +155,27 @@ void uciLoop(core& engine)
             {
                 int d = stoi(tokens[1]);
                 engine.goPerft(d);
+            }
+        }
+        if (tokens[0] == "setoption")
+        {
+            if(tokens.size() >= 5)
+            {
+                if(tokens[1] == "name" && tokens[2] == "Hash" && tokens[3] == "value")
+                {
+                    Bitboard size = stoi(tokens[4]);
+                    if(size < 2000)
+                    {
+                        size = 2000;
+                    }
+                    if(size > 10000000000)
+                    {
+                        size = 10000000000;
+                    }
+                    engine.pos.TT.diskSize = size;
+                    engine.pos.TT.ResetTT();
+                    cout<<"info string set Hash to "<<size<<endl;
+                }
             }
         }
     }

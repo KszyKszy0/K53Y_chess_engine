@@ -35,8 +35,9 @@ class TranspositionTable
 {
     public:
 
+    Bitboard diskSize = 10000000;
     //Size of the Transposition table currently: 10MB
-    Bitboard size = int(10000000 / sizeof(TTEntry));
+    Bitboard size = Bitboard(diskSize / sizeof(TTEntry));
 
     //Pointer to transposition table
     TTEntry *transpositionTable;

@@ -67,7 +67,9 @@ public:
     void stop();
 
     //Sets time from uci
-    void setTime(int wTime, int bTime);
+    void setTime(int wTime, int bTime, int wInc, int bInc, int moveTime);
+
+    void setLimits(int depth, int nodes);
 
     void printState();
 

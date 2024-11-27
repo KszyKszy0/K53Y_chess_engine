@@ -17,6 +17,10 @@ int quiescence(int depth, int ply, int alpha, int beta,int color, Position& pos,
 
 Move search(Position& pos);
 
+bool isRepeated(Position& pos);
+
+
+
 extern Bitboard transpositionCount;
 
 extern Bitboard nodesCount;
@@ -25,19 +29,29 @@ extern Bitboard matchedTranspositions;
 
 extern Bitboard collisions;
 
-extern Move bestMovePrevious;
-
-extern int oldEval;
-
-bool isRepeated(Position& pos);
-
-extern int timeLimit;
-
-extern bool isCancelled;
-
 extern Bitboard queiscenceNodes;
 
 extern Bitboard quiescenceTT;
+
+
+
+extern Move bestMovePrevious;
+
+
+
+extern int oldEval;
+
+extern int timeLimit;
+
+extern int increment;
+
+extern int depthLimit;
+
+extern int nodesLimit;
+
+extern bool isCancelled;
+
+
 
 const int MVVLVA[12][12]=
 {

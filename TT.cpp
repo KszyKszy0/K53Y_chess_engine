@@ -26,6 +26,8 @@ TranspositionTable::TranspositionTable()
 
 void TranspositionTable::ResetTT()
 {
+    delete transpositionTable;
+    transpositionTable = new TTEntry[size];
     for(Bitboard i=0; i<size; i++)
     {
         transpositionTable[i].score = 0;

@@ -12,14 +12,19 @@
 
 
 int timeLimit;
+int increment;
+int depthLimit;
+int nodesLimit;
+
 bool isCancelled;
+
 Bitboard queiscenceNodes;
 Bitboard quiescenceTT;
-
 Bitboard transpositionCount;
 Bitboard nodesCount;
 Bitboard matchedTranspositions;
 Bitboard collisions;
+
 Move bestMovePrevious;
 int oldEval;
 
