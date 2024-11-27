@@ -56,6 +56,9 @@ public:
     // Starts search
     void go();
 
+    // Performs perft on a given depth
+    void goPerft(int depth);
+
     // Stops everything
     void quit();
 

@@ -70,6 +70,9 @@ int main()
             engine.quit();
         } else if (tokens[0] == "stop") {
             engine.stop();
+        }else if (tokens[0] == "perft") {
+            int d = stoi(tokens[1]);
+            engine.goPerft(d);
         }
     }
 

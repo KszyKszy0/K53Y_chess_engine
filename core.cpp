@@ -133,7 +133,7 @@ core::core()
     //     }
     // }
 
-    cout<<evaluate(pos);
+    // cout<<evaluate(pos);
 }
 
 
@@ -151,67 +151,33 @@ Bitboard core::perft(int depth)
 
     if(depth == 1)
     {
-        // int count = 0;
-        // for(Move m : moves.moveList)
-        // {
-        //     if(m == 0)
-        //         return count;
-        //     count++;
-        // }
-        // for(int i=0; i<=moves.size; i++)
-        // {
-        //     printMove(moves.moveList[i]);
-        //     cout<<endl;
-        // }
         return moves.size;
     }
 
-    // for(int i=0; i<=moves.size-1; i++)
-    // {
-    //     int localCounter = 0;
 
-    //     pos.makeMove(moves.moveList[i]);
-
-    //     localCounter += perft(depth-1);
-    //     counter += localCounter;
-    //     pos.undoMove(moves.moveList[i]);
-
-    //     if(depth==6)
-    //     {
-    //         printMove(moves.moveList[i]);
-    //         cout<<": "<<localCounter<<endl;
-    //     }
-    // }
     for(Move m : moves)
     {
         if(m == 0)
             return counter;
-        // printMove(m);
         Bitboard localCounter = 0;
 
         bool side = pos.STM;
         Bitboard hash = pos.positionHash;
+
         pos.makeMove(m);
 
         localCounter += perft(depth-1);
         counter += localCounter;
-        pos.undoMove(m);
-        if(hash != pos.positionHash)
-        {
-            cout<<"error";
-        }
-        if(pos.STM != side)
-        {
-            cout<<"error";
-        }
 
-        if(depth==7)
-        {
-            printMove(m);
-            cout<<": "<<localCounter<<endl;
-        }
+        pos.undoMove(m);
     }
     return counter;
+}
+
+void core::goPerft(int depth)
+{
+    Bitboard result = perft(depth);
+    std::cout<<result<<endl;
 }
 
 void core::uci() {
