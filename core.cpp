@@ -12,6 +12,13 @@ float L2_bias[l2_size];
 float output_weights[l2_size];
 float output_bias;
 
+core::core()
+{
+    magicInit();
+    readNNUE();
+    newGame();
+}
+
 // Highly unoptimized function TODO!!!
 inline Move uciToMove(const std::string &uci, Position &pos, Move *moveList)
 {
@@ -66,77 +73,6 @@ inline Move uciToMove(const std::string &uci, Position &pos, Move *moveList)
     // Return move using start, target and flags
     return createMove(startSquare, targetSquare, flags);
 }
-
-core::core()
-{
-    magicInit();
-    readNNUE();
-    newGame();
-    // setTime(10000,10000);
-    // go();
-    // int state[768] = {0};
-
-    // MoveList moveList;
-    // fullMovesList(pos, moveList);
-    // Move t = uciToMove("d4d5",pos,moveList.begin());
-    // pos.makeMove(t);
-    // pos.undoMove(t);
-    // pos.makeMove(t);
-    // pos.undoMove(t);
-    // if(pos.STM)
-    // {
-    //     for(int i=0; i<=63; i++)
-    //     {
-    //         int index = 0;
-    //         if(pos.piecesArray[i] <= BLACK_KING)
-    //         {
-    //             index = 64*pos.piecesArray[i]+i;
-    //             state[index] = 1;
-    //         }
-    //     }
-    // }else
-    // {
-    //     for(int i=0; i<=63; i++)
-    //     {
-    //         int index = 0;
-    //         if(pos.piecesArray[i] <= BLACK_KING)
-    //         {
-    //             if(pos.piecesArray[i] <= WHITE_KING)
-    //             {
-    //                 index = 64*(pos.piecesArray[i]+6)+flipIndex(i);
-    //             }
-    //             else if(pos.piecesArray[i] <= BLACK_KING)
-    //             {
-    //                 index = 64*(pos.piecesArray[i]-6)+flipIndex(i);
-    //             }
-    //             state[index] = 1;
-    //         }
-    //     }
-    // }
-    // for(int i=0; i < 768; i++)
-    // {
-    //     cout<<state[i]<<", ";
-    // }
-    // cout<<endl;
-    // int counter = 0;
-    // for(int i=0; i < 768; i++)
-    // {
-    //     cout<<state[i]<<", ";
-    //     counter++;
-    //     if(counter % 8 == 0)
-    //     {
-    //         cout<<endl;
-    //     }
-    //     if(counter % 64 == 0)
-    //     {
-    //         cout<<endl;
-    //     }
-    // }
-
-    // cout<<evaluate(pos);
-}
-
-
 
 Bitboard core::perft(int depth)
 {
@@ -194,16 +130,12 @@ void core::newGame(){
     pos.TT.ResetTT();
     pos.parseFEN(startingFen);
     positionCounter = 0;
-    // pos.accum.resetAccum();
-    // pos.accum.initAccum(pos.piecesArray);
 }
 
 void core::newGame(string FEN){
     pos.TT.ResetTT();
     pos.parseFEN(FEN);
     positionCounter = 0;
-    // pos.accum.resetAccum();
-    // pos.accum.initAccum(pos.piecesArray);
 }
 
 void core::setPosition(vector<string>& moves)
@@ -215,16 +147,6 @@ void core::setPosition(vector<string>& moves)
         fullMovesList(pos, moveList);
         pos.makeMove(uciToMove(s,pos,moveList.begin()));
     }
-    // positionCounter = moves.size();
-    // if(moves.size() > 0)
-    // {
-    //     string move = moves[positionCounter-1];
-    //     MoveList moveList;
-    //     moveGenerator.fullMovesList(pos, moveList);
-    //     pos.makeMove(uciToMove(move,pos,moveList.moveList));
-    // }
-    // std::cout<<endl;
-    // std::cout<<pos.getFEN()<<endl;
 }
 
 void core::setPosition(vector<string>& moves, string FEN)
@@ -236,16 +158,6 @@ void core::setPosition(vector<string>& moves, string FEN)
         fullMovesList(pos, moveList);
         pos.makeMove(uciToMove(s,pos,moveList.begin()));
     }
-    // positionCounter = moves.size();
-    // if(moves.size() > 0)
-    // {
-    //     string move = moves[positionCounter-1];
-    //     MoveList moveList;
-    //     moveGenerator.fullMovesList(pos, moveList);
-    //     pos.makeMove(uciToMove(move,pos,moveList.moveList));
-    // }
-    // std::cout<<endl;
-    // std::cout<<pos.getFEN()<<endl;
 }
 
 void core::quit()
@@ -261,7 +173,6 @@ void core::stop()
 
 void core::go()
 {
-    // negamax(5, 0, -100000, 100000,pos.STM ? 1 : -1, moveGenerator, pos, eval);
     search(pos);
 }
 
@@ -350,25 +261,58 @@ void core::readNNUE()
     file >> value;
     output_bias = value;
     file.close();
+}
 
-    // for(int i=0; i < 32; i++)
-    // {
-    //     for(int j=0; j < 768; j++)
-    //     {
-    //         cout<<L1_weights[j][i]<<" ";
-    //     }
-    //     cout<<endl;
-    // }
-    // for(int i=0; i < 32; i++)
-    // {
-    //     cout<<L1_bias[i]<<" ";
-    // }
-    // cout<<endl;
-    // for(int i=0; i < 32; i++)
-    // {
-    //     cout<<L2_weights[i]<<" ";
-    // }
-    // cout<<endl;
-    // cout<<output_bias;
-    // cout<<endl;
+void core::printState()
+{
+    int state[768] = {0};
+    if(pos.STM)
+    {
+        for(int i=0; i<=63; i++)
+        {
+            int index = 0;
+            if(pos.piecesArray[i] <= BLACK_KING)
+            {
+                index = 64*pos.piecesArray[i]+i;
+                state[index] = 1;
+            }
+        }
+    }else
+    {
+        for(int i=0; i<=63; i++)
+        {
+            int index = 0;
+            if(pos.piecesArray[i] <= BLACK_KING)
+            {
+                if(pos.piecesArray[i] <= WHITE_KING)
+                {
+                    index = 64*(pos.piecesArray[i]+6)+flipIndex(i);
+                }
+                else if(pos.piecesArray[i] <= BLACK_KING)
+                {
+                    index = 64*(pos.piecesArray[i]-6)+flipIndex(i);
+                }
+                state[index] = 1;
+            }
+        }
+    }
+    for(int i=0; i < 768; i++)
+    {
+        cout<<state[i]<<", ";
+    }
+    cout<<endl;
+    int counter = 0;
+    for(int i=0; i < 768; i++)
+    {
+        cout<<state[i]<<", ";
+        counter++;
+        if(counter % 8 == 0)
+        {
+            cout<<endl;
+        }
+        if(counter % 64 == 0)
+        {
+            cout<<endl;
+        }
+    }
 }

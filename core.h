@@ -69,8 +69,7 @@ public:
     //Sets time from uci
     void setTime(int wTime, int bTime);
 
-    //main accumulator
-    // Accumulator accum;
+    void printState();
 
     void readNNUE();
 };
