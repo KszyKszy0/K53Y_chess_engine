@@ -1,3 +1,4 @@
+#pragma once
 #include "movegen.h"
 #include "position.h"
 #include "search.h"
