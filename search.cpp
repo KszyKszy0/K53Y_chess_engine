@@ -298,7 +298,14 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
             oldEval = best;
 
         // In case of first move cancel we return first move from list beacuse it is from TT
-        return bestMove;
+        if(isCancelled)
+        {
+            return 0;
+        }else
+        {
+            return bestMove;
+        }
+
     }
 
     //Return best value from node up

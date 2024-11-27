@@ -11,9 +11,11 @@ float relu(float value)
     return value;
 }
 
+#ifdef NNUE
 __m256 relu_avx(__m256 x) {
     return _mm256_max_ps(x, _mm256_setzero_ps());
 }
+
 
 // Funkcja pomocnicza do sumowania elementów wektora AVX
 inline float _mm256_reduce_add_ps(__m256 &vec) {
@@ -146,4 +148,4 @@ float firstLayer(float (&acc)[2][16], bool perspective)
     }
     return (result + output_bias)*100;
 }
-
+#endif
