@@ -57,9 +57,13 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
     // We set it to all node in case it fails low
     int newFlag = UPPER_BOUND;
 
+    if((nodesCount >= nodesLimit) && (nodesLimit > 0))
+    {
+        return CHECKMATE;
+    }
+
     // Increment node count
     nodesCount++;
-
 
     // Checkmate check
     if (moveList.isCheckmate())
@@ -75,7 +79,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
     }
 
     //Entering Quiescence at the end of search
-    if (depth == 0)
+    if ((depth == 0) || ((ply == depthLimit) && (depthLimit != 0)))
     {
         return quiescence(depth, ply, alpha, beta, color, pos, start);
     }
@@ -391,6 +395,11 @@ Move search(Position &pos)
             //
             //          END OF PV SEGMENT
             //
+        }
+
+        if ((depth >= depthLimit) && (depthLimit != 0) || ((nodesCount >= nodesLimit) && (nodesLimit != 0)))
+        {
+            break;
         }
 
         //Time cutoff

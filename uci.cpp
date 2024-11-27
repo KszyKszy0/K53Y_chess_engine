@@ -131,6 +131,7 @@ void uciLoop(core& engine)
             }
             //Set time based on uci
             engine.setTime(wTime, bTime, wInc, bInc, moveTime);
+            engine.setLimits(depth, nodes);
 
             //Start search
             std::thread search(&core::go, &engine);
