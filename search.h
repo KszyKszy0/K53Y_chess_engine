@@ -76,6 +76,8 @@ extern Move pvTable[MAX_DEPTH][MAX_DEPTH];
 
 void updatePV(Move m, int ply);
 
+void clearPV(int ply);
+
 extern Move killers[MAX_DEPTH];
 
 extern Move historyHeuristic[MAX_DEPTH][MAX_DEPTH];

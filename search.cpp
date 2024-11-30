@@ -262,7 +262,10 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
 
                 alpha = best;
 
-                updatePV(bestMove, ply);
+                if(PV)
+                {
+                    updatePV(bestMove, ply);
+                }
             }
         }
 
@@ -343,6 +346,13 @@ Move search(Position &pos)
     //Reset node count
     nodesCount = 0;
 
+    MoveList test;
+    fullMovesList(pos, test);
+    if(test.isCheckmate() || test.isStalemate() || (pos.stateInfoList[pos.stateCounter].halfMove >= 100) || (isRepeated(pos)))
+    {
+        return 0;
+    }
+
 
     for(int i=0; i<=63; i++)
     {
@@ -385,12 +395,24 @@ Move search(Position &pos)
             //
             std::cout << " pv ";
 
-            for(int pvl = 0; pvl < depth; pvl++)
+            int limit = 0;
+            if(CHECKMATE - oldEval < depth)
             {
-                printMove(pvTable[0][pvl]);
-                std::cout<<" ";
+                limit = CHECKMATE - oldEval;
+            }else
+            {
+                limit = depth;
             }
-
+            for(int pvl = 0; pvl < limit; pvl++)
+            {
+                //If we see mate score and search deeper the pv will be shorter than depth
+                if(pvTable[0][pvl] != 0)
+                {
+                    printMove(pvTable[0][pvl]);
+                    std::cout<<" ";
+                }
+            }
+            clearPV(depth);
             std::cout<<endl;
             //
             //          END OF PV SEGMENT
@@ -407,6 +429,7 @@ Move search(Position &pos)
         {
             break;
         }
+
     }
 
 
@@ -610,6 +633,16 @@ void updatePV(Move m, int ply)
     pvLength[ply] = pvLength[ply + 1];
 }
 
+void clearPV(int ply)
+{
+    for(int i = 0; i<=ply; i++)
+    {
+        for(int j = 0; j<=ply; j++)
+        {
+            pvTable[ply][ply] = 0;
+        }
+    }
+}
 
 
 // void savePosition(Position &pos, int negamaxScore)
