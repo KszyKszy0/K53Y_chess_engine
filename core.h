@@ -74,4 +74,6 @@ public:
     void printState();
 
     void readNNUE();
+
+    void eval();
 };

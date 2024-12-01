@@ -341,3 +341,10 @@ void core::printState()
         }
     }
 }
+
+void core::eval()
+{
+    pos.printBoard();
+    cout<<pos.getFEN()<<endl;
+    cout<<"eval: "<<evaluate(pos)<<endl;
+}

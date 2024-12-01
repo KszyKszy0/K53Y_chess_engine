@@ -658,58 +658,45 @@ void Position::addState(StateInfo state)
 
 void Position::printBoard()
 {
-    int counter = 0;
-    for(int i=0; i<=63; i++)
+    const string border = "+-------+-------+-------+-------+-------+-------+-------+-------+";
+    const string emptyRow = "|       |       |       |       |       |       |       |       |";
+
+    // Print each rank
+    for (int rank = 7; rank >= 0; rank--) // Rank from 8 to 1
     {
-        switch(piecesArray[flipIndex(i)])
-        {
-            case BLACK_PAWN:
-                cout<<u8"♙"<<" ";
-                break;
-            case BLACK_KNIGHT:
-                cout<<u8"♘"<<" ";
-                break;
-            case BLACK_BISHOP:
-                cout<<u8"♗"<<" ";
-                break;
-            case BLACK_ROOK:
-                cout<<u8"♖"<<" ";
-                break;
-            case BLACK_QUEEN:
-                cout<<u8"♕"<<" ";
-                break;
-            case BLACK_KING:
-                cout<<u8"♔"<<" ";
-                break;
+        cout << border << endl; // Top border for the rank
+        cout << "|";
 
-            case WHITE_PAWN:
-                cout<<u8"♟"<<" ";
-                break;
-            case WHITE_KNIGHT:
-                cout<<u8"♞"<<" ";
-                break;
-            case WHITE_BISHOP:
-                cout<<u8"♝"<<" ";
-                break;
-            case WHITE_ROOK:
-                cout<<u8"♜"<<" ";
-                break;
-            case WHITE_QUEEN:
-                cout<<u8"♛"<<" ";
-                break;
-            case WHITE_KING:
-                cout<<u8"♚"<<" ";
-                break;
-
-            default:
-            cout<<"  ";
-            break;
-        }
-        counter++;
-        if(counter >= 8)
+        for (int file = 0; file < 8; file++) // File from a to h
         {
-            counter = 0;
-            cout<<endl;
+            int index = rank * 8 + file; // Convert rank/file to array index
+            char pieceChar = ' '; // Default empty square
+
+            switch (piecesArray[flipIndex(index)])
+            {
+                case WHITE_PAWN:   pieceChar = 'P'; break;
+                case WHITE_KNIGHT: pieceChar = 'N'; break;
+                case WHITE_BISHOP: pieceChar = 'B'; break;
+                case WHITE_ROOK:   pieceChar = 'R'; break;
+                case WHITE_QUEEN:  pieceChar = 'Q'; break;
+                case WHITE_KING:   pieceChar = 'K'; break;
+
+                case BLACK_PAWN:   pieceChar = 'p'; break;
+                case BLACK_KNIGHT: pieceChar = 'n'; break;
+                case BLACK_BISHOP: pieceChar = 'b'; break;
+                case BLACK_ROOK:   pieceChar = 'r'; break;
+                case BLACK_QUEEN:  pieceChar = 'q'; break;
+                case BLACK_KING:   pieceChar = 'k'; break;
+
+                default: break; // Leave as empty
+            }
+
+            cout << "   " << pieceChar << "   |"; // Center the piece in the cell
         }
+
+        cout << endl; // End of the row with pieces
+        cout << emptyRow << endl; // Empty row below the pieces
     }
+
+    cout << border << endl; // Bottom border
 }

@@ -179,5 +179,9 @@ void uciLoop(core& engine)
                 }
             }
         }
+        if (tokens[0] == "eval")
+        {
+            engine.eval();
+        }
     }
 }
