@@ -15,11 +15,24 @@ struct principalVariation
     Move list[MAX_DEPTH] = {0};
 };
 
-int negamax(int depth, int ply, int alpha, int beta,int color, Position& pos, chrono::steady_clock::time_point start, principalVariation& PV);
+struct searchParams
+{
+    int timeLimit;
 
-int quiescence(int depth, int ply, int alpha, int beta,int color, Position& pos, chrono::steady_clock::time_point start, principalVariation& PV);
+    int increment;
 
-Move search(Position& pos);
+    int depthLimit;
+
+    int nodesLimit;
+
+    chrono::steady_clock::time_point start;
+};
+
+int negamax(int depth, int ply, int alpha, int beta,int color, Position& pos, principalVariation& PV, searchParams& params);
+
+int quiescence(int depth, int ply, int alpha, int beta,int color, Position& pos, principalVariation& PV, searchParams& params);
+
+Move search(Position& pos, searchParams params);
 
 bool isRepeated(Position& pos);
 
@@ -39,19 +52,12 @@ extern Bitboard quiescenceTT;
 
 
 
+
 extern Move bestMovePrevious;
 
 
 
 extern int oldEval;
-
-extern int timeLimit;
-
-extern int increment;
-
-extern int depthLimit;
-
-extern int nodesLimit;
 
 extern bool isCancelled;
 

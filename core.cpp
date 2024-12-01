@@ -183,65 +183,59 @@ void core::stop()
     isCancelled = true;
 }
 
-void core::go()
+void core::go(searchParams params)
 {
-    search(pos);
+    search(pos, params);
 }
 
-void core::setTime(int wTime, int bTime, int wInc, int bInc, int moveTime)
+void core::setTime(int wTime, int bTime, int wInc, int bInc, int moveTime, searchParams& params)
 {
     if(moveTime != 0)
     {
-        timeLimit = moveTime;
+        params.timeLimit = moveTime;
         return;
     }
     if(pos.STM)
     {
         if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 28 )
         {
-            timeLimit = wTime / (float)60;
+            params.timeLimit = wTime / (float)60;
             return;
         }
         if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 16 )
         {
-            timeLimit = wTime / (float)40;
+            params.timeLimit = wTime / (float)40;
             return;
         }
         if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 4 )
         {
-            timeLimit = wTime / (float)20;
+            params.timeLimit = wTime / (float)20;
             return;
         }
-        increment = wInc;
-        timeLimit = wTime / (float)15;
+        params.increment = wInc;
+        params.timeLimit = wTime / (float)15;
         return;
     }else
     {
         if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 28 )
         {
-            timeLimit = bTime / (float)60;
+            params.timeLimit = bTime / (float)60;
             return;
         }
         if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 16 )
         {
-            timeLimit = bTime / (float)40;
+            params.timeLimit = bTime / (float)40;
             return;
         }
         if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 4 )
         {
-            timeLimit = bTime / (float)20;
+            params.timeLimit = bTime / (float)20;
             return;
         }
-        increment = bInc;
-        timeLimit = bTime / (float)15;
+        params.increment = bInc;
+        params.timeLimit = bTime / (float)15;
         return;
     }
-}
-
-void core::setLimits(int depth, int nodes)
-{
-    depthLimit = depth;
-    nodesLimit = nodes;
 }
 
 void core::readNNUE()

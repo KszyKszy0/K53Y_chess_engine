@@ -82,6 +82,8 @@ void uciLoop(core& engine)
         //Setup search
         if (tokens[0] == "go")
         {
+            searchParams params;
+
             //Set white and black timers
             int wTime = 0;
             int bTime = 0;
@@ -89,9 +91,6 @@ void uciLoop(core& engine)
             int bInc = 0;
 
             int moveTime = 0;
-
-            int nodes = 0;
-            int depth = 0;
 
             //Loop through tokens
             for (size_t i = 1; i < tokens.size(); ++i)
@@ -122,19 +121,19 @@ void uciLoop(core& engine)
                 }
                 if (tokens[i] == "depth" && i + 1 < tokens.size())
                 {
-                    depth = std::stoi(tokens[i + 1]);
+                    params.depthLimit = std::stoi(tokens[i + 1]);
                 }
                 if (tokens[i] == "nodes" && i + 1 < tokens.size())
                 {
-                    nodes = std::stoi(tokens[i + 1]);
+                    params.nodesLimit = std::stoi(tokens[i + 1]);
                 }
             }
+            
             //Set time based on uci
-            engine.setTime(wTime, bTime, wInc, bInc, moveTime);
-            engine.setLimits(depth, nodes);
+            engine.setTime(wTime, bTime, wInc, bInc, moveTime, params);
 
             //Start search
-            std::thread search(&core::go, &engine);
+            std::thread search(&core::go, &engine, params);
             search.detach();
 
         }

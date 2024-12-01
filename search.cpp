@@ -11,10 +11,7 @@
 
 
 
-int timeLimit;
-int increment;
-int depthLimit;
-int nodesLimit;
+
 
 bool isCancelled;
 
@@ -31,7 +28,7 @@ int oldEval;
 Move killers[MAX_DEPTH];
 Move historyHeuristic[MAX_DEPTH][MAX_DEPTH];
 
-int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, chrono::steady_clock::time_point start, principalVariation& PV)
+int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, principalVariation& PV, searchParams& params)
 {
     //Checks if we are in null window search
     bool isPV = (alpha != beta - 1);
@@ -52,7 +49,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
     // We set it to all node in case it fails low
     int newFlag = UPPER_BOUND;
 
-    if((nodesCount >= nodesLimit) && (nodesLimit > 0))
+    if((nodesCount >= params.nodesLimit) && (params.nodesLimit > 0))
     {
         return CHECKMATE;
     }
@@ -74,9 +71,9 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
     }
 
     //Entering Quiescence at the end of search
-    if ((depth == 0) || ((ply == depthLimit) && (depthLimit != 0)))
+    if ((depth == 0) || ((ply == params.depthLimit) && (params.depthLimit != 0)))
     {
-        return quiescence(depth, ply, alpha, beta, color, pos, start, PV);
+        return quiescence(depth, ply, alpha, beta, color, pos, PV, params);
     }
 
     //Possible transposition lookup
@@ -186,7 +183,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
         //1. Set cancel flag so we don't store faulty entries to TT
         //2. Cancel search by a worst possible outcome so we pick it if its first move
         //BUT when we searched at least one other move, this one won't be picked
-        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit || isCancelled)
+        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - params.start)).count() > params.timeLimit || isCancelled)
         {
             //Cancel flag set
             isCancelled = true;
@@ -207,16 +204,16 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
         if(movesSearched == 0)
         {
             //Standard alpha beta search with normal window
-            value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, start, tempVar);
+            value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, tempVar, params);
         }else
         {
             //If it is not first move we search with null window
-            value = -negamax(depth - 1, ply + 1, -alpha - 1, -alpha, -color, pos, start, tempVar);
+            value = -negamax(depth - 1, ply + 1, -alpha - 1, -alpha, -color, pos, tempVar, params);
 
             //If value is inside alpha beta bound we research with full window
             if(value > alpha && value < beta)
             {
-                value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, start, tempVar);
+                value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, tempVar, params);
             }
         }
 
@@ -230,7 +227,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
         //1. Set cancel flag so we don't store faulty entries to TT
         //2. Cancel search by a worst possible outcome so we pick it if its first move
         //BUT when we searched at least one other move, this one won't be picked
-        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit || isCancelled)
+        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - params.start)).count() > params.timeLimit || isCancelled)
         {
             //Cancel flag set
             isCancelled = true;
@@ -330,7 +327,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
     return best;
 }
 
-Move search(Position &pos)
+Move search(Position &pos, searchParams params)
 {
     //Initializing starting values
 
@@ -344,6 +341,8 @@ Move search(Position &pos)
 
     //Timer for time management
     auto start = chrono::steady_clock::now();
+
+    params.start = start;
 
     //Flag checking if search is cancelled used for
     //Not storing faulty transpositions in TT
@@ -372,7 +371,7 @@ Move search(Position &pos)
         }
         PVMain.length = 0;
         //Start negamax for current depth
-        bestMove = negamax(depth, 0, -INF, INF, pos.STM ? 1 : -1, pos, start, PVMain);
+        bestMove = negamax(depth, 0, -INF, INF, pos.STM ? 1 : -1, pos, PVMain, params);
         if (bestMove != 0)
         {
             //We didn't get nullmove we can take that move
@@ -384,7 +383,7 @@ Move search(Position &pos)
 
 
         //Print only info from full depths
-        if((chrono::duration_cast<chrono::milliseconds>(end - start).count() < timeLimit) && !isCancelled)
+        if((chrono::duration_cast<chrono::milliseconds>(end - start).count() < params.timeLimit) && !isCancelled)
         {
             int mili = chrono::duration_cast<chrono::milliseconds>(end - start).count();
             std::cout << "info depth " << depth;
@@ -416,13 +415,13 @@ Move search(Position &pos)
 
         }
 
-        if ((depth >= depthLimit) && (depthLimit != 0) || ((nodesCount >= nodesLimit) && (nodesLimit != 0)))
+        if ((depth >= params.depthLimit) && (params.depthLimit != 0) || ((nodesCount >= params.nodesLimit) && (params.nodesLimit != 0)))
         {
             break;
         }
 
         //Time cutoff
-        if (chrono::duration_cast<chrono::milliseconds>(end - start).count() > timeLimit || isCancelled)
+        if (chrono::duration_cast<chrono::milliseconds>(end - start).count() > params.timeLimit || isCancelled)
         {
             break;
         }
@@ -463,7 +462,7 @@ bool isRepeated(Position &pos)
 
 
 int quiescence(int depth, int ply, int alpha, int beta, int color,
-                     Position &pos, chrono::steady_clock::time_point start, principalVariation& PV)
+                     Position &pos, principalVariation& PV, searchParams& params)
 {
     // Initialize a new flag for the type of bound (Upper Bound by default)
     int newFlag = UPPER_BOUND;
@@ -567,7 +566,7 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
         principalVariation tempVar;
 
         // Check if the time limit for the search has been reached
-        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit || isCancelled)
+        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - params.start)).count() > params.timeLimit || isCancelled)
         {
             isCancelled = true; // Mark the search as canceled
             return CHECKMATE;   // Return a checkmate score
@@ -578,13 +577,13 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
         pos.makeMove(m);
 
         // Recursively call quiescence search with negated scores and swapped bounds
-        int value = -quiescence(depth - 1, ply + 1, -beta, -alpha, -color, pos, start, tempVar);
+        int value = -quiescence(depth - 1, ply + 1, -beta, -alpha, -color, pos, tempVar, params);
 
         // Undo the move after evaluation
         pos.undoMove(m);
 
         // Check if the time limit for the search has been reached again
-        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start)).count() > timeLimit || isCancelled)
+        if ((chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - params.start)).count() > params.timeLimit || isCancelled)
         {
             isCancelled = true; // Mark the search as canceled
             return CHECKMATE;   // Return a checkmate score

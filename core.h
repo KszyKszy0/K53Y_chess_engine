@@ -55,7 +55,7 @@ public:
     void setPosition(vector<string>& moves, string FEN);
 
     // Starts search
-    void go();
+    void go(searchParams params);
 
     // Performs perft on a given depth
     void goPerft(int depth);
@@ -67,9 +67,7 @@ public:
     void stop();
 
     //Sets time from uci
-    void setTime(int wTime, int bTime, int wInc, int bInc, int moveTime);
-
-    void setLimits(int depth, int nodes);
+    void setTime(int wTime, int bTime, int wInc, int bInc, int moveTime, searchParams& params);
 
     void printState();
 
