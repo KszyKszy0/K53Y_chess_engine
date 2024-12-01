@@ -112,8 +112,19 @@ Bitboard core::perft(int depth)
 
 void core::goPerft(int depth)
 {
-    Bitboard result = perft(depth);
-    std::cout<<result<<endl;
+    MoveList moves;
+    fullMovesList(pos, moves);
+    Bitboard fullCounter = 0;
+    for(Move m : moves)
+    {
+        pos.makeMove(m);
+        Bitboard result = perft(depth - 1);
+        fullCounter += result;
+        pos.undoMove(m);
+        printMove(m);
+        cout<<": "<<result<<endl;
+    }
+    std::cout<<"Nodes searched: "<<fullCounter<<endl;
 }
 
 void core::uci() {
