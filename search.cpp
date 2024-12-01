@@ -34,12 +34,14 @@ Move historyHeuristic[MAX_DEPTH][MAX_DEPTH];
 int pvLength[MAX_DEPTH];
 Move pvTable[MAX_DEPTH][MAX_DEPTH];
 
-int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, chrono::steady_clock::time_point start)
+int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, chrono::steady_clock::time_point start, principalVariation& PV)
 {
     pvLength[ply] = ply;
 
+
+
     //Checks if we are in null window search
-    bool PV = (alpha != beta - 1);
+    bool isPV = (alpha != beta - 1);
 
     // This gives info about checkmate and stalemate so it must be the first thing to consider
     MoveList moveList;
@@ -94,7 +96,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
 
         #ifndef DATAGEN
         //If depth from TT is at least same as current we can immediately take score
-        if ((entry.depth >= depth) && (ply > 0) && !PV)
+        if ((entry.depth >= depth) && (ply > 0) && !isPV)
         {
             //Check for node type (matching ab window) (cutoff) (fail low)
             if ((entry.type == EXACT_SCORE) || ((entry.type == LOWER_BOUND) && (entry.score >= beta)) || ((entry.type == UPPER_BOUND) && (entry.score < alpha)))
@@ -179,6 +181,13 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
     //Loop through all moves
     for (Move m : moveList)
     {
+        principalVariation tempVar;
+        tempVar.length = 0;
+        for(int i=0; i < MAX_DEPTH; i++)
+        {
+            tempVar.list[i] = 0;
+        }
+
         //If we encounter null move stop
         if (m == 0)
             break;
@@ -208,16 +217,16 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
         if(movesSearched == 0)
         {
             //Standard alpha beta search with normal window
-            value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, start);
+            value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, start, tempVar);
         }else
         {
             //If it is not first move we search with null window
-            value = -negamax(depth - 1, ply + 1, -alpha - 1, -alpha, -color, pos, start);
+            value = -negamax(depth - 1, ply + 1, -alpha - 1, -alpha, -color, pos, start, tempVar);
 
             //If value is inside alpha beta bound we research with full window
             if(value > alpha && value < beta)
             {
-                value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, start);
+                value = -negamax(depth - 1, ply + 1, -beta, -alpha, -color, pos, start, tempVar);
             }
         }
 
@@ -262,10 +271,41 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
 
                 alpha = best;
 
-                if(PV)
+                // if((bestMove == 1877) && (ply == 8) && (moveList.isCheckmate()))
+                // {
+                //     pos.printBoard();
+                // }
+
+                PV.length = 1 + tempVar.length;
+                PV.list[0] = bestMove;
+                // if(PV.length >= 9)
+                // {
+                //     cout<<"STOP";
+                // }
+
+                for(int i=0; i < tempVar.length; i++)
                 {
-                    updatePV(bestMove, ply);
+                    if(i+1 < MAX_DEPTH)
+                    {
+                        PV.list[1+i] = tempVar.list[i];
+                    }
                 }
+
+                // if((ply == 0) && (depth == 7))
+                // {
+                //     cout<<"PV: ";
+                //     for(int i=0; i < PV.length; i++)
+                //     {
+                //         printMove(PV.list[i]);
+                //         cout<<" ";
+                //     }
+                //     cout<<endl;
+                // }
+                // printMove(PV.list[0]);
+                // cout<<" "<<pos.getFEN()<<" "<<endl;
+
+                // updatePV(bestMove, ply, tempVar);
+
             }
         }
 
@@ -367,9 +407,14 @@ Move search(Position &pos)
     //Iterative deepening loop
     for (int depth = 1; depth < MAX_DEPTH; depth++)
     {
-
+        principalVariation PVMain;
+        for(int i=0; i < MAX_DEPTH; i++)
+        {
+            PVMain.list[i] = 0;
+        }
+        PVMain.length = 0;
         //Start negamax for current depth
-        bestMove = negamax(depth, 0, -INF, INF, pos.STM ? 1 : -1, pos, start);
+        bestMove = negamax(depth, 0, -INF, INF, pos.STM ? 1 : -1, pos, start, PVMain);
         if (bestMove != 0)
         {
             //We didn't get nullmove we can take that move
@@ -381,7 +426,7 @@ Move search(Position &pos)
 
 
         //Print only info from full depths
-        if(chrono::duration_cast<chrono::milliseconds>(end - start).count() < timeLimit && !isCancelled)
+        if((chrono::duration_cast<chrono::milliseconds>(end - start).count() < timeLimit) && !isCancelled)
         {
             int mili = chrono::duration_cast<chrono::milliseconds>(end - start).count();
             std::cout << "info depth " << depth;
@@ -395,28 +440,22 @@ Move search(Position &pos)
             //
             std::cout << " pv ";
 
-            int limit = 0;
-            if(CHECKMATE - oldEval < depth)
-            {
-                limit = CHECKMATE - oldEval;
-            }else
-            {
-                limit = depth;
-            }
-            for(int pvl = 0; pvl < limit; pvl++)
+            for(int pvl = 0; pvl < PVMain.length; pvl++)
             {
                 //If we see mate score and search deeper the pv will be shorter than depth
-                if(pvTable[0][pvl] != 0)
+                if(PVMain.list[pvl] != 0)
                 {
-                    printMove(pvTable[0][pvl]);
+                    printMove(PVMain.list[pvl]);
                     std::cout<<" ";
                 }
             }
-            clearPV(depth);
+            // std::cout<<" pvb "<<PVMain.length;
+            // clearPV(depth);
             std::cout<<endl;
             //
             //          END OF PV SEGMENT
             //
+
         }
 
         if ((depth >= depthLimit) && (depthLimit != 0) || ((nodesCount >= nodesLimit) && (nodesLimit != 0)))
@@ -621,7 +660,7 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
     return best;
 }
 
-void updatePV(Move m, int ply)
+void updatePV(Move m, int ply, principalVariation PV)
 {
     pvTable[ply][ply] = m;
 

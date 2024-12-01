@@ -704,3 +704,61 @@ void Position::addState(StateInfo state)
 #endif
     stateInfoList[stateCounter] = newState;
 }
+
+void Position::printBoard()
+{
+    int counter = 0;
+    for(int i=0; i<=63; i++)
+    {
+        switch(piecesArray[flipIndex(i)])
+        {
+            case BLACK_PAWN:
+                cout<<u8"♙"<<" ";
+                break;
+            case BLACK_KNIGHT:
+                cout<<u8"♘"<<" ";
+                break;
+            case BLACK_BISHOP:
+                cout<<u8"♗"<<" ";
+                break;
+            case BLACK_ROOK:
+                cout<<u8"♖"<<" ";
+                break;
+            case BLACK_QUEEN:
+                cout<<u8"♕"<<" ";
+                break;
+            case BLACK_KING:
+                cout<<u8"♔"<<" ";
+                break;
+
+            case WHITE_PAWN:
+                cout<<u8"♟"<<" ";
+                break;
+            case WHITE_KNIGHT:
+                cout<<u8"♞"<<" ";
+                break;
+            case WHITE_BISHOP:
+                cout<<u8"♝"<<" ";
+                break;
+            case WHITE_ROOK:
+                cout<<u8"♜"<<" ";
+                break;
+            case WHITE_QUEEN:
+                cout<<u8"♛"<<" ";
+                break;
+            case WHITE_KING:
+                cout<<u8"♚"<<" ";
+                break;
+
+            default:
+            cout<<"  ";
+            break;
+        }
+        counter++;
+        if(counter >= 8)
+        {
+            counter = 0;
+            cout<<endl;
+        }
+    }
+}

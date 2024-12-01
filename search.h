@@ -9,9 +9,13 @@
 
 const int MAX_DEPTH = 64;
 
+struct principalVariation
+{
+    int length = 0;
+    Move list[MAX_DEPTH] = {0};
+};
 
-
-int negamax(int depth, int ply, int alpha, int beta,int color, Position& pos, chrono::steady_clock::time_point start);
+int negamax(int depth, int ply, int alpha, int beta,int color, Position& pos, chrono::steady_clock::time_point start, principalVariation& PV);
 
 int quiescence(int depth, int ply, int alpha, int beta,int color, Position& pos, chrono::steady_clock::time_point start);
 
@@ -74,7 +78,7 @@ extern int pvLength[MAX_DEPTH];
 
 extern Move pvTable[MAX_DEPTH][MAX_DEPTH];
 
-void updatePV(Move m, int ply);
+void updatePV(Move m, int ply, principalVariation PV);
 
 void clearPV(int ply);
 

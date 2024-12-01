@@ -158,6 +158,7 @@ void core::setPosition(vector<string>& moves, string FEN)
         fullMovesList(pos, moveList);
         pos.makeMove(uciToMove(s,pos,moveList.begin()));
     }
+    // cout<<pos.getFEN();
 }
 
 void core::quit()

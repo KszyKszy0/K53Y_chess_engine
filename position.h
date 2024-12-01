@@ -59,4 +59,6 @@ class Position
     int stateCounter = 0;
 
     Accumulator accum;
+
+    void printBoard();
 };
