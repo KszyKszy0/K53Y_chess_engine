@@ -83,7 +83,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, c
     //Entering Quiescence at the end of search
     if ((depth == 0) || ((ply == depthLimit) && (depthLimit != 0)))
     {
-        return quiescence(depth, ply, alpha, beta, color, pos, start);
+        return quiescence(depth, ply, alpha, beta, color, pos, start, PV);
     }
 
     //Possible transposition lookup
@@ -505,7 +505,7 @@ bool isRepeated(Position &pos)
 
 
 int quiescence(int depth, int ply, int alpha, int beta, int color,
-                     Position &pos, chrono::steady_clock::time_point start)
+                     Position &pos, chrono::steady_clock::time_point start, principalVariation& PV)
 {
     // Initialize a new flag for the type of bound (Upper Bound by default)
     int newFlag = UPPER_BOUND;
@@ -601,6 +601,12 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
     // Iterate through all moves in the move list
     for (Move m : moveList)
     {
+        principalVariation tempVar;
+        tempVar.length = 0;
+        for(int i=0; i < MAX_DEPTH; i++)
+        {
+            tempVar.list[i] = 0;
+        }
         if (m == 0) // Check for end of move list
             break;
 
@@ -616,7 +622,7 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
         pos.makeMove(m);
 
         // Recursively call quiescence search with negated scores and swapped bounds
-        int value = -quiescence(depth - 1, ply + 1, -beta, -alpha, -color, pos, start);
+        int value = -quiescence(depth - 1, ply + 1, -beta, -alpha, -color, pos, start, tempVar);
 
         // Undo the move after evaluation
         pos.undoMove(m);
@@ -639,6 +645,21 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
             {
                 alpha = best;
                 newFlag = EXACT_SCORE; // Update flag to exact score
+
+                PV.length = 1 + tempVar.length;
+                PV.list[0] = bestMove;
+                // if(PV.length >= 9)
+                // {
+                //     cout<<"STOP";
+                // }
+
+                for(int i=0; i < tempVar.length; i++)
+                {
+                    if(i+1 < MAX_DEPTH)
+                    {
+                        PV.list[1+i] = tempVar.list[i];
+                    }
+                }
             }
         }
 

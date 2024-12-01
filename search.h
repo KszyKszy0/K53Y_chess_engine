@@ -17,7 +17,7 @@ struct principalVariation
 
 int negamax(int depth, int ply, int alpha, int beta,int color, Position& pos, chrono::steady_clock::time_point start, principalVariation& PV);
 
-int quiescence(int depth, int ply, int alpha, int beta,int color, Position& pos, chrono::steady_clock::time_point start);
+int quiescence(int depth, int ply, int alpha, int beta,int color, Position& pos, chrono::steady_clock::time_point start, principalVariation& PV);
 
 Move search(Position& pos);
 
