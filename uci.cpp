@@ -183,5 +183,9 @@ void uciLoop(core& engine)
         {
             engine.eval();
         }
+        if (tokens[0] == "state")
+        {
+            engine.state();
+        }
     }
 }

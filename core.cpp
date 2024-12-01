@@ -5,8 +5,8 @@
 #include "fstream"
 
 
-float L1_weights[inputSize][l1_size];
-float L1_bias[l1_size];
+float L1_weights[inputSize][l1_size / 2];
+float L1_bias[l1_size / 2];
 float L2_weights[l2_size][l1_size];
 float L2_bias[l2_size];
 float output_weights[l2_size];
@@ -256,15 +256,15 @@ void core::readNNUE()
             L1_weights[j][i] = value;
         }
     }
-    for(int i=0; i < l1_size; i++)
+    for(int i=0; i < (l1_size / 2); i++)
     {
         file >> value;
         L1_bias[i] = value;
     }
 
-    for(int i=0; i < 16; i++)
+    for(int i=0; i < l2_size; i++)
     {
-        for(int j=0; j < 32; j++)
+        for(int j=0; j < l1_size; j++)
         {
             file >> value;
             L2_weights[i][j] = value;
@@ -321,11 +321,7 @@ void core::printState()
             }
         }
     }
-    for(int i=0; i < 768; i++)
-    {
-        cout<<state[i]<<", ";
-    }
-    cout<<endl;
+
     int counter = 0;
     for(int i=0; i < 768; i++)
     {
@@ -340,6 +336,18 @@ void core::printState()
             cout<<endl;
         }
     }
+
+    cout<<"[";
+    for(int i=0; i < 768; i++)
+    {
+        cout<<state[i];
+        if(i < 767)
+        {
+            cout<<", ";
+        }
+    }
+    cout<<"]";
+    cout<<endl;
 }
 
 void core::eval()
@@ -347,4 +355,9 @@ void core::eval()
     pos.printBoard();
     cout<<pos.getFEN()<<endl;
     cout<<"eval: "<<evaluate(pos)<<endl;
+}
+
+void core::state()
+{
+    printState();
 }

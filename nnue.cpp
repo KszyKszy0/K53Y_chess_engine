@@ -57,7 +57,7 @@ float firstLayer(float (&acc)[2][16], bool perspective)
 
                 // Ładujemy 8-elementowe fragmenty acc[1][j] i L1_bias[j+16] oraz liczymy drugą część hidden
                 __m256 acc_vec_1 = _mm256_loadu_ps(&acc[1][j]);
-                __m256 bias_vec_1 = _mm256_loadu_ps(&L1_bias[j + 16]);
+                __m256 bias_vec_1 = _mm256_loadu_ps(&L1_bias[j]);
                 __m256 weighted_sum_1 = _mm256_add_ps(acc_vec_1, bias_vec_1);
                 // weighted_sum_1 = _mm256_max_ps(weighted_sum_1, zero); // ReLU
 
@@ -113,7 +113,7 @@ float firstLayer(float (&acc)[2][16], bool perspective)
 
                 // Ładujemy 8-elementowe fragmenty acc[1][j] i L1_bias[j+16] oraz liczymy drugą część hidden
                 __m256 acc_vec_1 = _mm256_loadu_ps(&acc[0][j]);
-                __m256 bias_vec_1 = _mm256_loadu_ps(&L1_bias[j + 16]);
+                __m256 bias_vec_1 = _mm256_loadu_ps(&L1_bias[j]);
                 __m256 weighted_sum_1 = _mm256_add_ps(acc_vec_1, bias_vec_1);
                 // weighted_sum_1 = _mm256_max_ps(weighted_sum_1, zero); // ReLU
 
