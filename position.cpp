@@ -121,7 +121,7 @@ void Position::parseFEN(string fen)
     }
 
     //Setup rest of hash
-    positionHash ^= zobrist.zobristTable[768+castlingRights(castling)];
+    positionHash ^= zobrist.zobristTable[768+castlingRightsValue(castlingRights(castling))];
 
     int enPassantFile = 0;
     if(enPassant[0] != '-')
@@ -261,43 +261,10 @@ void Position::makeMove(Move move)
 
     tempState.halfMove++;
 
-    if(startSquare == 7 || targetSquare == 7)
-    {
-        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
-        tempState.castlingRights &= ~8;
-        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
-    }
-    if(startSquare == 0 || targetSquare == 0)
-    {
-        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
-        tempState.castlingRights &= ~4;
-        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
-    }
-    if(startSquare == 4)
-    {
-        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
-        tempState.castlingRights &= ~12;
-        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
-    }
+    positionHash ^= zobrist.zobristTable[768 + castlingRightsValue(tempState.castlingRights)];
+    tempState.castlingRights &= ~((1ULL << startSquare) | (1ULL << targetSquare));
+    positionHash ^= zobrist.zobristTable[768 + castlingRightsValue(tempState.castlingRights)];
 
-    if(startSquare == 63 || targetSquare == 63)
-    {
-        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
-        tempState.castlingRights &= ~2;
-        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
-    }
-    if(startSquare == 56 || targetSquare == 56)
-    {
-        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
-        tempState.castlingRights &= ~1;
-        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
-    }
-    if(startSquare == 60)
-    {
-        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
-        tempState.castlingRights &= ~3;
-        positionHash ^= zobrist.zobristTable[768 + tempState.castlingRights];
-    }
 
     if(tempState.enPassantSquare != 0)
         positionHash ^= zobrist.zobristTable[784 + (tempState.enPassantSquare % 8)];
@@ -658,7 +625,7 @@ void Position::undoMove(Move move)
 }
 
 
-void Position::addState(int pas, int cast, int half, int full, int captureType, Accumulator& acc)
+void Position::addState(int pas, Bitboard cast, int half, int full, int captureType, Accumulator& acc)
 {
     StateInfo newState(pas,cast,half,full,captureType);
 #ifdef NNUE

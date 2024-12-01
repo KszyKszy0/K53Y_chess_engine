@@ -7,8 +7,8 @@ class StateInfo
     //Enpassant square => 0 if none
     int enPassantSquare;
 
-    //KQkq 8421
-    int castlingRights;
+    //Bits on king and rook squares
+    Bitboard castlingRights;
 
     //Halfmove counter 100 = draw, resets after capture or pawn move
     int halfMove;
@@ -21,13 +21,13 @@ class StateInfo
 
     float accumulator[2][16];
 
-    StateInfo(int pas, int cast, int half, int full, int captureType);
+    StateInfo(int pas, Bitboard cast, int half, int full, int captureType);
 
     StateInfo();
 };
 
 
-inline StateInfo::StateInfo(int pas, int cast, int half, int full, int captureType)
+inline StateInfo::StateInfo(int pas, Bitboard cast, int half, int full, int captureType)
 {
     enPassantSquare=pas;
     castlingRights=cast;
@@ -39,7 +39,7 @@ inline StateInfo::StateInfo(int pas, int cast, int half, int full, int captureTy
 inline StateInfo::StateInfo()
 {
     enPassantSquare=0;
-    castlingRights=15;
+    castlingRights= K | k | Q | q;
     halfMove=0;
     fullMove=1;
     capturedPieceType=NO_PIECE;

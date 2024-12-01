@@ -40,10 +40,10 @@ inline int nameToSquare(std::string square)
 }
 
 // Initializing castling rights from fen string
-inline int castlingRights(std::string txt)
+inline Bitboard castlingRights(std::string txt)
 {
     // Default value = 0
-    int value = 0;
+    Bitboard value = 0;
 
     // For each char we add special number to the value
     // that corresponds to certain castling type
@@ -56,16 +56,16 @@ inline int castlingRights(std::string txt)
         switch (c)
         {
         case 'K':
-            value += 8;
+            value |= K;
             break;
         case 'Q':
-            value += 4;
+            value |= Q;
             break;
         case 'k':
-            value += 2;
+            value |= k;
             break;
         case 'q':
-            value += 1;
+            value |= q;
             break;
         default:
             break;
@@ -76,7 +76,7 @@ inline int castlingRights(std::string txt)
 }
 
 // Initializing castling rights from fen string
-inline std::string castlingRightsText(int rights)
+inline std::string castlingRightsText(Bitboard rights)
 {
     // Default value = 0
     std::string rightsText = "";
@@ -87,18 +87,25 @@ inline std::string castlingRightsText(int rights)
     // 4 => White long
     // 2 => Black short
     // 1 => Black long
-    if(rights & 8)
+    if(rights & K)
         rightsText += "K";
-    if(rights & 4)
+    if(rights & Q)
         rightsText += "Q";
-    if(rights & 2)
+    if(rights & k)
         rightsText += "k";
-    if(rights & 1)
+    if(rights & q)
         rightsText += "q";
 
     return rightsText;
 }
 
+inline int castlingRightsValue(Bitboard rights)
+{
+    return ((rights & K) == K) * 8
+        +  ((rights & Q) == Q) * 4
+        +  ((rights & k) == k) * 2
+        +  ((rights & q) == q) * 1;
+}
 
 // Print move in uci form
 inline void printMove(Move m)

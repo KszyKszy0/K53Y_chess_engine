@@ -12,6 +12,11 @@ using namespace std;
 
 static Bitboard MAX = 0xffffffffffffffff;
 
+static Bitboard K = 144;
+static Bitboard Q = 17;
+static Bitboard k = 0x9000000000000000;
+static Bitboard q = 0x1100000000000000;
+
 //Sets bit at index to 1
 void setBit(Bitboard &bb, int index);
 
