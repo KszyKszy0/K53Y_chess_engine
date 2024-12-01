@@ -219,22 +219,6 @@ std::string Position::getFEN() {
     fen += (STM == WHITE) ? " w " : " b ";
 
     // Encode castling rights
-    // std::string castlingRights = "";
-
-    // if (piecesBitboards[WHITE_KING] & piecesBitboards[WHITE_ROOK] & 0x0000000000000081ULL) {
-    //     castlingRights += 'K';
-    // }
-    // if (piecesBitboards[WHITE_KING] & piecesBitboards[WHITE_ROOK] & 0x0000000000000010ULL) {
-    //     castlingRights += 'Q';
-    // }
-    // if (piecesBitboards[BLACK_KING] & piecesBitboards[BLACK_ROOK] & 0x8100000000000000ULL) {
-    //     castlingRights += 'k';
-    // }
-    // if (piecesBitboards[BLACK_KING] & piecesBitboards[BLACK_ROOK] & 0x1000000000000000ULL) {
-    //     castlingRights += 'q';
-    // }
-
-    // fen += (castlingRights.empty()) ? "-" : castlingRights;
     std::string rights = castlingRightsText(stateInfoList[stateCounter].castlingRights);
 
     if(rights != "")

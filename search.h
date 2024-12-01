@@ -74,14 +74,6 @@ const int MVVLVA[12][12]=
     100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600
 };
 
-extern int pvLength[MAX_DEPTH];
-
-extern Move pvTable[MAX_DEPTH][MAX_DEPTH];
-
-void updatePV(Move m, int ply, principalVariation PV);
-
-void clearPV(int ply);
-
 extern Move killers[MAX_DEPTH];
 
 extern Move historyHeuristic[MAX_DEPTH][MAX_DEPTH];

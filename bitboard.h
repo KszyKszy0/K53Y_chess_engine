@@ -12,10 +12,6 @@ using namespace std;
 
 static Bitboard MAX = 0xffffffffffffffff;
 
-static Bitboard RANK_8 = 0xff00000000000000;
-
-static Bitboard RANK_1 = 0xff;
-
 //Sets bit at index to 1
 void setBit(Bitboard &bb, int index);
 
