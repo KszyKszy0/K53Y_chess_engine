@@ -17,13 +17,13 @@ struct principalVariation
 
 struct searchParams
 {
-    int timeLimit;
+    int timeLimit = 0;
 
-    int increment;
+    int increment = 0;
 
-    int depthLimit;
+    int depthLimit = 0;
 
-    int nodesLimit;
+    int nodesLimit = 0;
 
     chrono::steady_clock::time_point start;
 };

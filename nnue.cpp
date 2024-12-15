@@ -48,24 +48,24 @@ float firstLayer(float (&acc)[2][16], bool perspective)
                 __m256 weighted_sum_0 = _mm256_add_ps(acc_vec_0, bias_vec_0);
 
                 // Leaky ReLU dla `weighted_sum_0`
-                __m256 mask_0 = _mm256_cmp_ps(weighted_sum_0, zero, _CMP_GT_OS);  // Maskowanie
-                __m256 leaky_relu_0 = _mm256_blendv_ps(_mm256_mul_ps(weighted_sum_0, leaky_scale), weighted_sum_0, mask_0);
-                // weighted_sum_0 = _mm256_max_ps(weighted_sum_0, zero); // ReLU
+                // __m256 mask_0 = _mm256_cmp_ps(weighted_sum_0, zero, _CMP_GT_OS);  // Maskowanie
+                // __m256 leaky_relu_0 = _mm256_blendv_ps(_mm256_mul_ps(weighted_sum_0, leaky_scale), weighted_sum_0, mask_0);
+                weighted_sum_0 = _mm256_max_ps(weighted_sum_0, zero); // ReLU
 
                 __m256 weights_vec_0 = _mm256_loadu_ps(&L2_weights[i][j]);
-                hidden_vec = _mm256_fmadd_ps(leaky_relu_0, weights_vec_0, hidden_vec);
+                hidden_vec = _mm256_fmadd_ps(weighted_sum_0, weights_vec_0, hidden_vec);
 
                 // Ładujemy 8-elementowe fragmenty acc[1][j] i L1_bias[j+16] oraz liczymy drugą część hidden
                 __m256 acc_vec_1 = _mm256_loadu_ps(&acc[1][j]);
                 __m256 bias_vec_1 = _mm256_loadu_ps(&L1_bias[j]);
                 __m256 weighted_sum_1 = _mm256_add_ps(acc_vec_1, bias_vec_1);
-                // weighted_sum_1 = _mm256_max_ps(weighted_sum_1, zero); // ReLU
+                weighted_sum_1 = _mm256_max_ps(weighted_sum_1, zero); // ReLU
 
-                __m256 mask_1 = _mm256_cmp_ps(weighted_sum_1, zero, _CMP_GT_OS);
-                __m256 leaky_relu_1 = _mm256_blendv_ps(_mm256_mul_ps(weighted_sum_1, leaky_scale), weighted_sum_1, mask_1);
+                // __m256 mask_1 = _mm256_cmp_ps(weighted_sum_1, zero, _CMP_GT_OS);
+                // __m256 leaky_relu_1 = _mm256_blendv_ps(_mm256_mul_ps(weighted_sum_1, leaky_scale), weighted_sum_1, mask_1);
 
                 __m256 weights_vec_1 = _mm256_loadu_ps(&L2_weights[i][j+16]);
-                hidden_vec = _mm256_fmadd_ps(leaky_relu_1, weights_vec_1, hidden_vec);
+                hidden_vec = _mm256_fmadd_ps(weighted_sum_1, weights_vec_1, hidden_vec);
             }
 
             // Sumujemy wartości w `hidden_vec` i zapisujemy do `hidden[i]`
@@ -77,13 +77,13 @@ float firstLayer(float (&acc)[2][16], bool perspective)
             __m256 hidden_vec = _mm256_loadu_ps(&hidden[i]);
             __m256 bias_vec = _mm256_loadu_ps(&L2_bias[i]);
             __m256 weighted_sum = _mm256_add_ps(hidden_vec, bias_vec);
-            // weighted_sum = _mm256_max_ps(weighted_sum, zero); // ReLU
+            weighted_sum = _mm256_max_ps(weighted_sum, zero); // ReLU
 
-            __m256 mask = _mm256_cmp_ps(weighted_sum, zero, _CMP_GT_OS);
-            __m256 leaky_relu = _mm256_blendv_ps(_mm256_mul_ps(weighted_sum, leaky_scale), weighted_sum, mask);
+            // __m256 mask = _mm256_cmp_ps(weighted_sum, zero, _CMP_GT_OS);
+            // __m256 leaky_relu = _mm256_blendv_ps(_mm256_mul_ps(weighted_sum, leaky_scale), weighted_sum, mask);
 
             __m256 output_weights_vec = _mm256_loadu_ps(&output_weights[i]);
-            __m256 result_vec = _mm256_mul_ps(leaky_relu, output_weights_vec);
+            __m256 result_vec = _mm256_mul_ps(weighted_sum, output_weights_vec);
 
             // Sumujemy wszystkie elementy w `result_vec` i dodajemy do `result`
             result += _mm256_reduce_add_ps(result_vec);
@@ -104,24 +104,24 @@ float firstLayer(float (&acc)[2][16], bool perspective)
                 __m256 weighted_sum_0 = _mm256_add_ps(acc_vec_0, bias_vec_0);
 
                 // Leaky ReLU dla `weighted_sum_0`
-                __m256 mask_0 = _mm256_cmp_ps(weighted_sum_0, zero, _CMP_GT_OS);  // Maskowanie
-                __m256 leaky_relu_0 = _mm256_blendv_ps(_mm256_mul_ps(weighted_sum_0, leaky_scale), weighted_sum_0, mask_0);
-                // weighted_sum_0 = _mm256_max_ps(leaky_relu_0, zero); // ReLU
+                // __m256 mask_0 = _mm256_cmp_ps(weighted_sum_0, zero, _CMP_GT_OS);  // Maskowanie
+                // __m256 leaky_relu_0 = _mm256_blendv_ps(_mm256_mul_ps(weighted_sum_0, leaky_scale), weighted_sum_0, mask_0);
+                weighted_sum_0 = _mm256_max_ps(weighted_sum_0, zero); // ReLU
 
                 __m256 weights_vec_0 = _mm256_loadu_ps(&L2_weights[i][j]);
-                hidden_vec = _mm256_fmadd_ps(leaky_relu_0, weights_vec_0, hidden_vec);
+                hidden_vec = _mm256_fmadd_ps(weighted_sum_0, weights_vec_0, hidden_vec);
 
                 // Ładujemy 8-elementowe fragmenty acc[1][j] i L1_bias[j+16] oraz liczymy drugą część hidden
                 __m256 acc_vec_1 = _mm256_loadu_ps(&acc[0][j]);
                 __m256 bias_vec_1 = _mm256_loadu_ps(&L1_bias[j]);
                 __m256 weighted_sum_1 = _mm256_add_ps(acc_vec_1, bias_vec_1);
-                // weighted_sum_1 = _mm256_max_ps(weighted_sum_1, zero); // ReLU
+                weighted_sum_1 = _mm256_max_ps(weighted_sum_1, zero); // ReLU
 
-                __m256 mask_1 = _mm256_cmp_ps(weighted_sum_1, zero, _CMP_GT_OS);
-                __m256 leaky_relu_1 = _mm256_blendv_ps(_mm256_mul_ps(weighted_sum_1, leaky_scale), weighted_sum_1, mask_1);
+                // __m256 mask_1 = _mm256_cmp_ps(weighted_sum_1, zero, _CMP_GT_OS);
+                // __m256 leaky_relu_1 = _mm256_blendv_ps(_mm256_mul_ps(weighted_sum_1, leaky_scale), weighted_sum_1, mask_1);
 
                 __m256 weights_vec_1 = _mm256_loadu_ps(&L2_weights[i][j+16]);
-                hidden_vec = _mm256_fmadd_ps(leaky_relu_1, weights_vec_1, hidden_vec);
+                hidden_vec = _mm256_fmadd_ps(weighted_sum_1, weights_vec_1, hidden_vec);
             }
 
             // Sumujemy wartości w `hidden_vec` i zapisujemy do `hidden[i]`
@@ -133,13 +133,13 @@ float firstLayer(float (&acc)[2][16], bool perspective)
             __m256 hidden_vec = _mm256_loadu_ps(&hidden[i]);
             __m256 bias_vec = _mm256_loadu_ps(&L2_bias[i]);
             __m256 weighted_sum = _mm256_add_ps(hidden_vec, bias_vec);
-            // weighted_sum = _mm256_max_ps(weighted_sum, zero); // ReLU
+            weighted_sum = _mm256_max_ps(weighted_sum, zero); // ReLU
 
-            __m256 mask = _mm256_cmp_ps(weighted_sum, zero, _CMP_GT_OS);
-            __m256 leaky_relu = _mm256_blendv_ps(_mm256_mul_ps(weighted_sum, leaky_scale), weighted_sum, mask);
+            // __m256 mask = _mm256_cmp_ps(weighted_sum, zero, _CMP_GT_OS);
+            // __m256 leaky_relu = _mm256_blendv_ps(_mm256_mul_ps(weighted_sum, leaky_scale), weighted_sum, mask);
 
             __m256 output_weights_vec = _mm256_loadu_ps(&output_weights[i]);
-            __m256 result_vec = _mm256_mul_ps(leaky_relu, output_weights_vec);
+            __m256 result_vec = _mm256_mul_ps(weighted_sum, output_weights_vec);
 
             // Sumujemy wszystkie elementy w `result_vec` i dodajemy do `result`
             result += _mm256_reduce_add_ps(result_vec);
