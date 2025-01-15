@@ -299,7 +299,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
     }
 
 #ifdef DATAGEN
-    if((best > -90000) && (best < 90000) && popCount(pos.piecesBitboards[ALL_PIECES]) >= 6 && depth >= 5 && !isCancelled)
+    if((best > -90000) && (best < 90000) && popCount(pos.piecesBitboards[ALL_PIECES]) >= 20 && depth >= 6 && !isCancelled && Flags(bestMove) < 4)
         savePosition(pos, best);
 #endif
 
