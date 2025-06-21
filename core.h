@@ -66,14 +66,20 @@ public:
     // Stops search
     void stop();
 
-    //Sets time from uci
+    // Sets time from uci
     void setTime(int wTime, int bTime, int wInc, int bInc, int moveTime, searchParams& params);
 
     void printState();
 
+    // Read weights of net
     void readNNUE();
 
+    // Show current static eval of position
     void eval();
 
+    // Show current state of position
     void state();
+
+    // Show fen of position
+    void fen();
 };

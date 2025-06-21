@@ -4,6 +4,7 @@
 #include "stateInfo.h"
 #include "move.h"
 #include <string>
+#include "nnue.h"
 
 
 using namespace std;
@@ -483,13 +484,12 @@ void Position::makeMove(Move move)
     stateCounter++;
     positionHistory[stateCounter]=positionHash;
 
-    for(int i=0; i<=1; i++)
+    #ifdef NNUE
+    for(int j=0; j < L1_SIZE; j++)
     {
-        for(int j=0; j <= 15; j++)
-        {
-            tempState.accumulator[i][j] = accum.values[i][j];
-        }
+        tempState.accumulator[j] = accum.values[j];
     }
+    #endif
     addState(tempState);
 }
 
@@ -614,12 +614,9 @@ void Position::undoMove(Move move)
     stateCounter--;
     positionHash = positionHistory[stateCounter];
 #ifdef NNUE
-    for(int i=0; i<=1; i++)
+    for(int j=0; j < L1_SIZE; j++)
     {
-        for(int j=0; j <= 15; j++)
-        {
-            accum.values[i][j] = stateInfoList[stateCounter].accumulator[i][j];
-        }
+        accum.values[j] = stateInfoList[stateCounter].accumulator[j];
     }
 #endif
 }
@@ -629,12 +626,9 @@ void Position::addState(int pas, Bitboard cast, int half, int full, int captureT
 {
     StateInfo newState(pas,cast,half,full,captureType);
 #ifdef NNUE
-    for(int i=0; i<=1; i++)
+    for(int j=0; j < L1_SIZE; j++)
     {
-        for(int j=0; j <= 15; j++)
-        {
-            newState.accumulator[i][j] = acc.values[i][j];
-        }
+        newState.accumulator[j] = acc.values[j];
     }
 #endif
 
@@ -645,12 +639,9 @@ void Position::addState(StateInfo state)
 {
     StateInfo newState(state.enPassantSquare,state.castlingRights,state.halfMove,state.fullMove,state.capturedPieceType);
 #ifdef NNUE
-    for(int i=0; i<=1; i++)
+    for(int j=0; j < L1_SIZE; j++)
     {
-        for(int j=0; j <= 15; j++)
-        {
-            newState.accumulator[i][j] = state.accumulator[i][j];
-        }
+        newState.accumulator[j] = state.accumulator[j];
     }
 #endif
     stateInfoList[stateCounter] = newState;
@@ -699,4 +690,40 @@ void Position::printBoard()
     }
 
     cout << border << endl; // Bottom border
+}
+
+std::array<int, 768> Position::getState()
+{
+    std::array<int, 768> state = {0};
+    if(STM)
+    {
+        for(int i=0; i<=63; i++)
+        {
+            int index = 0;
+            if(piecesArray[i] <= BLACK_KING)
+            {
+                index = 64*piecesArray[i]+i;
+                state[index] = 1;
+            }
+        }
+    }else
+    {
+        for(int i=0; i<=63; i++)
+        {
+            int index = 0;
+            if(piecesArray[i] <= BLACK_KING)
+            {
+                if(piecesArray[i] <= WHITE_KING)
+                {
+                    index = 64*(piecesArray[i]+6)+flipIndex(i);
+                }
+                else if(piecesArray[i] <= BLACK_KING)
+                {
+                    index = 64*(piecesArray[i]-6)+flipIndex(i);
+                }
+                state[index] = 1;
+            }
+        }
+    }
+    return state;
 }

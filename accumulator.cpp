@@ -22,23 +22,23 @@ void Accumulator::removePiece(int type, int ind)
     }
 
     // SIMD dla l1_size / 2 elementów, gdzie l1_size = 32
-    for(int j = 0; j < l1_size / 2; j += 8) // 8 floatów na jedną operację SIMD
+    for(int j = 0; j < L1_SIZE / 2; j += 8) // 8 floatów na jedną operację SIMD
     {
         // Załaduj wartości L1_weights dla białych i czarnych elementów
         __m256 whiteWeights = _mm256_loadu_ps(&L1_weights[whiteAccumIndex][j]);
         __m256 blackWeights = _mm256_loadu_ps(&L1_weights[blackAccumIndex][j]);
 
         // Załaduj aktualne wartości akumulatora
-        __m256 whiteAccum = _mm256_loadu_ps(&values[WHITE_ACC][j]);
-        __m256 blackAccum = _mm256_loadu_ps(&values[BLACK_ACC][j]);
+        __m256 whiteAccum = _mm256_loadu_ps(&values[j]);
+        __m256 blackAccum = _mm256_loadu_ps(&values[j + (L1_SIZE / 2)]);
 
         // Odejmij wartości wag od akumulatorów
         whiteAccum = _mm256_sub_ps(whiteAccum, whiteWeights);
         blackAccum = _mm256_sub_ps(blackAccum, blackWeights);
 
         // Zapisz zaktualizowane wartości akumulatorów
-        _mm256_storeu_ps(&values[WHITE_ACC][j], whiteAccum);
-        _mm256_storeu_ps(&values[BLACK_ACC][j], blackAccum);
+        _mm256_storeu_ps(&values[j], whiteAccum);
+        _mm256_storeu_ps(&values[j + (L1_SIZE / 2)], blackAccum);
     }
 #endif
 }
@@ -63,23 +63,23 @@ void Accumulator::addPiece(int type, int ind)
 
 
     // Przetwarzanie SIMD dla l1_size / 2 elementów, gdzie l1_size = 32
-    for(int j = 0; j < l1_size / 2; j += 8) // 8 floatów na jedną operację SIMD
+    for(int j = 0; j < L1_SIZE / 2; j += 8) // 8 floatów na jedną operację SIMD
     {
         // Załaduj wartości L1_weights dla białych i czarnych elementów
         __m256 whiteWeights = _mm256_loadu_ps(&L1_weights[whiteAccumIndex][j]);
         __m256 blackWeights = _mm256_loadu_ps(&L1_weights[blackAccumIndex][j]);
 
         // Załaduj aktualne wartości akumulatora
-        __m256 whiteAccum = _mm256_loadu_ps(&values[WHITE_ACC][j]);
-        __m256 blackAccum = _mm256_loadu_ps(&values[BLACK_ACC][j]);
+        __m256 whiteAccum = _mm256_loadu_ps(&values[j]);
+        __m256 blackAccum = _mm256_loadu_ps(&values[j + (L1_SIZE / 2)]);
 
         // Dodaj wartości wag do akumulatorów
         whiteAccum = _mm256_add_ps(whiteAccum, whiteWeights);
         blackAccum = _mm256_add_ps(blackAccum, blackWeights);
 
         // Zapisz zaktualizowane wartości akumulatorów
-        _mm256_storeu_ps(&values[WHITE_ACC][j], whiteAccum);
-        _mm256_storeu_ps(&values[BLACK_ACC][j], blackAccum);
+        _mm256_storeu_ps(&values[j], whiteAccum);
+        _mm256_storeu_ps(&values[j + (L1_SIZE / 2)], blackAccum);
     }
 #endif
 }
@@ -101,10 +101,9 @@ void Accumulator::resetAccum()
 {
 #ifdef NNUE
     //Loop through array of all pieces
-    for(int i=0; i < (l1_size/2); i++)
+    for(int i=0; i < L1_SIZE; i++)
     {
-        values[0][i] = 0;
-        values[1][i] = 0;
+        values[i] = 0;
     }
 #endif
 }

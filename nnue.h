@@ -1,21 +1,21 @@
-const int inputSize = 768;
+#define INPUT_SIZE 768
 
-const int l1_size = 32;
+#define L1_SIZE 512
 
-const int l2_size = 16;
+#define L2_SIZE 32
 
-extern float L1_weights[inputSize][l1_size / 2];
+extern float L1_weights[INPUT_SIZE][L1_SIZE / 2];
 
-extern float L1_bias[l1_size / 2];
+extern float L1_bias[L1_SIZE / 2];
 
-extern float L2_weights[l2_size][l1_size];
+extern float L2_weights[L2_SIZE][L1_SIZE];
 
-extern float L2_bias[l2_size];
+extern float L2_bias[L2_SIZE];
 
-extern float output_weights[l2_size];
+extern float output_weights[L2_SIZE];
 
 extern float output_bias;
 
 float relu(float value);
 
-float firstLayer(float (&acc)[2][16], bool perspective);
+float firstLayer(float (&acc)[L1_SIZE], bool perspective);

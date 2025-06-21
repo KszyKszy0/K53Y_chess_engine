@@ -9,7 +9,8 @@
 #include "move.h"
 #include "helperFunctions.h"
 #include "accumulator.h"
-
+#include <vector>
+#include <array>
 
 using namespace std;
 
@@ -61,4 +62,12 @@ class Position
     Accumulator accum;
 
     void printBoard();
+
+    // #ifdef DATAGEN
+    //List of positions to save during dataegen if using only sigomoid evals
+    std::vector<std::array<int, INPUT_SIZE>> datagenPositions;
+
+    //Return current state to save position during datagen
+    std::array<int, INPUT_SIZE> getState();
+    // #endif 
 };

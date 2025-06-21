@@ -12,7 +12,6 @@
 
 
 
-
 bool isCancelled;
 
 Bitboard queiscenceNodes;
@@ -299,8 +298,21 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
     }
 
 #ifdef DATAGEN
-    if((best > -90000) && (best < 90000) && popCount(pos.piecesBitboards[ALL_PIECES]) >= 20 && depth >= 6 && !isCancelled && Flags(bestMove) < 4)
-        savePosition(pos, best);
+    // We exclude mating positions
+    // Only collect at specific depth
+    // The search is not cancelled
+    // The first move of sequence is quiet
+    // The score of node is exact 
+    // We are not in check
+    if((best > -90000) && (best < 90000) && depth == 4 && !isCancelled && Flags(bestMove) < 4 && newFlag == EXACT_SCORE && moveList.checks == 0)
+    {
+        // Static evaluation of node should not differ much from search value of node
+        float staticEval = evaluate(pos);
+        if(abs(staticEval - best) < 100)
+        {
+            savePosition(pos.getState(), best / 100.f);
+        }
+    }
 #endif
 
 
@@ -371,7 +383,10 @@ Move search(Position &pos, searchParams params)
         }
         PVMain.length = 0;
         //Start negamax for current depth
-        bestMove = negamax(depth, 0, -INF, INF, pos.STM ? 1 : -1, pos, PVMain, params);
+        // pos.accum.initAccum(pos.piecesArray);
+        int color = pos.STM ? 1 : -1;
+        bestMove = negamax(depth, 0, -INF, INF, color, pos, PVMain, params);
+
         if (bestMove != 0)
         {
             //We didn't get nullmove we can take that move
@@ -428,16 +443,40 @@ Move search(Position &pos, searchParams params)
 
     }
 
+    //After ID loop we print best move to uci
+    std::cout << "bestmove " << moveToUci(bestMovePrevious) << endl;
+    return bestMovePrevious;
+    
+    #ifdef DATAGEN
+    // saveState(pos);
 
+    // int color = pos.STM ? 1 : -1; // Who was on move at mate position
+    // int label = 0;
+
+    // // If mate detected
+    // if (oldEval > 90000 || oldEval < -90000)
+    // {
+    //     // Determine winner from eval sign
+    //     if (oldEval > 90000)
+    //         label = 1; // side to move delivered mate
+    //     else
+    //         label = -1; // side to move got mated
+
+    //     // Save each collected position with label from STM's perspective
+    //     for (auto& state : pos.datagenPositions)
+    //     {
+    //         savePosition(state, label*color);
+    //     }
+
+    //     // Clear stored positions (optional)
+    //     pos.datagenPositions.clear();
+    // }
+    #endif
 
 #ifdef DATAGEN
     // if(oldEval > -90000 && oldEval < 90000 && Flags(bestMovePrevious) != CAPTURE && popCount(pos.piecesBitboards[ALL_PIECES]) >= 6)
     //     savePosition(pos, oldEval);
 #endif
-
-    //After ID loop we print best move to uci
-    std::cout << "bestmove " << moveToUci(bestMovePrevious) << endl;
-    return bestMovePrevious;
 }
 
 //3 fold repetition check
@@ -511,7 +550,7 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
     // Generate a list of capture moves (quiescence search considers only captures)
     MoveList moveList;
     fullCapturesList(pos, moveList);
-
+        
 
     //MOVE ORDERING
 
@@ -558,7 +597,6 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
     // Iterate through all moves in the move list
     for (Move m : moveList)
     {
-
         if (m == 0) // Check for end of move list
             break;
 
@@ -603,10 +641,6 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
 
                 PV.length = 1 + tempVar.length;
                 PV.list[0] = bestMove;
-                // if(PV.length >= 9)
-                // {
-                //     cout<<"STOP";
-                // }
 
                 for(int i=0; i < tempVar.length; i++)
                 {
@@ -636,42 +670,12 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
     return best;
 }
 
-void savePosition(Position &pos, int target) {
+void saveState(Position &pos)
+{
+    pos.datagenPositions.push_back(pos.getState());
+}
 
-    int state[768] = {0};
-
-    if(pos.STM)
-    {
-        for(int i=0; i<=63; i++)
-        {
-            int index = 0;
-            if(pos.piecesArray[i] <= BLACK_KING)
-            {
-                index = 64*pos.piecesArray[i]+i;
-                state[index] = 1;
-            }
-        }
-    }else
-    {
-        for(int i=0; i<=63; i++)
-        {
-            int index = 0;
-            if(pos.piecesArray[i] <= BLACK_KING)
-            {
-                if(pos.piecesArray[i] <= WHITE_KING)
-                {
-                    index = 64*(pos.piecesArray[i]+6)+flipIndex(i);
-                }
-                else if(pos.piecesArray[i] <= BLACK_KING)
-                {
-                    index = 64*(pos.piecesArray[i]-6)+flipIndex(i);
-                }
-                state[index] = 1;
-            }
-        }
-    }
-
-
+void savePosition(std::array<int, INPUT_SIZE> state, float target) {
     // Open file in binary mode
     std::ofstream file("binary_data.bin", std::ios::binary | std::ios::app);
 
@@ -685,7 +689,7 @@ void savePosition(Position &pos, int target) {
     int bitCount = 0;
 
     // Pack 0/1 values from state[] into bytes
-    for (int i = 0; i < 768; ++i) {
+    for (int i = 0; i < INPUT_SIZE; ++i) {
         buffer <<= 1;  // Shift bits left by 1
         buffer |= state[i];  // Add the current state bit (0 or 1)
         bitCount++;
@@ -705,7 +709,7 @@ void savePosition(Position &pos, int target) {
     }
 
     // Write the target as a 32-bit float (multiplied by 100, assuming it's an int divided by 100)
-    float target_f = target / 100.0f;
+    float target_f = target;
     file.write(reinterpret_cast<const char*>(&target_f), sizeof(target_f));
 
     // Close the file

@@ -186,5 +186,9 @@ void uciLoop(core& engine)
         {
             engine.state();
         }
+        if (tokens[0] == "getfen")
+        {
+            engine.fen();
+        }
     }
 }

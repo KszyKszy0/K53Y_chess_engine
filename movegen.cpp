@@ -329,16 +329,14 @@ void fullCapturesList(Position &pos, MoveList &moveList)
     // Capture targets is for captures
     if (checks < 2)
     {
-        // Pin generation for normal pieces (quiets and captures) and normal pins for pawns (quiet and captures) (without enpassant)
-        Bitboard pins = getPinners(pos, pos.STM, moveList, checks);
-
         // If check it is bb with checking piece ELSE its full bitboard of enemies so it doesnt mess in pins only for one checking piece tho
         Bitboard captureTargets = singleCheckIndex == NO_SQUARE ? MAX : 1ULL << singleCheckIndex;
 
         // If there is no check we set it to enemies pieces for captures
         captureTargets &= pos.STM ? pos.piecesBitboards[BLACK_PIECES] : pos.piecesBitboards[WHITE_PIECES];
 
-
+        // Pin generation for normal pieces (quiets and captures) and normal pins for pawns (quiet and captures) (without enpassant)
+        Bitboard pins = getPinners(pos, pos.STM, moveList, checks, captureTargets);
 
 
 
@@ -573,7 +571,7 @@ Bitboard getSideAttacks(Position &pos, bool white, bool forKingMoves)
     return attacks;
 }
 
-Bitboard getPinners(Position &pos, bool white, MoveList &moveList, int checks)
+Bitboard getPinners(Position &pos, bool white, MoveList &moveList, int checks, Bitboard captureTarget)
 {
     // Returned bb with all pinned pieces for side
     Bitboard allPinned = 0;
@@ -622,6 +620,8 @@ Bitboard getPinners(Position &pos, bool white, MoveList &moveList, int checks)
 
         // Add pinner to bitboard
         setBit(target, pinnerIndex);
+
+        target &= captureTarget;
 
         // Get piecetype of pin
         int pieceType = pos.piecesArray[pinnedIndex];

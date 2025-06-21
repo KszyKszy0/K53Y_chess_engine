@@ -1,5 +1,6 @@
 #pragma once
 #include "enums.h"
+#include "nnue.h"
 
 class StateInfo
 {
@@ -19,7 +20,7 @@ class StateInfo
     //Info about piece that was captured this move, NOPIECE if move didnt capture
     int capturedPieceType;
 
-    float accumulator[2][16];
+    float accumulator[L1_SIZE];
 
     StateInfo(int pas, Bitboard cast, int half, int full, int captureType);
 

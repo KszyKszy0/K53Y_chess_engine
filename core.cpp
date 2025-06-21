@@ -4,12 +4,11 @@
 #include "nnue.h"
 #include "fstream"
 
-
-float L1_weights[inputSize][l1_size / 2];
-float L1_bias[l1_size / 2];
-float L2_weights[l2_size][l1_size];
-float L2_bias[l2_size];
-float output_weights[l2_size];
+float L1_weights[INPUT_SIZE][L1_SIZE / 2];
+float L1_bias[L1_SIZE / 2];
+float L2_weights[L2_SIZE][L1_SIZE];
+float L2_bias[L2_SIZE];
+float output_weights[L2_SIZE];
 float output_bias;
 
 core::core()
@@ -242,35 +241,35 @@ void core::readNNUE()
 {
     std::fstream file("NNUE.txt");
     double value;
-    for(int i=0; i < (l1_size / 2); i++)
+    for(int i=0; i < (L1_SIZE / 2); i++)
     {
-        for(int j=0; j < inputSize; j++)
+        for(int j=0; j < INPUT_SIZE; j++)
         {
             file >> value;
             L1_weights[j][i] = value;
         }
     }
-    for(int i=0; i < (l1_size / 2); i++)
+    for(int i=0; i < (L1_SIZE / 2); i++)
     {
         file >> value;
         L1_bias[i] = value;
     }
 
-    for(int i=0; i < l2_size; i++)
+    for(int i=0; i < L2_SIZE; i++)
     {
-        for(int j=0; j < l1_size; j++)
+        for(int j=0; j < L1_SIZE; j++)
         {
             file >> value;
             L2_weights[i][j] = value;
         }
     }
-    for(int i=0; i < l2_size; i++)
+    for(int i=0; i < L2_SIZE; i++)
     {
         file >> value;
         L2_bias[i] = value;
     }
 
-    for(int i=0; i < l2_size; i++)
+    for(int i=0; i < L2_SIZE; i++)
     {
         file >> value;
         output_weights[i] = value;
@@ -354,4 +353,9 @@ void core::eval()
 void core::state()
 {
     printState();
+}
+
+void core::fen()
+{
+    cout<<pos.getFEN()<<endl;
 }
