@@ -178,7 +178,7 @@ float evaluate(Position& pos)
 #endif
 
 #ifdef NNUE
-    return firstLayer(pos.accum.values, pos.STM);
+    return firstLayer(pos.accum, pos.STM);
 #endif
 }
 

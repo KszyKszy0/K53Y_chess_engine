@@ -190,5 +190,9 @@ void uciLoop(core& engine)
         {
             engine.fen();
         }
+        if (tokens[0] == "read")
+        {
+            engine.readWeights();
+        }
     }
 }

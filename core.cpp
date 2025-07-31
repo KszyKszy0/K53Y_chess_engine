@@ -3,13 +3,34 @@
 #include "accumulator.h"
 #include "nnue.h"
 #include "fstream"
+#include <stdfloat>
 
-float L1_weights[INPUT_SIZE][L1_SIZE / 2];
-float L1_bias[L1_SIZE / 2];
-float L2_weights[L2_SIZE][L1_SIZE];
-float L2_bias[L2_SIZE];
-float output_weights[L2_SIZE];
-float output_bias;
+#ifdef INT16
+alignas(32)int16_t L1_weights[INPUT_SIZE][L1_SIZE / 2];
+alignas(32) int16_t L1_bias[L1_SIZE / 2];
+alignas(32) int16_t L2_weights[L2_SIZE][L1_SIZE];
+alignas(32) int16_t L2_bias[L2_SIZE];
+alignas(32) int16_t output_weights[L2_SIZE];
+alignas(32) int16_t output_bias;
+#endif
+
+#ifdef FLOAT
+alignas(32) float L1_weights[INPUT_SIZE][L1_SIZE / 2];
+alignas(32) float L1_bias[L1_SIZE / 2];
+alignas(32) float L2_weights[L2_SIZE][L1_SIZE];
+alignas(32) float L2_bias[L2_SIZE];
+alignas(32) float output_weights[L2_SIZE];
+alignas(32) float output_bias;
+#endif
+
+#ifdef FLOAT16
+alignas(32) float L1_weights[INPUT_SIZE][L1_SIZE / 2];
+alignas(32) float L1_bias[L1_SIZE / 2];
+alignas(64) bfloat16_t L2_weights[L2_SIZE][L1_SIZE];
+alignas(32) float L2_bias[L2_SIZE];
+alignas(32) float output_weights[L2_SIZE];
+alignas(32) float output_bias;
+#endif
 
 core::core()
 {
@@ -240,19 +261,21 @@ void core::setTime(int wTime, int bTime, int wInc, int bInc, int moveTime, searc
 void core::readNNUE()
 {
     std::fstream file("NNUE.txt");
-    double value;
+    
+    #ifdef INT16
+    int value;
     for(int i=0; i < (L1_SIZE / 2); i++)
     {
         for(int j=0; j < INPUT_SIZE; j++)
         {
             file >> value;
-            L1_weights[j][i] = value;
+            L1_weights[j][i] = static_cast<int8_t>(value);
         }
     }
     for(int i=0; i < (L1_SIZE / 2); i++)
     {
         file >> value;
-        L1_bias[i] = value;
+        L1_bias[i] = static_cast<int8_t>(value);
     }
 
     for(int i=0; i < L2_SIZE; i++)
@@ -260,24 +283,105 @@ void core::readNNUE()
         for(int j=0; j < L1_SIZE; j++)
         {
             file >> value;
-            L2_weights[i][j] = value;
+            L2_weights[i][j] = static_cast<int8_t>(value);
         }
     }
     for(int i=0; i < L2_SIZE; i++)
     {
         file >> value;
-        L2_bias[i] = value;
+        L2_bias[i] = static_cast<int8_t>(value);
     }
 
     for(int i=0; i < L2_SIZE; i++)
     {
         file >> value;
-        output_weights[i] = value;
+        output_weights[i] = static_cast<int8_t>(value);
     }
 
+    file >> value;
+    output_bias = static_cast<int8_t>(value);
+    #endif
+
+    #ifdef FLOAT
+    float value;
+    for(int i=0; i < (L1_SIZE / 2); i++)
+    {
+        for(int j=0; j < INPUT_SIZE; j++)
+        {
+            file >> value;
+            L1_weights[j][i] = static_cast<float>(value);
+        }
+    }
+    for(int i=0; i < (L1_SIZE / 2); i++)
+    {
+        file >> value;
+        L1_bias[i] = static_cast<float>(value);
+    }
+
+    for(int i=0; i < L2_SIZE; i++)
+    {
+        for(int j=0; j < L1_SIZE; j++)
+        {
+            file >> value;
+            L2_weights[i][j] = static_cast<float>(value);
+        }
+    }
+    for(int i=0; i < L2_SIZE; i++)
+    {
+        file >> value;
+        L2_bias[i] = static_cast<float>(value);
+    }
+
+    for(int i=0; i < L2_SIZE; i++)
+    {
+        file >> value;
+        output_weights[i] = static_cast<float>(value);
+    }
 
     file >> value;
-    output_bias = value;
+    output_bias = static_cast<float>(value);
+    #endif
+
+    #ifdef FLOAT16
+    float value;
+    for(int i=0; i < (L1_SIZE / 2); i++)
+    {
+        for(int j=0; j < INPUT_SIZE; j++)
+        {
+            file >> value;
+            L1_weights[j][i] = float(value);
+        }
+    }
+    for(int i=0; i < (L1_SIZE / 2); i++)
+    {
+        file >> value;
+        L1_bias[i] = float(value);
+    }
+
+    for(int i=0; i < L2_SIZE; i++)
+    {
+        for(int j=0; j < L1_SIZE; j++)
+        {
+            file >> value;
+            L2_weights[i][j] = bfloat16_t(value);
+        }
+    }
+    for(int i=0; i < L2_SIZE; i++)
+    {
+        file >> value;
+        L2_bias[i] = bfloat16_t(value);
+    }
+
+    for(int i=0; i < L2_SIZE; i++)
+    {
+        file >> value;
+        output_weights[i] = float(value);
+    }
+
+    file >> value;
+    output_bias = float(value);
+    #endif
+
     file.close();
 }
 
@@ -358,4 +462,12 @@ void core::state()
 void core::fen()
 {
     cout<<pos.getFEN()<<endl;
+}
+
+void core::readWeights()
+{
+    #if defined(INT16) || defined(FLOAT) || defined(FLOAT16)
+    readNNUE();
+    cout<<"info bias "<<output_bias<<endl;
+    #endif
 }

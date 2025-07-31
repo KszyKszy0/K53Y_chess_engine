@@ -1,11 +1,20 @@
 #pragma once
-#include "nnue.h"
+#include "layerSizes.h"
+#include <cstdint>
+#include <stdfloat>
+
 class Accumulator
 {
     public:
 
     //Two for colors and 16 for each
-    float values[L1_SIZE];
+    #ifdef INT16
+    alignas (64) int16_t values[L1_SIZE];
+    #endif
+
+    #if defined(FLOAT) || defined(FLOAT16)
+    alignas (64) float values[L1_SIZE];
+    #endif
 
     void removePiece(int type, int ind);
 

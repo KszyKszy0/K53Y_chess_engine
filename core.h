@@ -82,4 +82,7 @@ public:
 
     // Show fen of position
     void fen();
+
+    // Updates weights of net
+    void readWeights();
 };

@@ -83,7 +83,6 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
         //We don't add entries when cancelling search
         transpositionMove = entry.bestMove;
 
-        #ifndef DATAGEN
         //If depth from TT is at least same as current we can immediately take score
         if ((entry.depth >= depth) && (ply > 0) && !isPV)
         {
@@ -93,7 +92,6 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
                 return entry.score;
             }
         }
-        #endif
     }
 
 
@@ -444,39 +442,35 @@ Move search(Position &pos, searchParams params)
     }
 
     //After ID loop we print best move to uci
+    std::cout << "info nodes "<<nodesCount<<endl; 
     std::cout << "bestmove " << moveToUci(bestMovePrevious) << endl;
     return bestMovePrevious;
     
-    #ifdef DATAGEN
-    // saveState(pos);
+    #ifdef DATAGEN2
+    saveState(pos);
 
-    // int color = pos.STM ? 1 : -1; // Who was on move at mate position
-    // int label = 0;
+    int color = pos.STM ? 1 : -1; // Who was on move at mate position
+    int label = 0;
 
-    // // If mate detected
-    // if (oldEval > 90000 || oldEval < -90000)
-    // {
-    //     // Determine winner from eval sign
-    //     if (oldEval > 90000)
-    //         label = 1; // side to move delivered mate
-    //     else
-    //         label = -1; // side to move got mated
+    // If mate detected
+    if (oldEval > 90000 || oldEval < -90000)
+    {
+        // Determine winner from eval sign
+        if (oldEval > 90000)
+            label = 1; // white delivered mate
+        else
+            label = -1; // black delivered mate
 
-    //     // Save each collected position with label from STM's perspective
-    //     for (auto& state : pos.datagenPositions)
-    //     {
-    //         savePosition(state, label*color);
-    //     }
+        // Save each collected position with label from STM's perspective
+        for (auto& state : pos.datagenPositions)
+        {
+            savePosition(state, label*color);
+        }
 
-    //     // Clear stored positions (optional)
-    //     pos.datagenPositions.clear();
-    // }
+        // Clear stored positions
+        pos.datagenPositions.clear();
+    }
     #endif
-
-#ifdef DATAGEN
-    // if(oldEval > -90000 && oldEval < 90000 && Flags(bestMovePrevious) != CAPTURE && popCount(pos.piecesBitboards[ALL_PIECES]) >= 6)
-    //     savePosition(pos, oldEval);
-#endif
 }
 
 //3 fold repetition check
@@ -675,7 +669,8 @@ void saveState(Position &pos)
     pos.datagenPositions.push_back(pos.getState());
 }
 
-void savePosition(std::array<int, INPUT_SIZE> state, float target) {
+void savePosition(std::array<int, INPUT_SIZE> state, float target) 
+{
     // Open file in binary mode
     std::ofstream file("binary_data.bin", std::ios::binary | std::ios::app);
 
