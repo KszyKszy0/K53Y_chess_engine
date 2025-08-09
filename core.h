@@ -72,7 +72,7 @@ public:
     void printState();
 
     // Read weights of net
-    void readNNUE();
+    void readNNUE(string path = "NNUE.txt");
 
     // Show current static eval of position
     void eval();
@@ -82,7 +82,7 @@ public:
 
     // Show fen of position
     void fen();
-
+    
     // Updates weights of net
-    void readWeights();
+    void readWeights(string path = "NNUE.txt");
 };

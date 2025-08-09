@@ -51,16 +51,7 @@ extern Bitboard queiscenceNodes;
 extern Bitboard quiescenceTT;
 
 
-
-
-extern Move bestMovePrevious;
-
-
-
-extern int oldEval;
-
 extern bool isCancelled;
-
 
 
 const int MVVLVA[12][12]=

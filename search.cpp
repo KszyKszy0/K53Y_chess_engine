@@ -7,7 +7,8 @@
 #include "helperFunctions.h"
 #include "accumulator.h"
 #include <fstream>
-
+#include <math.h>
+#include <algorithm>
 
 
 
@@ -21,8 +22,6 @@ Bitboard nodesCount;
 Bitboard matchedTranspositions;
 Bitboard collisions;
 
-Move bestMovePrevious;
-int oldEval;
 
 Move killers[MAX_DEPTH];
 Move historyHeuristic[MAX_DEPTH][MAX_DEPTH];
@@ -89,6 +88,15 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
             //Check for node type (matching ab window) (cutoff) (fail low)
             if ((entry.type == EXACT_SCORE) || ((entry.type == LOWER_BOUND) && (entry.score >= beta)) || ((entry.type == UPPER_BOUND) && (entry.score < alpha)))
             {
+                int score = entry.score;
+                if(entry.score > (CHECKMATE - 100))
+                {
+                    score = entry.score - ply;
+                } 
+                if(entry.score < (CHECKMATE - 100))
+                {
+                    score = entry.score + ply;
+                }
                 return entry.score;
             }
         }
@@ -192,9 +200,38 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
             }
         }
 
-        //Make move
+        int eval = evaluate(pos);
+
+        //NMP
+        if(!isPV
+        && (moveList.checks == 0)
+        && (eval >= beta)
+        && (depth > 2)
+        && (pos.positionHistory[pos.stateCounter] != (pos.positionHistory[pos.stateCounter-1] ^ pos.zobrist.zobristTable[792]))
+        )
+        {
+            int reducedDepth = max(depth - 4, 0);
+            pos.makeNullMove();
+            int value = -negamax(reducedDepth, ply + 1, -beta, -beta + 1, -color, pos, tempVar, params);
+            pos.undoNullMove();
+
+            if(value >= beta)
+            {
+                return value;
+            }
+        }
+
+        //Make moveisCancelled
         pos.makeMove(m);
 
+        int reduction = 0;
+
+        if((Flags(m) < 4) &&
+        (movesSearched > 4) &&
+        (depth > 4))
+        {
+            reduction = max(0.0, 1 + log(depth) * log(movesSearched) / 3);
+        }
 
         int value = 0;
 
@@ -205,7 +242,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
         }else
         {
             //If it is not first move we search with null window
-            value = -negamax(depth - 1, ply + 1, -alpha - 1, -alpha, -color, pos, tempVar, params);
+            value = -negamax(depth - 1 - reduction, ply + 1, -alpha - 1, -alpha, -color, pos, tempVar, params);
 
             //If value is inside alpha beta bound we research with full window
             if(value > alpha && value < beta)
@@ -313,26 +350,6 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
     }
 #endif
 
-
-    //At root ply
-    if (ply == 0)
-    {
-        //Update move eval
-        if ((best != -CHECKMATE) && (best != -NO_MOVE))
-            oldEval = best;
-
-        // In case of first move cancel we return first move from list beacuse it is from TT
-        // 0 means take the move from old ID iteration
-        if(isCancelled)
-        {
-            return 0;
-        }else
-        {
-            return bestMove;
-        }
-
-    }
-
     //Return best value from node up
     return best;
 }
@@ -343,11 +360,6 @@ Move search(Position &pos, searchParams params)
 
     //Best move we got current search
     Move bestMove = 0;
-
-    //Old evaluation of position
-    //It is not updated when time cutoff
-    //So we get reasonable value
-    oldEval = 0;
 
     //Timer for time management
     auto start = chrono::steady_clock::now();
@@ -371,25 +383,64 @@ Move search(Position &pos, searchParams params)
         }
     }
 
+    int alpha = -INF;
+    int beta = INF;
+    int aspirationWindowMargin = 20;
+
+    Move bestMoveSoFar = 0;
+    int searchScore = 0;
+    principalVariation PVMain;
+    for(int i=0; i < MAX_DEPTH; i++)
+    {
+        PVMain.list[i] = 0;
+    }
+    PVMain.length = 0;
+
     //Iterative deepening loop
     for (int depth = 1; depth < MAX_DEPTH; depth++)
     {
-        principalVariation PVMain;
-        for(int i=0; i < MAX_DEPTH; i++)
+        if(depth > 4)
         {
-            PVMain.list[i] = 0;
+            alpha = max(-(int)CHECKMATE, searchScore - aspirationWindowMargin);
+            beta = min((int)CHECKMATE, searchScore + aspirationWindowMargin);
         }
-        PVMain.length = 0;
+         
         //Start negamax for current depth
-        // pos.accum.initAccum(pos.piecesArray);
         int color = pos.STM ? 1 : -1;
-        bestMove = negamax(depth, 0, -INF, INF, color, pos, PVMain, params);
 
-        if (bestMove != 0)
+        while (true) 
         {
-            //We didn't get nullmove we can take that move
-            bestMovePrevious = bestMove;
+            searchScore = negamax(depth, 0, alpha, beta, color, pos, PVMain, params);
+            
+            if(isCancelled)
+            {
+                break;
+            }
+
+            if(searchScore < alpha)
+            {
+                alpha = max(-(int)CHECKMATE, alpha - aspirationWindowMargin);
+                continue;
+            }
+
+            if(searchScore > beta)
+            {
+                beta = min((int)CHECKMATE, beta + aspirationWindowMargin);
+                continue;
+            }
+            break;
         }
+        // for(int i=0; i < PVMain.length; i++)
+        // {
+        //     cout << moveToUci(PVMain.list[i]) << " ";
+        // }
+        // cout<<endl;
+        bestMoveSoFar = PVMain.list[0];
+        // cout<<moveToUci(bestMoveSoFar)<<endl;
+
+        aspirationWindowMargin += 10;
+
+        searchScore = negamax(depth, 0, alpha, beta, color, pos, PVMain, params);
 
         //Time check and uci info
         auto end = chrono::steady_clock::now();
@@ -400,7 +451,7 @@ Move search(Position &pos, searchParams params)
         {
             int mili = chrono::duration_cast<chrono::milliseconds>(end - start).count();
             std::cout << "info depth " << depth;
-            std::cout << " score cp " << oldEval;
+            std::cout << " score cp " << searchScore;
             std::cout << " nodes " << nodesCount;
             std::cout << " nps " << (int)(1000 * (nodesCount / (1 + mili)));
             std::cout << " time " << mili;
@@ -443,8 +494,8 @@ Move search(Position &pos, searchParams params)
 
     //After ID loop we print best move to uci
     std::cout << "info nodes "<<nodesCount<<endl; 
-    std::cout << "bestmove " << moveToUci(bestMovePrevious) << endl;
-    return bestMovePrevious;
+    std::cout << "bestmove " << moveToUci(bestMoveSoFar) << endl;
+    
     
     #ifdef DATAGEN2
     saveState(pos);
@@ -453,10 +504,10 @@ Move search(Position &pos, searchParams params)
     int label = 0;
 
     // If mate detected
-    if (oldEval > 90000 || oldEval < -90000)
+    if (searchScore > 90000 || searchScore < -90000)
     {
         // Determine winner from eval sign
-        if (oldEval > 90000)
+        if (searchScore > 90000)
             label = 1; // white delivered mate
         else
             label = -1; // black delivered mate
@@ -471,6 +522,8 @@ Move search(Position &pos, searchParams params)
         pos.datagenPositions.clear();
     }
     #endif
+
+    return bestMoveSoFar;
 }
 
 //3 fold repetition check

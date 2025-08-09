@@ -190,9 +190,15 @@ void uciLoop(core& engine)
         {
             engine.fen();
         }
-        if (tokens[0] == "read")
+        if (tokens[0] == "setoption" && tokens[1] == "read")
         {
-            engine.readWeights();
+            if (tokens.size() == 2)
+            {
+                engine.readWeights();
+            }else if (tokens.size() > 2)
+            {
+                engine.readWeights(tokens[2]);
+            }
         }
     }
 }

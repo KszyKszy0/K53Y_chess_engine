@@ -493,6 +493,43 @@ void Position::makeMove(Move move)
     addState(tempState);
 }
 
+void Position::makeNullMove()
+{
+    StateInfo refernce = stateInfoList[stateCounter];
+    StateInfo tempState = StateInfo(refernce.enPassantSquare,refernce.castlingRights,refernce.halfMove,refernce.fullMove,refernce.capturedPieceType);
+
+    //After black move update fullmove
+    if(!STM)
+    {
+        tempState.fullMove++;
+    }
+
+    //Change side to move
+    STM = !STM;
+
+    tempState.halfMove++;
+
+    if(tempState.enPassantSquare != 0)
+        positionHash ^= zobrist.zobristTable[784 + (tempState.enPassantSquare % 8)];
+
+    tempState.enPassantSquare = 0;
+
+    //Change move side
+    positionHash ^= zobrist.zobristTable[792];
+
+    //Number of states + starting one
+    stateCounter++;
+    positionHistory[stateCounter]=positionHash;
+
+    #ifdef NNUE
+    for(int j=0; j < L1_SIZE; j++)
+    {
+        tempState.accumulator[j] = accum.values[j];
+    }
+    #endif
+    addState(tempState);
+}
+
 void Position::undoMove(Move move)
 {
     int startSquare = move & 0b111111;
@@ -619,6 +656,21 @@ void Position::undoMove(Move move)
         accum.values[j] = stateInfoList[stateCounter].accumulator[j];
     }
 #endif
+}
+
+void Position::undoNullMove()
+{
+    STM = !STM;
+
+    stateCounter--;
+    positionHash = positionHistory[stateCounter];
+    
+    #ifdef NNUE
+        for(int j=0; j < L1_SIZE; j++)
+        {
+            accum.values[j] = stateInfoList[stateCounter].accumulator[j];
+        }
+    #endif
 }
 
 

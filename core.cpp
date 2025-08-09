@@ -150,6 +150,7 @@ void core::goPerft(int depth)
 void core::uci() {
     std::cout << "id name K53Y Chess Engine" << std::endl;
     std::cout << "id author KszyKszy" << std::endl;
+    std::cout << "option name read type string default" << std::endl;
     std::cout << "uciok" << std::endl;
 }
 
@@ -258,9 +259,9 @@ void core::setTime(int wTime, int bTime, int wInc, int bInc, int moveTime, searc
     }
 }
 
-void core::readNNUE()
+void core::readNNUE(string path)
 {
-    std::fstream file("NNUE.txt");
+    std::fstream file(path);
     
     #ifdef INT16
     int value;
@@ -464,10 +465,10 @@ void core::fen()
     cout<<pos.getFEN()<<endl;
 }
 
-void core::readWeights()
+void core::readWeights(string path)
 {
     #if defined(INT16) || defined(FLOAT) || defined(FLOAT16)
-    readNNUE();
+    readNNUE(path);
     cout<<"info bias "<<output_bias<<endl;
     #endif
 }

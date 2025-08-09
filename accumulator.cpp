@@ -119,7 +119,7 @@ void Accumulator::resetAccum()
     //Loop through array of all pieces
     for(int i=0; i < L1_SIZE; i++)
     {
-        values[i] = L1_bias[i % 256];
+        values[i] = L1_bias[i % (L1_SIZE / 2)];
     }
     #endif
 
@@ -127,7 +127,7 @@ void Accumulator::resetAccum()
     //Loop through array of all pieces
     for(int i=0; i < L1_SIZE; i++)
     {
-        values[i] = L1_bias[i % 256];
+        values[i] = L1_bias[i % (L1_SIZE / 2)];
     }
     #endif
 #endif

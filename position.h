@@ -41,9 +41,15 @@ class Position
 
     //Make move doesnt care if its legal
     void makeMove(Move move);
+    
+    // Make null move
+    void makeNullMove();
 
     //Undo move doesnt care if its legal
     void undoMove(Move move);
+
+    //Undo null move
+    void undoNullMove();
 
     //Creates and add state of game to list
     void addState(int pas, Bitboard cast, int half, int full, int captureType, Accumulator& acc);
