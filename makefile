@@ -1,5 +1,6 @@
 # Compiler
-CXX := g++-13
+CXX := g++
+CXX_BFLOAT := g++-13
 SRC := $(wildcard *.cpp)
 
 # Output binaries
@@ -12,6 +13,7 @@ OUT_HCE := engine_hce
 OUT_HCE_DATAGEN := engine_hce_datagen
 OUT_HCE_DATAGEN2 := engine_hce_datagen2
 OUT_HCE_DATAGENMIX := engine_hce_datagen_mix
+OUT_NNUE_DATAGEN := nnue_datagen_dfloat
 
 # Common Optimization Flags
 CXX_OPTIM := -O3 -march=native -flto=auto -funroll-loops -ffast-math
@@ -39,6 +41,7 @@ dfloat: $(OUT_DFLOAT)
 dfloat16: $(OUT_DFLOAT16)
 hce: $(OUT_HCE)
 hce_datagen: $(OUT_HCE_DATAGEN)
+nnue_datagen: $(OUT_NNUE_DATAGEN)
 
 # Build rules
 $(OUT_RELEASE): $(SRC)
@@ -54,7 +57,7 @@ $(OUT_DFLOAT): $(SRC)
 	$(CXX) $(CXX_OPTIM) $(CXX_NNUEFLOAT) $^ -o $@
 
 $(OUT_DFLOAT16): $(SRC)
-	$(CXX) $(CXX_OPTIM) $(CXX_NNUEFLOAT16) $^ -o $@
+	$(CXX_BFLOAT) $(CXX_OPTIM) $(CXX_NNUEFLOAT16) $^ -o $@
 
 $(OUT_HCE): $(SRC)
 	$(CXX) $(CXX_OPTIM) $(CXX_HCE) $^ -o $@
@@ -67,6 +70,9 @@ $(OUT_HCE_DATAGEN2): $(SRC)
 
 $(OUT_HCE_DATAGENMIX): $(SRC)
 	$(CXX) $(CXX_OPTIM) $(CXX_HCE) $(CXX_DATAGEN_SEARCH) $(CXX_DATAGEN_ENDGAME) $^ -o $@
+
+$(OUT_NNUE_DATAGEN): $(SRC)
+	$(CXX) $(CXX_OPTIM) $(CXX_NNUEFLOAT) $(CXX_DATAGEN_SEARCH) $^ -o $@
 
 # Clean
 clean:

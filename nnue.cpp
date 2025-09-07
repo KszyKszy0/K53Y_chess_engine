@@ -52,22 +52,28 @@ float firstLayer(Accumulator &accum, bool perspective)
         // Sumujemy wartości w `hidden_vec` i zapisujemy do `hidden[i]`
         hidden[i] = _mm256_reduce_add_ps(hiddenVec);
     }
-    // Druga pętla: wyliczanie `result`
-    result = 0.0f;
-    for (int i = 0; i < L2_SIZE; i += 8) {
-        __m256 hiddenVec = _mm256_loadu_ps(&hidden[i]);
-        __m256 biasVec = _mm256_loadu_ps(&L2_bias[i]);
-        __m256 sum = _mm256_add_ps(hiddenVec, biasVec);
-        sum = _mm256_max_ps(sum, zero); // ReLU
 
-        __m256 output_weights_vec = _mm256_loadu_ps(&output_weights[i]);
-        __m256 result_vec = _mm256_mul_ps(sum, output_weights_vec);
+    if(!oneLayer)
+    {
+        // Druga pętla: wyliczanie `result`
+        result = 0.0f;
+        for (int i = 0; i < L2_SIZE; i += 8) {
+            __m256 hiddenVec = _mm256_loadu_ps(&hidden[i]);
+            __m256 biasVec = _mm256_loadu_ps(&L2_bias[i]);
+            __m256 sum = _mm256_add_ps(hiddenVec, biasVec);
+            sum = _mm256_max_ps(sum, zero); // ReLU
 
-        // Sumujemy wszystkie elementy w `result_vec` i dodajemy do `result`
-        result += _mm256_reduce_add_ps(result_vec);
+            __m256 output_weights_vec = _mm256_loadu_ps(&output_weights[i]);
+            __m256 result_vec = _mm256_mul_ps(sum, output_weights_vec);
+
+            // Sumujemy wszystkie elementy w `result_vec` i dodajemy do `result`
+            result += _mm256_reduce_add_ps(result_vec);
+        }
+    }else
+    {
+        result = hidden[0];
     }
-
-    return (result + output_bias)*100;
+    return (result + output_bias) * 100 * evalScale;
 }
 #endif
 
@@ -120,22 +126,29 @@ float firstLayer(Accumulator& accum, bool perspective)
         hidden[i] = _mm256_reduce_add_ps(acc);
     }
 
-    // Druga pętla: wyliczanie `result`
-    result = 0.0f;
-    for (int i = 0; i < L2_SIZE; i += 8) {
-        __m256 hidden_vec = _mm256_loadu_ps(&hidden[i]);
-        __m256 bias_vec = _mm256_loadu_ps(&L2_bias[i]);
-        __m256 weighted_sum = _mm256_add_ps(hidden_vec, bias_vec);
-        weighted_sum = _mm256_max_ps(weighted_sum, zero); // ReLU
+    if(!oneLayer)
+    {
+        // Druga pętla: wyliczanie `result`
+        result = 0.0f;
+        for (int i = 0; i < L2_SIZE; i += 8) {
+            __m256 hidden_vec = _mm256_loadu_ps(&hidden[i]);
+            __m256 bias_vec = _mm256_loadu_ps(&L2_bias[i]);
+            __m256 weighted_sum = _mm256_add_ps(hidden_vec, bias_vec);
+            weighted_sum = _mm256_max_ps(weighted_sum, zero); // ReLU
 
-        __m256 output_weights_vec = _mm256_loadu_ps(&output_weights[i]);
-        __m256 result_vec = _mm256_mul_ps(weighted_sum, output_weights_vec);
+            __m256 output_weights_vec = _mm256_loadu_ps(&output_weights[i]);
+            __m256 result_vec = _mm256_mul_ps(weighted_sum, output_weights_vec);
 
-        // Sumujemy wszystkie elementy w `result_vec` i dodajemy do `result`
-        result += _mm256_reduce_add_ps(result_vec);
+            // Sumujemy wszystkie elementy w `result_vec` i dodajemy do `result`
+            result += _mm256_reduce_add_ps(result_vec);
+        }
+    }
+    else
+    {
+        result = hidden[0];
     }
 
-    return (result + output_bias)*100;
+    return (result + output_bias) * 100 * evalScale;
 }
 #endif
 
@@ -177,17 +190,25 @@ float firstLayer(Accumulator& accum, bool perspective)
         hidden[i] = acc_sum;
     }
 
-    // 3. Druga warstwa: liczymy wynik
-    int32_t result_acc = 0;
-    for (int i = 0; i < L2_SIZE; ++i) {
-        int32_t h = hidden[i] + static_cast<int32_t>(L2_bias[i]);
-        h = std::max(0, h);
-        int32_t w = static_cast<int32_t>(output_weights[i]);
-        result_acc += h * w;
+    int32_t result = 0;
+    if(!oneLayer)
+    {
+        // 3. Druga warstwa: liczymy wynik
+        for (int i = 0; i < L2_SIZE; ++i) {
+            int32_t h = hidden[i] + static_cast<int32_t>(L2_bias[i]);
+            h = std::max(0, h);
+            int32_t w = static_cast<int32_t>(output_weights[i]);
+            result += h * w;
+        }
     }
+    else
+    {
+        result = hidden[0];
+    }
+    
 
     // 4. Dodajemy bias wyjściowy i skalujemy
     int32_t final_acc = result_acc + static_cast<int32_t>(output_bias);
-    return static_cast<float>(final_acc) / 1000.0f;
+    return static_cast<float>(final_acc) * evalScale / 1000.0f;
 }
 #endif

@@ -1,6 +1,6 @@
 #include "accumulator.h"
 #include "nnue.h"
-#include "layerSizes.h"
+#include "consts.h"
 #include "enums.h"
 #include "bitboard.h"
 #include <immintrin.h>

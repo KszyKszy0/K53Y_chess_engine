@@ -28,9 +28,9 @@ struct searchParams
     chrono::steady_clock::time_point start;
 };
 
-int negamax(int depth, int ply, int alpha, int beta,int color, Position& pos, principalVariation& PV, searchParams& params);
+scoreType negamax(int depth, int ply, scoreType alpha, scoreType beta,int color, Position& pos, principalVariation& PV, searchParams& params);
 
-int quiescence(int depth, int ply, int alpha, int beta,int color, Position& pos, principalVariation& PV, searchParams& params);
+scoreType quiescence(int depth, int ply, scoreType alpha, scoreType beta,int color, Position& pos, principalVariation& PV, searchParams& params);
 
 Move search(Position& pos, searchParams params);
 
@@ -73,10 +73,10 @@ const int MVVLVA[12][12]=
 
 extern Move killers[MAX_DEPTH];
 
-extern Move historyHeuristic[MAX_DEPTH][MAX_DEPTH];
+extern Move historyHeuristic[64][64];
 
 //Saves position in savefile with state and its eval 96 + 4 bytes = 100 bytes
-void savePosition(std::array<int, INPUT_SIZE> state, float negamaxScore);
+void savePosition(std::array<int, INPUT_SIZE> state, float negamaxScore, Position& pos);
 
 //Add state to position datagen list
 void saveState(Position &pos);

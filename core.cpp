@@ -151,6 +151,8 @@ void core::uci() {
     std::cout << "id name K53Y Chess Engine" << std::endl;
     std::cout << "id author KszyKszy" << std::endl;
     std::cout << "option name read type string default" << std::endl;
+    std::cout << "option name datagenFile type string default" << std::endl;
+    std::cout << "option name hash type spin default 16" << std::endl;
     std::cout << "uciok" << std::endl;
 }
 
@@ -216,47 +218,15 @@ void core::setTime(int wTime, int bTime, int wInc, int bInc, int moveTime, searc
         params.timeLimit = moveTime;
         return;
     }
-    if(pos.STM)
-    {
-        if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 28 )
-        {
-            params.timeLimit = wTime / (float)60;
-            return;
-        }
-        if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 16 )
-        {
-            params.timeLimit = wTime / (float)40;
-            return;
-        }
-        if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 4 )
-        {
-            params.timeLimit = wTime / (float)20;
-            return;
-        }
-        params.increment = wInc;
-        params.timeLimit = wTime / (float)15;
-        return;
-    }else
-    {
-        if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 28 )
-        {
-            params.timeLimit = bTime / (float)60;
-            return;
-        }
-        if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 16 )
-        {
-            params.timeLimit = bTime / (float)40;
-            return;
-        }
-        if( popCount(pos.piecesBitboards[ALL_PIECES]) >= 4 )
-        {
-            params.timeLimit = bTime / (float)20;
-            return;
-        }
-        params.increment = bInc;
-        params.timeLimit = bTime / (float)15;
-        return;
-    }
+
+    int myTime = pos.STM ? wTime : bTime;
+    int myInc = pos.STM ? wInc : bInc;
+    int enemyTime = pos.STM ? bTime : wTime;
+    int enemyInc = pos.STM ? bInc : wInc;
+
+    params.timeLimit = myTime / 20 + myInc / 2;
+
+    return;
 }
 
 void core::readNNUE(string path)
@@ -287,17 +257,22 @@ void core::readNNUE(string path)
             L2_weights[i][j] = static_cast<int8_t>(value);
         }
     }
-    for(int i=0; i < L2_SIZE; i++)
-    {
-        file >> value;
-        L2_bias[i] = static_cast<int8_t>(value);
-    }
 
-    for(int i=0; i < L2_SIZE; i++)
+    if(!oneLayer)
     {
-        file >> value;
-        output_weights[i] = static_cast<int8_t>(value);
+        for(int i=0; i < L2_SIZE; i++)
+        {
+            file >> value;
+            L2_bias[i] = static_cast<int8_t>(value);
+        }
+
+        for(int i=0; i < L2_SIZE; i++)
+        {
+            file >> value;
+            output_weights[i] = static_cast<int8_t>(value);
+        }
     }
+    
 
     file >> value;
     output_bias = static_cast<int8_t>(value);
@@ -327,16 +302,20 @@ void core::readNNUE(string path)
             L2_weights[i][j] = static_cast<float>(value);
         }
     }
-    for(int i=0; i < L2_SIZE; i++)
-    {
-        file >> value;
-        L2_bias[i] = static_cast<float>(value);
-    }
 
-    for(int i=0; i < L2_SIZE; i++)
+    if(!oneLayer)
     {
-        file >> value;
-        output_weights[i] = static_cast<float>(value);
+        for(int i=0; i < L2_SIZE; i++)
+        {
+            file >> value;
+            L2_bias[i] = static_cast<float>(value);
+        }
+
+        for(int i=0; i < L2_SIZE; i++)
+        {
+            file >> value;
+            output_weights[i] = static_cast<float>(value);
+        }
     }
 
     file >> value;
@@ -367,16 +346,20 @@ void core::readNNUE(string path)
             L2_weights[i][j] = bfloat16_t(value);
         }
     }
-    for(int i=0; i < L2_SIZE; i++)
-    {
-        file >> value;
-        L2_bias[i] = bfloat16_t(value);
-    }
 
-    for(int i=0; i < L2_SIZE; i++)
+    if(!oneLayer)
     {
-        file >> value;
-        output_weights[i] = float(value);
+        for(int i=0; i < L2_SIZE; i++)
+        {
+            file >> value;
+            L2_bias[i] = bfloat16_t(value);
+        }
+
+        for(int i=0; i < L2_SIZE; i++)
+        {
+            file >> value;
+            output_weights[i] = float(value);
+        }
     }
 
     file >> value;
@@ -471,4 +454,9 @@ void core::readWeights(string path)
     readNNUE(path);
     cout<<"info bias "<<output_bias<<endl;
     #endif
+}
+
+void core::setDatagenFile(string file)
+{
+    pos.datagenFile = file;
 }

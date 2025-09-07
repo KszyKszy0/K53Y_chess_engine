@@ -1,5 +1,5 @@
 #pragma once
-#include "layerSizes.h"
+#include "consts.h"
 #include <cstdint>
 #include <stdfloat>
 

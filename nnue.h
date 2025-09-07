@@ -1,6 +1,6 @@
 #include <cstdint>
 #include "accumulator.h"
-#include "layerSizes.h"
+#include "consts.h"
 #include <stdfloat>
 
 #ifdef INT16

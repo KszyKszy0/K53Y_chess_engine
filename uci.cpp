@@ -176,6 +176,14 @@ void uciLoop(core& engine)
                     engine.pos.TT.ResetTT();
                     cout<<"info string set Hash to "<<size<<endl;
                 }
+                if(tokens[1] == "name" && tokens[2] == "read" && tokens[3] == "value")
+                {
+                    engine.readWeights(tokens[4]);
+                }
+                if(tokens[0] == "setoption" && tokens[1] == "name" && tokens[2] == "datagenFile" && tokens[3] == "value")
+                {                    
+                   engine.setDatagenFile(tokens[4]);
+                }
             }
         }
         if (tokens[0] == "eval")
@@ -189,16 +197,6 @@ void uciLoop(core& engine)
         if (tokens[0] == "getfen")
         {
             engine.fen();
-        }
-        if (tokens[0] == "setoption" && tokens[1] == "read")
-        {
-            if (tokens.size() == 2)
-            {
-                engine.readWeights();
-            }else if (tokens.size() > 2)
-            {
-                engine.readWeights(tokens[2]);
-            }
         }
     }
 }

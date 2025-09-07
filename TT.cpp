@@ -1,6 +1,5 @@
 #include "TT.h"
 
-
 TTEntry::TTEntry()
 {
     score = 0;

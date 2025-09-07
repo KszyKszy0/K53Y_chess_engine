@@ -1,6 +1,7 @@
 #pragma once
 #include "bitboard.h"
 #include "move.h"
+#include "consts.h"
 
 
 class TTEntry
@@ -11,7 +12,7 @@ class TTEntry
     Bitboard zorbistKey;
 
     //Score of the position
-    int score;
+    scoreType score;
 
     //Depth of the position
     //Can be negative since qsearch gives negative depth values
@@ -35,7 +36,7 @@ class TranspositionTable
 {
     public:
 
-    Bitboard diskSize = 10000000;
+    Bitboard diskSize = 16'000'000;
     //Size of the Transposition table currently: 10MB
     Bitboard size = Bitboard(diskSize / sizeof(TTEntry));
 

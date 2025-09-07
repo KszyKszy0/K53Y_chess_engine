@@ -24,9 +24,9 @@ Bitboard collisions;
 
 
 Move killers[MAX_DEPTH];
-Move historyHeuristic[MAX_DEPTH][MAX_DEPTH];
+Move historyHeuristic[64][64];
 
-int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, principalVariation& PV, searchParams& params)
+scoreType negamax(int depth, int ply, scoreType alpha, scoreType beta, int color, Position &pos, principalVariation& PV, searchParams& params)
 {
     //Checks if we are in null window search
     bool isPV = (alpha != beta - 1);
@@ -46,6 +46,12 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
 
     // We set it to all node in case it fails low
     int newFlag = UPPER_BOUND;
+
+    //Check extensions
+    if(moveList.checks > 0)
+    {
+        depth++;
+    }
 
     if((nodesCount >= params.nodesLimit) && (params.nodesLimit > 0))
     {
@@ -86,18 +92,18 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
         if ((entry.depth >= depth) && (ply > 0) && !isPV)
         {
             //Check for node type (matching ab window) (cutoff) (fail low)
-            if ((entry.type == EXACT_SCORE) || ((entry.type == LOWER_BOUND) && (entry.score >= beta)) || ((entry.type == UPPER_BOUND) && (entry.score < alpha)))
+            if ((entry.type == EXACT_SCORE) || ((entry.type == LOWER_BOUND) && (entry.score >= beta)) || ((entry.type == UPPER_BOUND) && (entry.score <= alpha)))
             {
-                int score = entry.score;
+                scoreType score = entry.score;
                 if(entry.score > (CHECKMATE - 100))
                 {
                     score = entry.score - ply;
                 } 
-                if(entry.score < (CHECKMATE - 100))
+                if(entry.score < (-CHECKMATE + 100))
                 {
                     score = entry.score + ply;
                 }
-                return entry.score;
+                return score;
             }
         }
     }
@@ -155,7 +161,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
 
     //We init best to nomove so we always take something
     //Because its smaller than alpha
-    int best = -NO_MOVE;
+    scoreType best = -NO_MOVE;
 
     //In case we stop search on first move from 1 ply
     //We take the first move straight away
@@ -166,12 +172,6 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
 
     //Currently for pvs purpose
     int movesSearched = 0;
-
-    //Check extensions
-    if(moveList.checks > 0)
-    {
-        depth++;
-    }
 
     //Loop through all moves
     for (Move m : moveList)
@@ -212,7 +212,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
         {
             int reducedDepth = max(depth - 4, 0);
             pos.makeNullMove();
-            int value = -negamax(reducedDepth, ply + 1, -beta, -beta + 1, -color, pos, tempVar, params);
+            scoreType value = -negamax(reducedDepth, ply + 1, -beta, -beta + 1, -color, pos, tempVar, params);
             pos.undoNullMove();
 
             if(value >= beta)
@@ -221,7 +221,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
             }
         }
 
-        //Make moveisCancelled
+        //Make move
         pos.makeMove(m);
 
         int reduction = 0;
@@ -233,7 +233,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
             reduction = max(0.0, 1 + log(depth) * log(movesSearched) / 3);
         }
 
-        int value = 0;
+        scoreType value = 0;
 
         if(movesSearched == 0)
         {
@@ -326,8 +326,7 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
 
     }
 
-    //Store transposition with flag unless search is being cancelled or save it during cutoff if two or more moves were fully searched
-    if ((depth >= entry.depth) && (!isCancelled))
+    if(!isCancelled)
     {
         pos.TT.transpositionTable[key % pos.TT.size] = TTEntry(best, depth, bestMove, newFlag, key);
     }
@@ -339,13 +338,13 @@ int negamax(int depth, int ply, int alpha, int beta, int color, Position &pos, p
     // The first move of sequence is quiet
     // The score of node is exact 
     // We are not in check
-    if((best > -90000) && (best < 90000) && depth == 4 && !isCancelled && Flags(bestMove) < 4 && newFlag == EXACT_SCORE && moveList.checks == 0)
+    if((best > -90000) && (best < 90000) && (depth >= 5) && !isCancelled && Flags(bestMove) < 4 && newFlag == EXACT_SCORE && moveList.checks == 0 && popCount(pos.piecesBitboards[ALL_PIECES]) > 19)
     {
         // Static evaluation of node should not differ much from search value of node
         float staticEval = evaluate(pos);
-        if(abs(staticEval - best) < 100)
+        if((abs(staticEval - best) < 100) && (abs(best) > 15))
         {
-            savePosition(pos.getState(), best / 100.f);
+            savePosition(pos.getState(), best / 100.f, pos);
         }
     }
 #endif
@@ -383,12 +382,12 @@ Move search(Position &pos, searchParams params)
         }
     }
 
-    int alpha = -INF;
-    int beta = INF;
-    int aspirationWindowMargin = 20;
+    scoreType alpha = -INF;
+    scoreType beta = INF;
+    int aspirationWindowMargin = 20 * evalScale;
 
     Move bestMoveSoFar = 0;
-    int searchScore = 0;
+    scoreType searchScore = 0;
     principalVariation PVMain;
     for(int i=0; i < MAX_DEPTH; i++)
     {
@@ -401,8 +400,8 @@ Move search(Position &pos, searchParams params)
     {
         if(depth > 4)
         {
-            alpha = max(-(int)CHECKMATE, searchScore - aspirationWindowMargin);
-            beta = min((int)CHECKMATE, searchScore + aspirationWindowMargin);
+            alpha = max(-(scoreType)CHECKMATE, searchScore - aspirationWindowMargin);
+            beta = min((scoreType)CHECKMATE, searchScore + aspirationWindowMargin);
         }
          
         //Start negamax for current depth
@@ -417,28 +416,22 @@ Move search(Position &pos, searchParams params)
                 break;
             }
 
-            if(searchScore < alpha)
+            if(searchScore <= alpha)
             {
-                alpha = max(-(int)CHECKMATE, alpha - aspirationWindowMargin);
+                alpha = max(-(scoreType)CHECKMATE, alpha - aspirationWindowMargin);
                 continue;
             }
 
-            if(searchScore > beta)
+            if(searchScore >= beta)
             {
-                beta = min((int)CHECKMATE, beta + aspirationWindowMargin);
+                beta = min((scoreType)CHECKMATE, beta + aspirationWindowMargin);
                 continue;
             }
             break;
         }
-        // for(int i=0; i < PVMain.length; i++)
-        // {
-        //     cout << moveToUci(PVMain.list[i]) << " ";
-        // }
-        // cout<<endl;
         bestMoveSoFar = PVMain.list[0];
-        // cout<<moveToUci(bestMoveSoFar)<<endl;
 
-        aspirationWindowMargin += 10;
+        aspirationWindowMargin += 10 * evalScale;
 
         searchScore = negamax(depth, 0, alpha, beta, color, pos, PVMain, params);
 
@@ -447,11 +440,23 @@ Move search(Position &pos, searchParams params)
 
 
         //Print only info from full depths
-        if((chrono::duration_cast<chrono::milliseconds>(end - start).count() < params.timeLimit) && !isCancelled)
+        if((chrono::duration_cast<chrono::milliseconds>(end - start).count() < params.timeLimit) /*&& !isCancelled*/)
         {
             int mili = chrono::duration_cast<chrono::milliseconds>(end - start).count();
             std::cout << "info depth " << depth;
-            std::cout << " score cp " << searchScore;
+            if(abs(searchScore) > (CHECKMATE - 100))
+            {
+                if(searchScore > 0)
+                {
+                    std::cout << " score mate "<< (CHECKMATE - searchScore) / 2 + 1;
+                }else
+                {
+                    std::cout << " score mate -"<< (searchScore + CHECKMATE) / 2 + 1;
+                }
+            }else
+            {
+                std::cout << " score cp " << (int)searchScore / evalScale;
+            }
             std::cout << " nodes " << nodesCount;
             std::cout << " nps " << (int)(1000 * (nodesCount / (1 + mili)));
             std::cout << " time " << mili;
@@ -470,8 +475,6 @@ Move search(Position &pos, searchParams params)
                     std::cout<<" ";
                 }
             }
-            // std::cout<<" pvb "<<PVMain.length;
-            // clearPV(depth);
             std::cout<<endl;
             //
             //          END OF PV SEGMENT
@@ -515,7 +518,7 @@ Move search(Position &pos, searchParams params)
         // Save each collected position with label from STM's perspective
         for (auto& state : pos.datagenPositions)
         {
-            savePosition(state, label*color);
+            savePosition(state, label*color, pos);
         }
 
         // Clear stored positions
@@ -547,7 +550,7 @@ bool isRepeated(Position &pos)
 
 
 
-int quiescence(int depth, int ply, int alpha, int beta, int color,
+scoreType quiescence(int depth, int ply, scoreType alpha, scoreType beta, int color,
                      Position &pos, principalVariation& PV, searchParams& params)
 {
     // Initialize a new flag for the type of bound (Upper Bound by default)
@@ -571,17 +574,25 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
             transpositionMove = entry.bestMove; // Use the best move from the transposition table
 
             // If the stored score is usable (exact score or bound-based pruning)
-            if ((entry.type == EXACT_SCORE) ||
-                ((entry.type == LOWER_BOUND) && (entry.score >= beta)) ||
-                ((entry.type == UPPER_BOUND) && (entry.score < alpha)))
+            //Check for node type (matching ab window) (cutoff) (fail low)
+            if ((entry.type == EXACT_SCORE) || ((entry.type == LOWER_BOUND) && (entry.score >= beta)) || ((entry.type == UPPER_BOUND) && (entry.score <= alpha)))
             {
-                return entry.score; // Return the stored score
+                scoreType score = entry.score;
+                if(entry.score > (CHECKMATE - 100))
+                {
+                    score = entry.score - ply;
+                } 
+                if(entry.score < (-CHECKMATE + 100))
+                {
+                    score = entry.score + ply;
+                }
+                return score;
             }
         }
     }
 
     // Perform a static evaluation of the position
-    int evaluation = evaluate(pos);
+    scoreType evaluation = evaluate(pos);
 
     // Beta cutoff: if the evaluation is greater than or equal to beta, return the evaluation
     if (evaluation >= beta)
@@ -639,7 +650,7 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
     // Initialize best move and best score with the evaluation from static evaluation
     // If there is no moves the first one will be zero which means end of the list
     Move bestMove = moveList.moveList[0];
-    int best = evaluation;
+    scoreType best = evaluation;
 
     // Iterate through all moves in the move list
     for (Move m : moveList)
@@ -662,7 +673,7 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
         pos.makeMove(m);
 
         // Recursively call quiescence search with negated scores and swapped bounds
-        int value = -quiescence(depth - 1, ply + 1, -beta, -alpha, -color, pos, tempVar, params);
+        scoreType value = -quiescence(depth - 1, ply + 1, -beta, -alpha, -color, pos, tempVar, params);
 
         // Undo the move after evaluation
         pos.undoMove(m);
@@ -686,16 +697,16 @@ int quiescence(int depth, int ply, int alpha, int beta, int color,
                 alpha = best;
                 newFlag = EXACT_SCORE; // Update flag to exact score
 
-                PV.length = 1 + tempVar.length;
-                PV.list[0] = bestMove;
+                // PV.length = 1 + tempVar.length;
+                // PV.list[0] = bestMove;
 
-                for(int i=0; i < tempVar.length; i++)
-                {
-                    if(i+1 < MAX_DEPTH)
-                    {
-                        PV.list[1+i] = tempVar.list[i];
-                    }
-                }
+                // for(int i=0; i < tempVar.length; i++)
+                // {
+                    // if(i+1 < MAX_DEPTH)
+                    // {
+                        // PV.list[1+i] = tempVar.list[i];
+                    // }
+                // }
             }
         }
 
@@ -722,13 +733,13 @@ void saveState(Position &pos)
     pos.datagenPositions.push_back(pos.getState());
 }
 
-void savePosition(std::array<int, INPUT_SIZE> state, float target) 
+void savePosition(std::array<int, INPUT_SIZE> state, float target, Position& pos) 
 {
     // Open file in binary mode
-    std::ofstream file("binary_data.bin", std::ios::binary | std::ios::app);
+    std::ofstream file(pos.datagenFile, std::ios::binary | std::ios::app);
 
     if (!file) {
-        std::cerr << "Nie można otworzyć pliku do zapisu: " << "binary_data.bin" << std::endl;
+        std::cerr << "Nie można otworzyć pliku do zapisu: " << pos.datagenFile << std::endl;
         return;
     }
 

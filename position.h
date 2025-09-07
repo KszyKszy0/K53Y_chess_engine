@@ -74,4 +74,7 @@ class Position
 
     //Return current state to save position during datagen
     std::array<int, INPUT_SIZE> getState();
+
+    //File to put generated positions
+    string datagenFile;
 };

@@ -85,4 +85,7 @@ public:
     
     // Updates weights of net
     void readWeights(string path = "NNUE.txt");
+
+    // Updates weights of net
+    void setDatagenFile(string path = "binary_data.bin");
 };
